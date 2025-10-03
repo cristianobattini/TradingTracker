@@ -1,0 +1,2 @@
+- "anakin" hashed
+$2b$12$P/QC9WmWFpPLTbTFJUTTkeSsTHMKRrsWKx4G1U3cc8ABnH0t6gNdK

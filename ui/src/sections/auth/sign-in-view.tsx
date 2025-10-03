@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
@@ -8,12 +7,11 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
-
 import { useRouter } from 'src/routes/hooks';
-
 import { Iconify } from 'src/components/iconify';
 import { Snackbar } from '@mui/material';
 import { loginLoginPost } from 'src/client';
+import { setLocalStorageItem } from 'src/services/local-storage-service';
 
 // ----------------------------------------------------------------------
 
@@ -25,33 +23,45 @@ export function SignInView() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignIn = useCallback(async () => {
-    console.log(username, password)
+  const handleSubmit = useCallback(async (e: any) => {
+    e.preventDefault(); // Prevent default form submission behavior
+    
+    console.log(username, password);
     const response = await loginLoginPost({
       body: {
         username: username,
         password: password
       }
-    })
+    });
+    
     if (response.error) {
-      setError('Login failed.')
-      console.log(response)
+      const detail = response.error.detail;
+      let errorMessage = "Login failed";
+      if (Array.isArray(detail) && typeof detail[0] === "string") {
+        errorMessage = detail[0];
+      } else if (typeof detail === "string") {
+        errorMessage = detail;
+      }
+      setError(errorMessage);
+      console.log(response);
     } else {
-      console.log('/login', response.data)
+      setLocalStorageItem('accessToken', response.data.access_token);
       router.push('/');
     }
-  }, [router]);
+  }, [username, password, router]);
 
   function handleChangeUsername(e: any) {
-    setUsername(e.target.value)
+    setUsername(e.target.value);
   }
 
   function handleChangePassword(e: any) {
-    setPassword(e.target.value)
+    setPassword(e.target.value);
   }
 
   const renderForm = (
     <Box
+      component="form" 
+      onSubmit={handleSubmit}
       sx={{
         display: 'flex',
         alignItems: 'flex-end',
@@ -69,11 +79,8 @@ export function SignInView() {
         slotProps={{
           inputLabel: { shrink: true },
         }}
+        required 
       />
-
-      {/*       <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
-        Forgot password?
-      </Link> */}
 
       <TextField
         fullWidth
@@ -96,15 +103,15 @@ export function SignInView() {
           },
         }}
         sx={{ mb: 3 }}
+        required 
       />
 
       <Button
         fullWidth
         size="large"
-        type="submit"
+        type="submit" 
         color="inherit"
         variant="contained"
-        onClick={handleSignIn}
       >
         Sign in
       </Button>
@@ -123,47 +130,15 @@ export function SignInView() {
         }}
       >
         <Typography variant="h5">Sign in</Typography>
-        {/*         <Typography
-          variant="body2"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
-          Don’t have an account?
-          <Link variant="subtitle2" sx={{ ml: 0.5 }}>
-            Get started
-          </Link>
-        </Typography> */}
       </Box>
       {renderForm}
-      {/*       <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
-        <Typography
-          variant="overline"
-          sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
-        >
-          OR
-        </Typography>
-      </Divider>
-      <Box
-        sx={{
-          gap: 1,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:google" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:github" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:twitter" />
-        </IconButton>
-      </Box> */}
 
-      <Snackbar open={error != ''} autoHideDuration={3000}
-        message={error}></Snackbar>
+      <Snackbar 
+        open={error !== ''} 
+        autoHideDuration={3000}
+        onClose={() => setError('')}
+        message={error}
+      />
     </>
   );
 }

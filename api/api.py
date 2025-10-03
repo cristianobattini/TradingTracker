@@ -5,7 +5,7 @@ from datetime import timedelta
 from database import Base, SessionLocal, engine
 from models import User, Trade
 from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse
-from auth import AuthService
+from auth import AuthService, oauth2_scheme 
 import os
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -36,13 +36,18 @@ def get_db():
 def get_auth_service(db: Session = Depends(get_db)):
     return AuthService(db)
 
-def get_current_active_user(
-    auth_service: AuthService = Depends(get_auth_service)
+def get_current_user(
+    auth_service: AuthService = Depends(get_auth_service),
+    token: str = Depends(oauth2_scheme)
 ):
-    user = auth_service.get_current_user()
-    if not user.valid:
+    return auth_service.get_current_user(token)
+
+def get_current_active_user(
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user.valid:
         raise HTTPException(status_code=400, detail="Inactive user")
-    return user
+    return current_user
 
 def require_admin(
     current_user: User = Depends(get_current_active_user)
@@ -86,16 +91,15 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), auth_service: AuthSe
 
 # --- Get current user ---
 @app.get("/users/me", response_model=UserResponse)
-def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+def read_users_me(accessToken: str):
+    return get_current_user(accessToken)
 
 # --- Create trade ---
 @app.post("/trades/", response_model=TradeResponse)
 def create_trade(
     trade: TradeCreate,
     db: Session = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user)
 ):
     db_trade = Trade(**trade.dict(), owner_id=current_user.id)
     db.add(db_trade)
@@ -107,7 +111,7 @@ def create_trade(
 @app.get("/trades/", response_model=list[TradeResponse])
 def list_trades(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user)
 ):
     return db.query(Trade).filter(Trade.owner_id == current_user.id).all()
 
@@ -115,7 +119,7 @@ def list_trades(
 @app.get("/report/", response_model=ReportResponse)
 def get_report(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user)
 ):
     trades = db.query(Trade).filter(Trade.owner_id == current_user.id, Trade.cancelled == False).all()
     total_profit = sum(t.profit_or_loss for t in trades if t.profit_or_loss > 0)

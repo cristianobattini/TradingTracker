@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 
 import Fab from '@mui/material/Fab';
 
-import { usePathname } from 'src/routes/hooks';
+import { usePathname, useRouter } from 'src/routes/hooks';
 
 import { ThemeProvider } from 'src/theme/theme-provider';
 
 import { Iconify } from 'src/components/iconify';
+
+import { readUsersMeUsersMeGet } from 'src/client';
 
 // ----------------------------------------------------------------------
 
@@ -18,6 +20,15 @@ type AppProps = {
 
 export default function App({ children }: AppProps) {
   useScrollToTop();
+  const router = useRouter();
+
+  useEffect(() => {
+    readUsersMeUsersMeGet().then((response) => {
+      if (response.error) {
+        router.push('/sign-in');
+      }
+    });
+  }, []);
 
   const githubButton = () => (
     <Fab

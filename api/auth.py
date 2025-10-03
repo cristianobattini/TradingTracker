@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 import os
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from models import User
 from database import SessionLocal
@@ -16,14 +16,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 class AuthService:
     def __init__(self, db: Session):
         self.db = db
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     # --- Password ---
     def verify_password(self, plain_password, hashed_password):
-        return self.pwd_context.verify(plain_password, hashed_password)
+        bytes = plain_password.encode('utf-8')
+
+        return bcrypt.checkpw(bytes, hashed_password.encode('utf-8'))
 
     def get_password_hash(self, password):
-        return self.pwd_context.hash(password)
+        bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(bytes, salt).decode('utf-8')
 
     # --- Users ---
     def get_user(self, username: str):
@@ -60,12 +63,7 @@ class AuthService:
             raise credentials_exception
         return user
 
-    def get_current_active_user(self, current_user: User = Depends(get_current_user)):
-        if not current_user.valid:
-            raise HTTPException(status_code=400, detail="Inactive user")
-        return current_user
-
-    def require_admin(self, current_user: User = Depends(get_current_active_user)):
+    def require_admin(self, current_user: User = Depends(get_current_user)):
         if current_user.role != "admin":
             raise HTTPException(status_code=403, detail="Not enough permissions")
         return current_user
