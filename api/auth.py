@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import os
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import bcrypt
 import jwt
@@ -20,7 +20,6 @@ class AuthService:
     # --- Password ---
     def verify_password(self, plain_password, hashed_password):
         bytes = plain_password.encode('utf-8')
-
         return bcrypt.checkpw(bytes, hashed_password.encode('utf-8'))
 
     def get_password_hash(self, password):
@@ -45,7 +44,7 @@ class AuthService:
         encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
         return encoded_jwt
 
-    def get_current_user(self, token: str = Depends(oauth2_scheme)):
+    def get_current_user(self, token: str):  
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -62,8 +61,3 @@ class AuthService:
         if user is None:
             raise credentials_exception
         return user
-
-    def require_admin(self, current_user: User = Depends(get_current_user)):
-        if current_user.role != "admin":
-            raise HTTPException(status_code=403, detail="Not enough permissions")
-        return current_user

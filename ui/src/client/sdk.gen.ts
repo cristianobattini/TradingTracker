@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CreateTradeTradesPostData, CreateTradeTradesPostErrors, CreateTradeTradesPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, GetReportReportGetData, GetReportReportGetResponses, ListTradesTradesGetData, ListTradesTradesGetResponses, LoginLoginPostData, LoginLoginPostErrors, LoginLoginPostResponses, ReadUsersMeUsersMeGetData, ReadUsersMeUsersMeGetErrors, ReadUsersMeUsersMeGetResponses } from './types.gen';
+import type { CreateTradeTradesPostData, CreateTradeTradesPostErrors, CreateTradeTradesPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, GetReportReportGetData, GetReportReportGetResponses, ListTradesTradesGetData, ListTradesTradesGetResponses, LoginLoginPostData, LoginLoginPostErrors, LoginLoginPostResponses, ReadUsersMeUsersMeGetData, ReadUsersMeUsersMeGetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -56,8 +56,14 @@ export const loginLoginPost = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Read Users Me
  */
-export const readUsersMeUsersMeGet = <ThrowOnError extends boolean = false>(options: Options<ReadUsersMeUsersMeGetData, ThrowOnError>) => {
-    return (options.client ?? client).get<ReadUsersMeUsersMeGetResponses, ReadUsersMeUsersMeGetErrors, ThrowOnError>({
+export const readUsersMeUsersMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReadUsersMeUsersMeGetData, ThrowOnError>) => {
+    return (options?.client ?? client).get<ReadUsersMeUsersMeGetResponses, unknown, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
         url: '/users/me',
         ...options
     });

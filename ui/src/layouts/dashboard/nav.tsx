@@ -141,6 +141,9 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
             {data.map((item) => {
               const isActived = item.path === pathname;
 
+              if(item.enabled != true) 
+                return;
+              
               return (
                 <ListItem disableGutters disablePadding key={item.title}>
                   <ListItemButton

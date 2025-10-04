@@ -1,19 +1,15 @@
 import { useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useRouter } from 'src/routes/hooks';
 import { Iconify } from 'src/components/iconify';
-import { Snackbar } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 import { loginLoginPost } from 'src/client';
 import { setLocalStorageItem } from 'src/services/local-storage-service';
-
-// ----------------------------------------------------------------------
 
 export function SignInView() {
   const router = useRouter();
@@ -22,41 +18,74 @@ export function SignInView() {
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = useCallback(async (e: any) => {
-    e.preventDefault(); // Prevent default form submission behavior
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    console.log(username, password);
-    const response = await loginLoginPost({
-      body: {
-        username: username,
-        password: password
+    if (!username.trim() || !password.trim()) {
+      setError('Please enter both username and password');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Pass username and password as an object as expected by the API client
+      const response = await loginLoginPost({
+        body: {
+          username,
+          password,
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      if (response.error) {
+        const detail = response.error.detail;
+        let errorMessage = "Login failed";
+        
+        if (Array.isArray(detail) && typeof detail[0] === "string") {
+          errorMessage = detail[0];
+        } else if (typeof detail === "string") {
+          errorMessage = detail;
+        }
+        
+        setError(errorMessage);
+      } else {
+        const token = response.data?.access_token;
+        const role = response.data?.role;
+        if (token) {
+          setLocalStorageItem('accessToken', token);
+          setLocalStorageItem('role', role || 'user');
+          router.push('/');
+        } else {
+          setError('No access token received');
+        }
       }
-    });
-    
-    if (response.error) {
-      const detail = response.error.detail;
-      let errorMessage = "Login failed";
-      if (Array.isArray(detail) && typeof detail[0] === "string") {
-        errorMessage = detail[0];
-      } else if (typeof detail === "string") {
-        errorMessage = detail;
-      }
-      setError(errorMessage);
-      console.log(response);
-    } else {
-      setLocalStorageItem('accessToken', response.data.access_token);
-      router.push('/');
+    } catch (err: any) {
+      console.error('Login exception:', err);
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
   }, [username, password, router]);
 
-  function handleChangeUsername(e: any) {
+  const handleChangeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
-  }
+    if (error) setError('');
+  };
 
-  function handleChangePassword(e: any) {
+  const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-  }
+    if (error) setError('');
+  };
+
+  const handleCloseError = () => {
+    setError('');
+  };
 
   const renderForm = (
     <Box
@@ -79,6 +108,7 @@ export function SignInView() {
         slotProps={{
           inputLabel: { shrink: true },
         }}
+        disabled={isLoading}
         required 
       />
 
@@ -86,16 +116,21 @@ export function SignInView() {
         fullWidth
         name="password"
         label="Password"
-        placeholder='traderpwd!?'
+        placeholder="traderpwd!?"
         value={password}
         onChange={handleChangePassword}
         type={showPassword ? 'text' : 'password'}
+        disabled={isLoading}
         slotProps={{
           inputLabel: { shrink: true },
           input: {
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                <IconButton 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  edge="end"
+                  disabled={isLoading}
+                >
                   <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
                 </IconButton>
               </InputAdornment>
@@ -109,11 +144,16 @@ export function SignInView() {
       <Button
         fullWidth
         size="large"
-        type="submit" 
+        type="submit"
         color="inherit"
         variant="contained"
+        disabled={isLoading}
+        sx={{ 
+          mb: 2,
+          opacity: isLoading ? 0.7 : 1 
+        }}
       >
-        Sign in
+        {isLoading ? 'Signing in...' : 'Sign in'}
       </Button>
     </Box>
   );
@@ -135,10 +175,19 @@ export function SignInView() {
 
       <Snackbar 
         open={error !== ''} 
-        autoHideDuration={3000}
-        onClose={() => setError('')}
-        message={error}
-      />
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseError} 
+          severity="error" 
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

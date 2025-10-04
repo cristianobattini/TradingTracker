@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
 class TokenSchema(BaseModel):
     access_token: str
     token_type: str
+    role: RoleEnum
 
 # --- Trades ---
 class TradeCreate(BaseModel):

@@ -10,13 +10,57 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
-app = FastAPI()
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from datetime import timedelta
+from database import Base, SessionLocal, engine
+from models import User, Trade
+from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse
+from auth import AuthService
+import os
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Trading API",
+    description="A trading platform API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title="Trading API",
+        version="1.0.0",
+        description="A trading platform API",
+        routes=app.routes,
+    )
+    
+    openapi_schema["components"]["securitySchemes"] = {
+        "OAuth2PasswordBearer": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    }
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 origins = [
     "http://localhost:3039",
     "localhost:3039"
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,6 +68,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- OAuth2 Scheme ---
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# ... rest of your dependencies and routes remain the same ...
 
 # --- Dependencies ---
 def get_db():
@@ -37,8 +86,8 @@ def get_auth_service(db: Session = Depends(get_db)):
     return AuthService(db)
 
 def get_current_user(
-    auth_service: AuthService = Depends(get_auth_service),
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(oauth2_scheme),
+    auth_service: AuthService = Depends(get_auth_service)
 ):
     return auth_service.get_current_user(token)
 
@@ -81,18 +130,28 @@ def create_user(
 
 # --- Login ---
 @app.post("/login", response_model=TokenSchema)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), auth_service: AuthService = Depends(get_auth_service)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    auth_service: AuthService = Depends(get_auth_service)
+):
     user = auth_service.authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)))
-    access_token = auth_service.create_access_token({"sub": user.username}, access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = auth_service.create_access_token(
+        data={"sub": user.username}, 
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role}
 
 # --- Get current user ---
 @app.get("/users/me", response_model=UserResponse)
-def read_users_me(accessToken: str):
-    return get_current_user(accessToken)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 # --- Create trade ---
 @app.post("/trades/", response_model=TradeResponse)

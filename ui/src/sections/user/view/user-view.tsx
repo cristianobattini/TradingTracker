@@ -9,7 +9,6 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -31,14 +30,14 @@ export function UserView() {
 
   const [filterName, setFilterName] = useState('');
 
-  const dataFiltered: UserProps[] = applyFilter({
+/*   const dataFiltered: UserProps[] = applyFilter({
     inputData: _users,
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
-
-  const notFound = !dataFiltered.length && !!filterName;
-
+ */
+/*   const notFound = !dataFiltered.length && !!filterName;
+ */
   return (
     <DashboardContent>
       <Box
@@ -73,7 +72,7 @@ export function UserView() {
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
-              <UserTableHead
+              {/* <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
                 rowCount={_users.length}
@@ -93,8 +92,8 @@ export function UserView() {
                   { id: 'status', label: 'Status' },
                   { id: '' },
                 ]}
-              />
-              <TableBody>
+              /> */}
+{/*               <TableBody>
                 {dataFiltered
                   .slice(
                     table.page * table.rowsPerPage,
@@ -115,12 +114,12 @@ export function UserView() {
                 />
 
                 {notFound && <TableNoData searchQuery={filterName} />}
-              </TableBody>
+              </TableBody> */}
             </Table>
           </TableContainer>
         </Scrollbar>
 
-        <TablePagination
+{/*         <TablePagination
           component="div"
           page={table.page}
           count={_users.length}
@@ -128,7 +127,7 @@ export function UserView() {
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={table.onChangeRowsPerPage}
-        />
+        /> */}
       </Card>
     </DashboardContent>
   );
