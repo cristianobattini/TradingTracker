@@ -160,9 +160,6 @@ echo ""
 echo "=== GENERAZIONE MODELLI TYPESCRIPT ==="
 cd "$FRONTEND_PATH" || exit_with_error "Directory frontend non trovata"
 
-# Crea la directory se non esiste
-mkdir -p "./src/client"
-
 # First, let's check if the OpenAPI spec is accessible
 echo "Controllando la specifica OpenAPI..."
 if curl -s -f "http://localhost:8000/openapi.json" > /dev/null; then
@@ -172,6 +169,8 @@ else
 fi
 
 echo "Generando modelli TypeScript da OpenAPI..."
+
+rm -rf "./src/client"
 
 # Approach 1: Standard generation
 if npx @hey-api/openapi-ts@latest -i "http://localhost:8000/openapi.json" -o "./src/client" --silent; then
