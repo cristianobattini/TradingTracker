@@ -1,5 +1,3 @@
-import type { ThemeProviderProps as MuiThemeProviderProps } from '@mui/material/styles';
-
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider as ThemeVarsProvider } from '@mui/material/styles';
 
@@ -10,8 +8,10 @@ import type { ThemeOptions } from './types';
 
 // ----------------------------------------------------------------------
 
-export type ThemeProviderProps = Partial<MuiThemeProviderProps> & {
+export type ThemeProviderProps = {
   themeOverrides?: ThemeOptions;
+  children?: React.ReactNode;
+  [key: string]: any;
 };
 
 export function ThemeProvider({ themeOverrides, children, ...other }: ThemeProviderProps) {

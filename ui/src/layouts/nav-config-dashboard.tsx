@@ -23,6 +23,12 @@ export const navData = [
     icon: icon('ic-analytics'),
   },
   {
+    title: 'Trades',
+    enabled: true,
+    path: '/trades',
+    icon: icon('ic-analytics'),
+  },
+  {
     title: 'User',
     enabled: getLocalStorageItem('role') == 'admin',
     path: '/user',

@@ -319,9 +319,10 @@ export type GetUsersUsersGetData = {
 
 export type GetUsersUsersGetResponses = {
     /**
+     * Response Get Users Users  Get
      * Successful Response
      */
-    200: UserResponse;
+    200: Array<UserResponse>;
 };
 
 export type GetUsersUsersGetResponse = GetUsersUsersGetResponses[keyof GetUsersUsersGetResponses];

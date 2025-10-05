@@ -144,12 +144,17 @@ export function OverviewAnalyticsView() {
         <Grid2 size={{ xs: 12, md: 8, lg: 9 }}>
           <TradingCapitalGrowth
             title="Capital Growth"
-            data={[
-              { date: '2025-09-01', capital: 10000 },
-              { date: '2025-09-15', capital: 10500 },
-              { date: '2025-10-01', capital: 11200 },
-              { date: '2025-10-05', capital: 15000 },
-            ]}
+            data={
+              trades.reduce<{ date: string; capital: number }[]>((acc, trade) => {
+          const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : report?.capital ?? 0;
+          const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
+          acc.push({
+            date: trade.date ?? '',
+            capital: newCapital,
+          });
+          return acc;
+              }, [])
+            }
           />
         </Grid2>
 

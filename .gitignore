@@ -5,3 +5,4 @@
 ./api/venv
 ./ui/node_modules
 ./NOTES.md
+node_modules

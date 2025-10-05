@@ -52,7 +52,14 @@ export function UserView() {
     getUsersUsersGet()
       .then((response) => {
         if (mounted) {
-          setUsers(Array.isArray(response.data) ? response.data : []);
+          setUsers(
+            Array.isArray(response.data)
+              ? response.data.map((user) => ({
+                  ...user,
+                  id: String(user.id),
+                }))
+              : []
+          );
         }
       })
       .catch(() => {
@@ -70,7 +77,14 @@ export function UserView() {
     setLoading(true);
     getUsersUsersGet()
       .then((response) => {
-        setUsers(Array.isArray(response.data) ? response.data : []);
+        return setUsers(
+          Array.isArray(response.data)
+            ? response.data.map((user) => ({
+                ...user,
+                id: String(user.id),
+              }))
+            : []
+        );
       })
       .catch(() => {
         setUsers([]);

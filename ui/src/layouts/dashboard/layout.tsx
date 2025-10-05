@@ -75,7 +75,7 @@ export function DashboardLayout({
       rightArea: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
           {/** @slot Searchbar */}
-          <Searchbar />
+{/*           <Searchbar /> */}
 
           {/** @slot Language popover */}
           {/*<LanguagePopover data={_langs} />*/}
