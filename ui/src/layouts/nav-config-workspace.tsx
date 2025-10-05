@@ -1,4 +1,4 @@
-import type { WorkspacesPopoverProps } from './components/workspaces-popover';
+import type { WorkspacesPopoverProps } from './components/user-card';
 
 // ----------------------------------------------------------------------
 

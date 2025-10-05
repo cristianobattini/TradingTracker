@@ -7,7 +7,6 @@ import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -22,6 +21,10 @@ import { UserTableToolbar } from '../user-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 import type { UserProps } from '../user-table-row';
+import { getUsersUsersGet, UserResponse } from 'src/client';
+import { useEffect } from 'react';
+import CreateUserModal from './create-user-modal';
+import { Snackbar, Alert } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -29,15 +32,62 @@ export function UserView() {
   const table = useTable();
 
   const [filterName, setFilterName] = useState('');
+  const [users, setUsers] = useState<UserProps[]>([]);
+  const [loading, setLoading] = useState(true);
 
-/*   const dataFiltered: UserProps[] = applyFilter({
-    inputData: _users,
+  const [modalOpen, setModalOpen] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '' });
+
+  const handleUserCreated = (newUser: UserResponse) => {
+    setNotification({
+      open: true,
+      message: `User "${newUser.username}" created successfully!`,
+    });
+    refreshUsers();
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    getUsersUsersGet()
+      .then((response) => {
+        if (mounted) {
+          setUsers(Array.isArray(response.data) ? response.data : []);
+        }
+      })
+      .catch(() => {
+        if (mounted) setUsers([]);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const refreshUsers = () => {
+    setLoading(true);
+    getUsersUsersGet()
+      .then((response) => {
+        setUsers(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setUsers([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const dataFiltered: UserProps[] = applyFilter({
+    inputData: users,
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
- */
-/*   const notFound = !dataFiltered.length && !!filterName;
- */
+
+  const notFound = !dataFiltered.length && !!filterName;
+
   return (
     <DashboardContent>
       <Box
@@ -54,10 +104,17 @@ export function UserView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={() => setModalOpen(true)}
         >
           New user
         </Button>
       </Box>
+
+      <CreateUserModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onUserCreated={handleUserCreated}
+      />
 
       <Card>
         <UserTableToolbar
@@ -72,67 +129,71 @@ export function UserView() {
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
-              {/* <UserTableHead
+              <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={users.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    _users.map((user) => user.id)
+                    users.map((user) => user.id)
                   )
                 }
                 headLabel={[
-                  { id: 'name', label: 'Name' },
-                  { id: 'company', label: 'Company' },
+                  { id: 'username', label: 'Username' },
+                  { id: 'email', label: 'Email' },
                   { id: 'role', label: 'Role' },
-                  { id: 'isVerified', label: 'Verified', align: 'center' },
-                  { id: 'status', label: 'Status' },
+                  { id: 'inital_capital', label: 'Initial Capital', align: 'center' },
                   { id: '' },
                 ]}
-              /> */}
-{/*               <TableBody>
-                {dataFiltered
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row) => (
-                    <UserTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                    />
-                  ))}
+              />
+              <TableBody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6}>
+                      <Typography align="center">Loading...</Typography>
+                    </td>
+                  </tr>
+                ) : (
+                  dataFiltered
+                    .slice(
+                      table.page * table.rowsPerPage,
+                      table.page * table.rowsPerPage + table.rowsPerPage
+                    )
+                    .map((row) => (
+                      <UserTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                      />
+                    ))
+                )}
 
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, users.length)}
                 />
 
                 {notFound && <TableNoData searchQuery={filterName} />}
-              </TableBody> */}
+              </TableBody>
             </Table>
           </TableContainer>
         </Scrollbar>
-
-{/*         <TablePagination
-          component="div"
-          page={table.page}
-          count={_users.length}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
-          rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
-        /> */}
       </Card>
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+      >
+        <Alert severity="success">{notification.message}</Alert>
+      </Snackbar>
     </DashboardContent>
   );
 }
-
 // ----------------------------------------------------------------------
 
 export function useTable() {

@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -127,6 +128,16 @@ def create_user(
     db.commit()
     db.refresh(user)
     return user
+
+# --- User fetch by admin ---
+@app.get("/users/", response_model=List[UserResponse])
+def get_users(
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
+    current_admin: User = Depends(require_admin),
+):
+    users = db.query(User).all()
+    return users
 
 # --- Login ---
 @app.post("/login", response_model=TokenSchema)

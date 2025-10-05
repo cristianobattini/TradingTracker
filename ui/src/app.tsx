@@ -24,6 +24,10 @@ type AppProps = {
 
 client.setConfig({
   baseUrl: 'http://0.0.0.0:8000/',
+  auth: (auth) => {
+    const token = getLocalStorageItem('accessToken');
+    return token ? `${token}` : undefined;
+  }
 });
 
 

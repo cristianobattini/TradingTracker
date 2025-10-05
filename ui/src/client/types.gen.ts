@@ -310,6 +310,22 @@ export type ValidationError = {
     type: string;
 };
 
+export type GetUsersUsersGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/';
+};
+
+export type GetUsersUsersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type GetUsersUsersGetResponse = GetUsersUsersGetResponses[keyof GetUsersUsersGetResponses];
+
 export type CreateUserUsersPostData = {
     body: UserCreate;
     path?: never;

@@ -17,12 +17,10 @@ import { Iconify } from 'src/components/iconify';
 
 export type UserProps = {
   id: string;
-  name: string;
+  username: string;
+  email: string;
   role: string;
-  status: string;
-  company: string;
-  avatarUrl: string;
-  isVerified: boolean;
+  initial_capital: number;
 };
 
 type UserTableRowProps = {
@@ -45,9 +43,9 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
+{/*         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
-        </TableCell>
+        </TableCell> */}
 
         <TableCell component="th" scope="row">
           <Box
@@ -57,25 +55,16 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
               alignItems: 'center',
             }}
           >
-            <Avatar alt={row.name} src={row.avatarUrl} />
-            {row.name}
+            {row.username}
           </Box>
         </TableCell>
 
-        <TableCell>{row.company}</TableCell>
+        <TableCell>{row.email}</TableCell>
 
         <TableCell>{row.role}</TableCell>
 
         <TableCell align="center">
-          {row.isVerified ? (
-            <Iconify width={22} icon="solar:check-circle-bold" sx={{ color: 'success.main' }} />
-          ) : (
-            '-'
-          )}
-        </TableCell>
-
-        <TableCell>
-          <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
+          {row.initial_capital}€
         </TableCell>
 
         <TableCell align="right">

@@ -1,155 +1,259 @@
-import Grid from '@mui/material/Grid';
+import Grid2 from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { AnalyticsNews } from '../analytics-news';
-import { AnalyticsTasks } from '../analytics-tasks';
-import { AnalyticsCurrentVisits } from '../analytics-current-visits';
-import { AnalyticsOrderTimeline } from '../analytics-order-timeline';
-import { AnalyticsWebsiteVisits } from '../analytics-website-visits';
-import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
-import { AnalyticsTrafficBySite } from '../analytics-traffic-by-site';
-import { AnalyticsCurrentSubject } from '../analytics-current-subject';
-import { AnalyticsConversionRates } from '../analytics-conversion-rates';
+interface PerformanceMetrics {
+  totalTrades: number;
+  executedTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  cancelledTrades: number;
+  winRate: number;
+  totalProfit: number;
+  totalLoss: number;
+  netProfit: number;
+  currentCapital: number;
+}
+
+// Import trading-specific components
+import { TradingRecentTrades } from '../trading-recent-trades';
+import { TradingPerformanceSummary } from '../trading-performance-summary';
+import { TradingWinLossChart } from '../trading-win-loss-chart';
+import { getReportReportGet, listTradesTradesGet, ReportResponse, TradeResponse } from 'src/client';
+import { TradingCapitalGrowth } from '../trading-capital-growth';
+import { TradingPairsDistribution } from '../trading-pairs-distribution';
+import { TradingSystemPerformance } from '../trading-system-performance';
+import { Iconify } from 'src/components/iconify';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Snackbar } from '@mui/material';
+import { AddTradeModal } from '../add-trade-modal';
 
 // ----------------------------------------------------------------------
 
 export function OverviewAnalyticsView() {
+  const [trades, setTrades] = useState<TradeResponse[]>([]);
+  const [report, setReport] = useState<ReportResponse>();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '' });
+
+  useEffect(() => {
+    listTradesTradesGet()
+      .then((response) => {
+        if (response.data) {
+          setTrades(Array.isArray(response.data) ? response.data : []);
+        } else {
+          setTrades([]);
+        }
+      })
+      .catch(() => {
+        setTrades([]);
+      });
+
+    getReportReportGet()
+      .then((response) => {
+        setReport(response.data);
+      })
+      .catch(() => {
+        setReport(undefined);
+      });
+  }, []);
+
+  // Calculate additional metrics from trades
+  const winningTrades = trades.filter((trade) => trade.profit_or_loss > 0 && !trade.cancelled);
+  const losingTrades = trades.filter((trade) => trade.profit_or_loss < 0 && !trade.cancelled);
+  const cancelledTrades = trades.filter((trade) => trade.cancelled);
+
+  const performanceMetrics: PerformanceMetrics = {
+    totalTrades: trades.length,
+    executedTrades: trades.filter((trade) => !trade.cancelled).length,
+    winningTrades: winningTrades.length,
+    losingTrades: losingTrades.length,
+    cancelledTrades: cancelledTrades.length,
+    winRate:
+      winningTrades.length + losingTrades.length > 0
+        ? (winningTrades.length / (winningTrades.length + losingTrades.length)) * 100
+        : 0,
+    totalProfit: report?.total_profit ?? 0,
+    totalLoss: report?.total_loss ?? 0,
+    netProfit: (report?.total_profit ?? 0) + (report?.total_loss ?? 0),
+    currentCapital: report?.capital ?? 0,
+  };
+
   return (
     <DashboardContent maxWidth="xl">
-      <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-        Hi, Welcome back 👋
-      </Typography>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 20,
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
+          Trading Dashboard 📈
+        </Typography>
 
-      <Grid container spacing={3}>
-        {/* <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <AnalyticsWidgetSummary
-            title="Weekly sales"
-            percent={2.6}
-            total={714000}
-            icon={<img alt="Weekly sales" src="/assets/icons/glass/ic-glass-bag.svg" />}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [22, 8, 35, 50, 82, 84, 77, 12],
-            }}
+        <Button variant="contained" onClick={() => setModalOpen(true)} startIcon={<span>+</span>}>
+          Add New Trade
+        </Button>
+      </div>
+
+      <Grid2 container spacing={3}>
+        {/* Performance Summary Cards */}
+        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+          <TradingPerformanceSummary
+            title="Net Profit"
+            value={performanceMetrics.netProfit}
+            currency="$"
+            color={performanceMetrics.netProfit >= 0 ? 'success' : 'error'}
+            icon={<Iconify width={24} icon="eva:trending-up-fill" />}
           />
-        </Grid>
+        </Grid2>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <AnalyticsWidgetSummary
-            title="New users"
-            percent={-0.1}
-            total={1352831}
-            color="secondary"
-            icon={<img alt="New users" src="/assets/icons/glass/ic-glass-users.svg" />}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [56, 47, 40, 62, 73, 30, 23, 54],
-            }}
+        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+          <TradingPerformanceSummary
+            title="Win Rate"
+            value={performanceMetrics.winRate}
+            suffix="%"
+            color="info"
+            icon={<Iconify width={24} icon="eva:checkmark-fill" />}
           />
-        </Grid>
+        </Grid2>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <AnalyticsWidgetSummary
-            title="Purchase orders"
-            percent={2.8}
-            total={1723315}
+        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+          <TradingPerformanceSummary
+            title="Total Trades"
+            value={performanceMetrics.totalTrades}
             color="warning"
-            icon={<img alt="Purchase orders" src="/assets/icons/glass/ic-glass-buy.svg" />}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [40, 70, 50, 28, 70, 75, 7, 64],
+            icon={<Iconify width={24} icon="eva:done-all-fill" />}
+          />
+        </Grid2>
+
+        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+          <TradingPerformanceSummary
+            title="Current Capital"
+            value={performanceMetrics.currentCapital}
+            currency="$"
+            color="primary"
+            icon={<Iconify width={24} icon="solar:cart-3-bold" />}
+          />
+        </Grid2>
+
+        {/* Capital Growth Chart */}
+        <Grid2 size={{ xs: 12, md: 8, lg: 9 }}>
+          <TradingCapitalGrowth
+            title="Capital Growth"
+            data={[
+              { date: '2025-09-01', capital: 10000 },
+              { date: '2025-09-15', capital: 10500 },
+              { date: '2025-10-01', capital: 11200 },
+              { date: '2025-10-05', capital: 15000 },
+            ]}
+          />
+        </Grid2>
+
+        {/* Win/Loss Distribution */}
+        <Grid2 size={{ xs: 12, md: 4, lg: 3 }}>
+          <TradingWinLossChart
+            title="Trade Distribution"
+            data={{
+              win: winningTrades.length,
+              loss: losingTrades.length,
+              cancelled: cancelledTrades.length,
             }}
           />
-        </Grid>
+        </Grid2>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <AnalyticsWidgetSummary
-            title="Messages"
-            percent={3.6}
-            total={234}
-            color="error"
-            icon={<img alt="Messages" src="/assets/icons/glass/ic-glass-message.svg" />}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [56, 30, 23, 54, 47, 40, 62, 73],
-            }}
+        {/* Recent Trades Table */}
+        <Grid2 size={{ xs: 12, md: 8 }}>
+          <TradingRecentTrades title="Recent Trades" trades={trades} />
+        </Grid2>
+
+        {/* Pairs Distribution */}
+        <Grid2 size={{ xs: 12, md: 4 }}>
+          <TradingPairsDistribution
+            title="Pairs Distribution"
+            data={trades.reduce((acc: Record<string, number>, trade) => {
+              acc[trade.pair] = (acc[trade.pair] || 0) + 1;
+              return acc;
+            }, {})}
           />
-        </Grid>
+        </Grid2>
 
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AnalyticsCurrentVisits
-            title="Current visits"
-            chart={{
-              series: [
-                { label: 'America', value: 3500 },
-                { label: 'Asia', value: 2500 },
-                { label: 'Europe', value: 1500 },
-                { label: 'Africa', value: 500 },
-              ],
-            }}
+        {/* System Performance */}
+        <Grid2 size={{ xs: 12 }}>
+          <TradingSystemPerformance
+            title="System Performance"
+            data={trades.reduce(
+              (
+                acc: Record<
+                  string,
+                  { wins: number; losses: number; total: number; profit: number }
+                >,
+                trade
+              ) => {
+                if (!acc[trade.system]) {
+                  acc[trade.system] = { wins: 0, losses: 0, total: 0, profit: 0 };
+                }
+                if (trade.profit_or_loss > 0) acc[trade.system].wins++;
+                if (trade.profit_or_loss < 0) acc[trade.system].losses++;
+                acc[trade.system].total++;
+                acc[trade.system].profit += trade.profit_or_loss;
+                return acc;
+              },
+              {}
+            )}
           />
-        </Grid>
+        </Grid2>
+      </Grid2>
 
-        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          <AnalyticsWebsiteVisits
-            title="Website visits"
-            subheader="(+43%) than last year"
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-              series: [
-                { name: 'Team A', data: [43, 33, 22, 37, 67, 68, 37, 24, 55] },
-                { name: 'Team B', data: [51, 70, 47, 67, 40, 37, 24, 70, 24] },
-              ],
-            }}
-          />
-        </Grid>
+      <AddTradeModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onTradeAdded={() => {
+          setLoading(true);
+          listTradesTradesGet()
+            .then((response) => {
+              if (response.data) {
+                setTrades(Array.isArray(response.data) ? response.data : []);
+              } else {
+                setTrades([]);
+              }
+              setNotification({ open: true, message: 'Trade added successfully!' });
+            })
+            .catch(() => {
+              setTrades([]);
+              setNotification({
+                open: true,
+                message: 'Error fetching trades after adding new trade.',
+              });
+            })
+            .finally(() => setLoading(false));
 
-        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          <AnalyticsConversionRates
-            title="Conversion rates"
-            subheader="(+43%) than last year"
-            chart={{
-              categories: ['Italy', 'Japan', 'China', 'Canada', 'France'],
-              series: [
-                { name: '2022', data: [44, 55, 41, 64, 22] },
-                { name: '2023', data: [53, 32, 33, 52, 13] },
-              ],
-            }}
-          />
-        </Grid>
+          getReportReportGet()
+            .then((response) => {
+              setReport(response.data);
+            })
+            .catch(() => {
+              setReport(undefined);
+            });
+        }}
+        loading={loading}
+      />
 
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AnalyticsCurrentSubject
-            title="Current subject"
-            chart={{
-              categories: ['English', 'History', 'Physics', 'Geography', 'Chinese', 'Math'],
-              series: [
-                { name: 'Series 1', data: [80, 50, 30, 40, 100, 20] },
-                { name: 'Series 2', data: [20, 30, 40, 80, 20, 80] },
-                { name: 'Series 3', data: [44, 76, 78, 13, 43, 10] },
-              ],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          <AnalyticsNews title="News" list={_posts.slice(0, 5)} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AnalyticsOrderTimeline title="Order timeline" list={_timeline} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AnalyticsTrafficBySite title="Traffic by site" list={_traffic} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          <AnalyticsTasks title="Tasks" list={_tasks} />
-        </Grid> */}
-      </Grid>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+      >
+        <Alert
+          severity={notification.message.includes('Error') ? 'error' : 'success'}
+          onClose={() => setNotification({ ...notification, open: false })}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </DashboardContent>
   );
 }

@@ -32,6 +32,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
   const logout = useCallback(() => () => {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('role');
     router.push('/sign-in');
   }, [router]);
 

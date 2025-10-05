@@ -15,11 +15,10 @@ import { RouterLink } from 'src/routes/components';
 import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { NavUpgrade } from '../components/nav-upgrade';
-import { WorkspacesPopover } from '../components/workspaces-popover';
+import { UserCard } from '../components/user-card';
 
 import type { NavItem } from '../nav-config-dashboard';
-import type { WorkspacesPopoverProps } from '../components/workspaces-popover';
+import type { WorkspacesPopoverProps } from '../components/user-card';
 
 // ----------------------------------------------------------------------
 
@@ -116,7 +115,9 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
 
       {slots?.topArea}
 
-      <WorkspacesPopover data={workspaces} sx={{ my: 2 }} />
+      {/* <WorkspacesPopover data={workspaces} sx={{ my: 2 }} /> */}
+
+      <UserCard sx={{ my: 2 }} /> 
 
       <Scrollbar fillContent>
         <Box
@@ -141,9 +142,8 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
             {data.map((item) => {
               const isActived = item.path === pathname;
 
-              if(item.enabled != true) 
-                return;
-              
+              if (item.enabled != true) return;
+
               return (
                 <ListItem disableGutters disablePadding key={item.title}>
                   <ListItemButton
@@ -190,8 +190,6 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
       </Scrollbar>
 
       {slots?.bottomArea}
-
-      <NavUpgrade />
     </>
   );
 }

@@ -48,7 +48,7 @@ export function UserTableToolbar({ numSelected, filterName, onFilterName }: User
         />
       )}
 
-      {numSelected > 0 ? (
+{/*       {numSelected > 0 ? (
         <Tooltip title="Delete">
           <IconButton>
             <Iconify icon="solar:trash-bin-trash-bold" />
@@ -60,7 +60,7 @@ export function UserTableToolbar({ numSelected, filterName, onFilterName }: User
             <Iconify icon="ic:round-filter-list" />
           </IconButton>
         </Tooltip>
-      )}
+      )} */}
     </Toolbar>
   );
 }
