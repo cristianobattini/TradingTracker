@@ -59,8 +59,8 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 origins = [
-    "http://localhost:3039",
-    "localhost:3039"
+    "https://vmtrbc01.northeurope.cloudapp.azure.com",
+    "vmtrbc01.northeurope.cloudapp.azure.com"
 ]
 
 app.add_middleware(
