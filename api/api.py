@@ -10,6 +10,7 @@ from auth import AuthService, oauth2_scheme
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from fastapi.security import OAuth2PasswordBearer
 
 Base.metadata.create_all(bind=engine)
 
