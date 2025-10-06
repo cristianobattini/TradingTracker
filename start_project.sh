@@ -8,6 +8,8 @@ FRONTEND_PATH="./ui"
 VENV_PATH="$BACKEND_PATH/venv"
 PYTHON3_PATH="python3"
 REQUIREMENTS_FILE="$BACKEND_PATH/requirements.txt"
+LOG_DIR="./logs"
+PID_DIR="./pids"
 
 # Funzione per controllare se un comando esiste
 command_exists() {
@@ -18,6 +20,21 @@ command_exists() {
 exit_with_error() {
     echo "Errore: $1"
     exit 1
+}
+
+# Funzione per creare directory necessarie
+create_directories() {
+    mkdir -p "$LOG_DIR"
+    mkdir -p "$PID_DIR"
+    echo "✅ Directory di supporto create"
+}
+
+# Funzione per scrivere PID nei file
+write_pid() {
+    local service=$1
+    local pid=$2
+    echo "$pid" > "$PID_DIR/${service}.pid"
+    echo "✅ PID $pid scritto in $PID_DIR/${service}.pid"
 }
 
 # Funzione per attendere che un servizio sia pronto
@@ -90,10 +107,207 @@ fix_client_base_url() {
     fi
 }
 
+# Funzione per avviare backend in background
+start_backend() {
+    echo "=== AVVIO BACKEND ==="
+    
+    cd "$BACKEND_PATH" || exit_with_error "Directory backend non trovata"
+    
+    # Attiva ambiente virtuale
+    source "$VENV_PATH/bin/activate"
+    
+    echo "Avviando backend con Python3..."
+    nohup "$PYTHON3_PATH" main.py > "../$LOG_DIR/backend.log" 2>&1 &
+    BACKEND_PID=$!
+    
+    cd - > /dev/null
+    
+    write_pid "backend" $BACKEND_PID
+    echo "Backend PID: $BACKEND_PID"
+    echo "Logs: $LOG_DIR/backend.log"
+    
+    # Attendi che il backend sia pronto
+    if wait_for_service "http://localhost:8000/docs"; then
+        echo "✅ Backend avviato correttamente"
+        # Additional delay to ensure OpenAPI spec is fully generated
+        echo "Attendendo che la specifica OpenAPI sia completamente generata..."
+        sleep 5
+        return 0
+    else
+        echo "❌ Errore: Backend non avviato correttamente"
+        return 1
+    fi
+}
+
+# Funzione per generare client TypeScript
+generate_typescript_client() {
+    echo ""
+    echo "=== GENERAZIONE MODELLI TYPESCRIPT ==="
+    cd "$FRONTEND_PATH" || exit_with_error "Directory frontend non trovata"
+
+    # First, let's check if the OpenAPI spec is accessible
+    echo "Controllando la specifica OpenAPI..."
+    if curl -s -f "http://localhost:8000/openapi.json" > /dev/null; then
+        echo "✅ Specifica OpenAPI accessibile"
+    else
+        echo "❌ Impossibile accedere alla specifica OpenAPI"
+        return 1
+    fi
+
+    echo "Generando modelli TypeScript da OpenAPI..."
+
+    rm -rf "./src/client"
+
+    # Approach 1: Standard generation
+    if npx @hey-api/openapi-ts@latest -i "http://localhost:8000/openapi.json" -o "./src/client" --silent; then
+        echo "✅ Modelli TypeScript generati con successo"
+        
+        # Fix manuale dell'URL di base nel client generato
+        fix_client_base_url "$FRONTEND_PATH"
+        return 0
+    else
+        echo "⚠️  Primo tentativo fallito, provando approccio alternativo..."
+        
+        # Approach 2: Download the spec first, then generate
+        if curl -s -f "http://localhost:8000/openapi.json" -o "./openapi_temp.json"; then
+            echo "✅ Specifica OpenAPI scaricata localmente"
+            
+            if npx @hey-api/openapi-ts@latest -i "./openapi_temp.json" -o "./src/client" --silent; then
+                echo "✅ Modelli TypeScript generati con successo dal file locale"
+                
+                # Fix manuale dell'URL di base
+                fix_client_base_url "$FRONTEND_PATH"
+                
+                rm -f "./openapi_temp.json"
+                return 0
+            else
+                echo "❌ Errore nella generazione modelli TypeScript dal file locale"
+                rm -f "./openapi_temp.json"
+                return 1
+            fi
+        else
+            echo "❌ Impossibile scaricare la specifica OpenAPI"
+            return 1
+        fi
+    fi
+}
+
+# Funzione per avviare frontend in background
+start_frontend() {
+    echo ""
+    echo "=== AVVIO FRONTEND ==="
+    cd "$FRONTEND_PATH" || exit_with_error "Directory frontend non trovata"
+    
+    echo "Avviando frontend..."
+    nohup npm run dev > "../$LOG_DIR/frontend.log" 2>&1 &
+    FRONTEND_PID=$!
+    
+    cd - > /dev/null
+    
+    write_pid "frontend" $FRONTEND_PID
+    echo "Frontend PID: $FRONTEND_PID"
+    echo "Logs: $LOG_DIR/frontend.log"
+    
+    # Attendi brevemente che il frontend inizi
+    sleep 10
+    
+    # Verifica se il frontend è in esecuzione
+    if kill -0 $FRONTEND_PID 2>/dev/null; then
+        echo "✅ Frontend avviato correttamente"
+        return 0
+    else
+        echo "❌ Frontend non si è avviato correttamente"
+        return 1
+    fi
+}
+
+# Funzione per mostrare lo stato dei servizi
+show_status() {
+    echo ""
+    echo "=== STATO SERVER ==="
+    
+    if [ -f "$PID_DIR/backend.pid" ]; then
+        BACKEND_PID=$(cat "$PID_DIR/backend.pid")
+        if kill -0 $BACKEND_PID 2>/dev/null; then
+            echo "✅ Backend in esecuzione (PID: $BACKEND_PID)"
+        else
+            echo "❌ Backend non in esecuzione"
+        fi
+    else
+        echo "❌ File PID backend non trovato"
+    fi
+    
+    if [ -f "$PID_DIR/frontend.pid" ]; then
+        FRONTEND_PID=$(cat "$PID_DIR/frontend.pid")
+        if kill -0 $FRONTEND_PID 2>/dev/null; then
+            echo "✅ Frontend in esecuzione (PID: $FRONTEND_PID)"
+        else
+            echo "❌ Frontend non in esecuzione"
+        fi
+    else
+        echo "❌ File PID frontend non trovato"
+    fi
+    
+    echo ""
+    echo "Logs disponibili in: $LOG_DIR/"
+    echo "Backend:  http://127.0.0.1:8000"
+    echo "Backend Docs: http://127.0.0.1:8000/docs" 
+    echo "Frontend: http://localhost:3039"
+}
+
+# Funzione per arrestare i servizi
+stop_services() {
+    echo ""
+    echo "=== ARRESTO SERVER ==="
+    
+    if [ -f "$PID_DIR/backend.pid" ]; then
+        BACKEND_PID=$(cat "$PID_DIR/backend.pid")
+        echo "Arresto backend (PID: $BACKEND_PID)..."
+        kill $BACKEND_PID 2>/dev/null && rm -f "$PID_DIR/backend.pid"
+        echo "✅ Backend arrestato"
+    fi
+    
+    if [ -f "$PID_DIR/frontend.pid" ]; then
+        FRONTEND_PID=$(cat "$PID_DIR/frontend.pid")
+        echo "Arresto frontend (PID: $FRONTEND_PID)..."
+        kill $FRONTEND_PID 2>/dev/null && rm -f "$PID_DIR/frontend.pid"
+        echo "✅ Frontend arrestato"
+    fi
+}
+
+# Funzione per cleanup
+cleanup() {
+    stop_services
+    exit 0
+}
+
+# Gestione dei parametri
+case "${1:-}" in
+    stop)
+        stop_services
+        exit 0
+        ;;
+    status)
+        show_status
+        exit 0
+        ;;
+    restart)
+        stop_services
+        sleep 2
+        # Continua con l'avvio
+        ;;
+    *)
+        # Continua con l'avvio normale
+        ;;
+esac
+
 # Controllo prerequisiti
 if ! command_exists python3; then exit_with_error "Python3 non trovato."; fi
 if ! command_exists npm; then exit_with_error "NPM non trovato."; fi
 if ! command_exists curl; then exit_with_error "cURL non trovato."; fi
+
+# Crea directory di supporto
+create_directories
 
 # 1. Crea o attiva ambiente virtuale Python
 if [ -d "$VENV_PATH" ]; then
@@ -131,142 +345,32 @@ if [ -z "$DATABASE_URL" ]; then
     echo "Avviso: Variabile DATABASE_URL non trovata. Assicurati di aggiungerla nel file .env"
 fi
 
-echo ""
-echo "=== AVVIO BACKEND ==="
-
-# 5. Avvia il backend in background
-cd "$BACKEND_PATH" || exit_with_error "Directory backend non trovata"
-echo "Avviando backend con Python3..."
-"$PYTHON3_PATH" main.py &
-BACKEND_PID=$!
-cd - > /dev/null
-
-echo "Backend PID: $BACKEND_PID"
-
-# 6. Attendi che il backend sia pronto
-if wait_for_service "http://localhost:8000/docs"; then
-    echo "✅ Backend avviato correttamente"
-    # Additional delay to ensure OpenAPI spec is fully generated
-    echo "Attendendo che la specifica OpenAPI sia completamente generata..."
-    sleep 5
-else
-    echo "❌ Errore: Backend non avviato correttamente"
-    kill $BACKEND_PID 2>/dev/null
-    exit 1
+# 5. Avvia backend
+if ! start_backend; then
+    exit_with_error "Impossibile avviare il backend"
 fi
 
-# 7. Generazione modelli TypeScript
-echo ""
-echo "=== GENERAZIONE MODELLI TYPESCRIPT ==="
-cd "$FRONTEND_PATH" || exit_with_error "Directory frontend non trovata"
+# 6. Genera client TypeScript
+generate_typescript_client
 
-# First, let's check if the OpenAPI spec is accessible
-echo "Controllando la specifica OpenAPI..."
-if curl -s -f "http://localhost:8000/openapi.json" > /dev/null; then
-    echo "✅ Specifica OpenAPI accessibile"
-else
-    echo "❌ Impossibile accedere alla specifica OpenAPI"
+# 7. Avvia frontend
+if ! start_frontend; then
+    echo "⚠️  Frontend non avviato correttamente, ma il backend è in esecuzione"
 fi
 
-echo "Generando modelli TypeScript da OpenAPI..."
-
-rm -rf "./src/client"
-
-# Approach 1: Standard generation
-if npx @hey-api/openapi-ts@latest -i "http://localhost:8000/openapi.json" -o "./src/client" --silent; then
-    echo "✅ Modelli TypeScript generati con successo"
-    
-    # Fix manuale dell'URL di base nel client generato
-    fix_client_base_url "$FRONTEND_PATH"
-else
-    echo "⚠️  Primo tentativo fallito, provando approccio alternativo..."
-    
-    # Approach 2: Download the spec first, then generate
-    if curl -s -f "http://localhost:8000/openapi.json" -o "./openapi_temp.json"; then
-        echo "✅ Specifica OpenAPI scaricata localmente"
-        
-        if npx @hey-api/openapi-ts@latest -i "./openapi_temp.json" -o "./src/client" --silent; then
-            echo "✅ Modelli TypeScript generati con successo dal file locale"
-            
-            # Fix manuale dell'URL di base
-            fix_client_base_url "$FRONTEND_PATH"
-            
-            rm -f "./openapi_temp.json"
-        else
-            echo "❌ Errore nella generazione modelli TypeScript dal file locale"
-            rm -f "./openapi_temp.json"
-        fi
-    else
-        echo "❌ Impossibile scaricare la specifica OpenAPI"
-    fi
-fi
-
-# 8. Verifica finale del client generato
-echo ""
-echo "=== VERIFICA CLIENT GENERATO ==="
-if [ -f "./src/client/core/OpenAPI.ts" ]; then
-    echo "✅ Client API generato correttamente"
-    echo "URL di base configurato:"
-    grep "BASE:" "./src/client/core/OpenAPI.ts"
-else
-    echo "⚠️  Client API non generato correttamente"
-    echo "   Puoi generarlo manualmente con:"
-    echo "   cd ui && npx @hey-api/openapi-ts -i http://localhost:8000/openapi.json -o ./src/client"
-fi
-
-# 9. Avvio frontend
-echo ""
-echo "=== AVVIO FRONTEND ==="
-echo "Avviando frontend..."
-npm run dev &
-FRONTEND_PID=$!
-cd - > /dev/null
-
-echo "Frontend PID: $FRONTEND_PID"
-
-# Attendi che il frontend sia pronto
-if wait_for_service "http://localhost:3039"; then
-    echo "✅ Frontend avviato correttamente"
-else
-    echo "⚠️  Frontend potrebbe non essere pronto. Controlla manualmente."
-fi
-
-# Funzione per cleanup
-cleanup() {
-    echo ""
-    echo "=== CHIUSURA SERVER ==="
-    echo "Arresto backend (PID: $BACKEND_PID)..."
-    kill $BACKEND_PID 2>/dev/null
-    echo "Arresto frontend (PID: $FRONTEND_PID)..."
-    kill $FRONTEND_PID 2>/dev/null
-    echo "✅ Server arrestati"
-    exit 0
-}
-
-# Trap per Ctrl+C
-trap cleanup SIGINT
+# Mostra stato finale
+show_status
 
 echo ""
-echo "=== SERVER AVVIATI ==="
-echo "✅ Backend:  http://127.0.0.1:8000"
-echo "✅ Backend Docs: http://127.0.0.1:8000/docs"
-echo "✅ Frontend: http://localhost:3039"
+echo "✅ Server avviati in background!"
 echo ""
-echo "Premi Ctrl+C per arrestare entrambi i server"
+echo "Comandi utili:"
+echo "  ./start_project.sh status  - Mostra stato server"
+echo "  ./start_project.sh stop    - Arresta i server"
+echo "  ./start_project.sh restart - Riavvia i server"
+echo ""
+echo "I server continueranno a funzionare anche dopo la chiusura del terminale."
+echo "Usa './start_project.sh stop' per arrestarli."
 
-# Monitora i processi
-while true; do
-    if ! kill -0 $BACKEND_PID 2>/dev/null; then
-        echo "❌ Backend si è arrestato inaspettatamente"
-        break
-    fi
-    
-    if ! kill -0 $FRONTEND_PID 2>/dev/null; then
-        echo "❌ Frontend si è arrestato inaspettatamente"
-        break
-    fi
-    
-    sleep 5
-done
-
-cleanup
+# Esci senza mantenere lo script in esecuzione
+exit 0
