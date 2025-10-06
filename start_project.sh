@@ -196,6 +196,7 @@ generate_typescript_client() {
 start_frontend() {
     echo ""
     echo "=== AVVIO FRONTEND ==="
+    cd ..
     cd "$FRONTEND_PATH" || exit_with_error "Directory frontend non trovata"
     
     echo "Avviando frontend..."
