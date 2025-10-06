@@ -136,6 +136,22 @@ setup_python_environment() {
     echo "✅ Python environment setup completed for $env"
 }
 
+deploy_frontend_files() {
+    local env=$1
+    
+    if [ "$env" = "production" ]; then
+        echo "📁 Deploying frontend to web server..."
+        sudo mkdir -p /var/www/tradingtracker/dist
+        sudo cp -r "$FRONTEND_PATH/dist/"* "/var/www/tradingtracker/dist/" 2>/dev/null || {
+            echo "⚠️  No dist files found, skipping deployment"
+            return 0
+        }
+        sudo chown -R www-data:www-data /var/www/tradingtracker
+        sudo chmod -R 755 /var/www/tradingtracker
+        echo "✅ Frontend files deployed"
+    fi
+}
+
 # Setup frontend environment
 setup_frontend_environment() {
     local env=$1
@@ -326,6 +342,7 @@ main() {
     # Setup environments
     setup_python_environment "$PROJECT_ENV"
     setup_frontend_environment "$PROJECT_ENV"
+    deploy_frontend_files "$PROJECT_ENV" 
     
     # Start services
     start_backend "$PROJECT_ENV"
