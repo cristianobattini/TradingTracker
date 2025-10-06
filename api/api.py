@@ -1,29 +1,30 @@
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from database import Base, SessionLocal, engine
 from models import User, Trade
-from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse
+from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate
 from auth import AuthService, oauth2_scheme 
-import os
-from fastapi.middleware.cors import CORSMiddleware
-
-Base.metadata.create_all(bind=engine)
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from datetime import timedelta
-from database import Base, SessionLocal, engine
-from models import User, Trade
-from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse
-from auth import AuthService
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 Base.metadata.create_all(bind=engine)
+
+# Configurazione CORS basata sull'ambiente
+def get_cors_origins():
+    env = os.getenv("PROJECT_ENV", "development")
+    if env == "production":
+        return ["https://vmtrbc01.northeurope.cloudapp.azure.com"]
+    else:
+        return [
+            "http://localhost:3039",
+            "http://127.0.0.1:3039",
+            "https://vmtrbc01.northeurope.cloudapp.azure.com",
+            "http://vmtrbc01.northeurope.cloudapp.azure.com",
+        ]
 
 app = FastAPI(
     title="Trading API",
@@ -31,7 +32,8 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    debug=os.getenv("DEBUG", "False").lower() == "true"
 )
 
 def custom_openapi():
@@ -58,16 +60,9 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-origins = [
-    "http://localhost:3039",
-    "http://127.0.0.1:3039", 
-    "https://vmtrbc01.northeurope.cloudapp.azure.com",
-    "http://vmtrbc01.northeurope.cloudapp.azure.com",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,8 +70,6 @@ app.add_middleware(
 
 # --- OAuth2 Scheme ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-# ... rest of your dependencies and routes remain the same ...
 
 # --- Dependencies ---
 def get_db():
@@ -109,6 +102,8 @@ def require_admin(
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 
+# === USER MANAGEMENT ===
+
 # --- User registration by admin ---
 @app.post("/users/", response_model=UserResponse)
 def create_user(
@@ -119,6 +114,10 @@ def create_user(
 ):
     if db.query(User).filter(User.username == new_user.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
+    
+    if db.query(User).filter(User.email == new_user.email).first():
+        raise HTTPException(status_code=400, detail="Email already exists")
+    
     hashed_pw = auth_service.get_password_hash(new_user.password)
     user = User(
         username=new_user.username,
@@ -132,15 +131,119 @@ def create_user(
     db.refresh(user)
     return user
 
-# --- User fetch by admin ---
+# --- Get all users (admin only) ---
 @app.get("/users/", response_model=List[UserResponse])
 def get_users(
     db: Session = Depends(get_db),
-    auth_service: AuthService = Depends(get_auth_service),
     current_admin: User = Depends(require_admin),
 ):
     users = db.query(User).all()
     return users
+
+# --- Get user by ID (admin only) ---
+@app.get("/users/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# --- Update user (admin only) ---
+@app.put("/users/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if username already exists (excluding current user)
+    if user_update.username and user_update.username != user.username:
+        existing_user = db.query(User).filter(User.username == user_update.username, User.id != user_id).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Check if email already exists (excluding current user)
+    if user_update.email and user_update.email != user.email:
+        existing_email = db.query(User).filter(User.email == user_update.email, User.id != user_id).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # Update fields
+    update_data = user_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(user, field, value)
+    
+    db.commit()
+    db.refresh(user)
+    return user
+
+# --- Delete user (admin only) ---
+@app.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent admin from deleting themselves
+    if user.id == current_admin.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    db.delete(user)
+    db.commit()
+    return {"message": "User deleted successfully"}
+
+# === PASSWORD MANAGEMENT ===
+
+# --- Change own password ---
+@app.post("/users/me/change-password")
+def change_own_password(
+    password_change: PasswordChange,
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
+    current_user: User = Depends(get_current_active_user),
+):
+    # Verify current password
+    if not auth_service.verify_password(password_change.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Update password
+    current_user.hashed_password = auth_service.get_password_hash(password_change.new_password)
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
+
+# --- Change user password (admin only) ---
+@app.post("/users/{user_id}/change-password")
+def change_user_password(
+    user_id: int,
+    password_change: PasswordChange,
+    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
+    current_admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # For admin changing another user's password, we don't require current password
+    user.hashed_password = auth_service.get_password_hash(password_change.new_password)
+    db.commit()
+    
+    return {"message": f"Password for user {user.username} changed successfully"}
+
+# === AUTHENTICATION ===
 
 # --- Login ---
 @app.post("/login", response_model=TokenSchema)
@@ -167,6 +270,8 @@ def login(
 def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# === TRADE MANAGEMENT ===
+
 # --- Create trade ---
 @app.post("/trades/", response_model=TradeResponse)
 def create_trade(
@@ -181,12 +286,77 @@ def create_trade(
     return db_trade
 
 # --- List trades for current user ---
-@app.get("/trades/", response_model=list[TradeResponse])
+@app.get("/trades/", response_model=List[TradeResponse])
 def list_trades(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     return db.query(Trade).filter(Trade.owner_id == current_user.id).all()
+
+# --- Get specific trade ---
+@app.get("/trades/{trade_id}", response_model=TradeResponse)
+def get_trade(
+    trade_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trade = db.query(Trade).filter(Trade.id == trade_id, Trade.owner_id == current_user.id).first()
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    return trade
+
+# --- Update trade ---
+@app.put("/trades/{trade_id}", response_model=TradeResponse)
+def update_trade(
+    trade_id: int,
+    trade_update: TradeUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trade = db.query(Trade).filter(Trade.id == trade_id, Trade.owner_id == current_user.id).first()
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    
+    # Update fields
+    update_data = trade_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(trade, field, value)
+    
+    db.commit()
+    db.refresh(trade)
+    return trade
+
+# --- Delete trade ---
+@app.delete("/trades/{trade_id}")
+def delete_trade(
+    trade_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trade = db.query(Trade).filter(Trade.id == trade_id, Trade.owner_id == current_user.id).first()
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    
+    db.delete(trade)
+    db.commit()
+    return {"message": "Trade deleted successfully"}
+
+# --- Cancel trade (soft delete) ---
+@app.post("/trades/{trade_id}/cancel")
+def cancel_trade(
+    trade_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    trade = db.query(Trade).filter(Trade.id == trade_id, Trade.owner_id == current_user.id).first()
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    
+    trade.cancelled = True
+    db.commit()
+    return {"message": "Trade cancelled successfully"}
+
+# === REPORTS ===
 
 # --- Report per user ---
 @app.get("/report/", response_model=ReportResponse)
@@ -216,3 +386,20 @@ def get_report(
         expectancy=expectancy,
         capital=capital
     )
+
+# --- Health check ---
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy", 
+        "environment": os.getenv("PROJECT_ENV", "development"),
+        "debug": os.getenv("DEBUG", "False")
+    }
+
+@app.get("/")
+async def root():
+    return {
+        "message": "Trading API", 
+        "environment": os.getenv("PROJECT_ENV", "development"),
+        "version": "1.0.0"
+    }

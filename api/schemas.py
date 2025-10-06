@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import date
 from models import RoleEnum
@@ -20,6 +21,17 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
+    initial_capital: Optional[float] = None
+    valid: Optional[bool] = None
+    
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
 
 # --- Token ---
 class TokenSchema(BaseModel):
@@ -50,6 +62,15 @@ class TradeResponse(TradeCreate):
     owner_id: int
     class Config:
         from_attributes = True
+        
+class TradeUpdate(BaseModel):
+    symbol: Optional[str] = None
+    entry_price: Optional[float] = None
+    exit_price: Optional[float] = None
+    quantity: Optional[float] = None
+    position_type: Optional[str] = None
+    profit_or_loss: Optional[float] = None
+    cancelled: Optional[bool] = None
 
 # --- Reports ---
 class ReportResponse(BaseModel):

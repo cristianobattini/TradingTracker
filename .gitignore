@@ -6,3 +6,20 @@
 ./ui/node_modules
 ./NOTES.md
 node_modules
+
+# Environment files
+.env
+.env.prod
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Virtual environment
+api/venv/
