@@ -26,6 +26,14 @@ export default defineConfig({
       },
     ],
   },
-  server: { port: PORT, host: true },
-  preview: { port: PORT, host: true },
+  server: { 
+    port: PORT, 
+    host: true,
+    allowedHosts: ['vmtrbc01.northeurope.cloudapp.azure.com']
+  },
+  preview: { 
+    port: PORT, 
+    host: true,
+    allowedHosts: ['vmtrbc01.northeurope.cloudapp.azure.com']
+  },
 });
