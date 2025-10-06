@@ -59,14 +59,13 @@ const currencyPairs = [
 ];
 
 const tradingSystems = [
-  'Trend Following',
-  'Mean Reversion',
-  'Breakout',
-  'Scalping',
-  'Swing Trading',
-  'Position Trading',
-  'Carry Trade',
-  'Arbitrage',
+  '30min',
+  '1hr',
+  '4hr',
+  'Daily',
+  'Weekly',
+  'Monthly',
+  'Yearly'
 ];
 
 const riskLevels = ['0.25%', '0.5%', '1%', '1.5%', '2%', '3%', '5%'];
