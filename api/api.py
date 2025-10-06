@@ -59,13 +59,16 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 origins = [
+    "http://localhost:3039",
+    "http://127.0.0.1:3039", 
     "https://vmtrbc01.northeurope.cloudapp.azure.com",
-    "vmtrbc01.northeurope.cloudapp.azure.com"
+    "http://vmtrbc01.northeurope.cloudapp.azure.com",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
