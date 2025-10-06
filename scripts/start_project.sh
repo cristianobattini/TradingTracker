@@ -200,7 +200,6 @@ start_backend() {
 start_frontend() {
     local env=$1
     
-    cd ..
     cd "$FRONTEND_PATH" || exit_with_error "Frontend directory not found"
     
     echo "🚀 Starting frontend ($env mode)..."
