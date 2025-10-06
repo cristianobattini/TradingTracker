@@ -191,18 +191,10 @@ start_backend() {
     
     if [ "$env" = "production" ]; then
         # Production: use multiple workers and better settings
-        nohup uvicorn api:app \
-            --host "$BACKEND_HOST" \
-            --port "$BACKEND_PORT" \
-            --workers 2 \
-            > "../$LOG_DIR/backend.log" 2>&1 &
+        nohup python3 main.py
     else
         # Development: single worker with reload
-        nohup uvicorn api:app \
-            --host "$BACKEND_HOST" \
-            --port "$BACKEND_PORT" \
-            --reload \
-            > "../$LOG_DIR/backend.log" 2>&1 &
+        nohup python3 main.py
     fi
     
     BACKEND_PID=$!
