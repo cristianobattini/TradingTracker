@@ -33,107 +33,8 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { TradeResponse } from 'src/client';
+import { listTradesTradesGet, TradeResponse } from 'src/client';
 import { AddTradeModal } from 'src/sections/overview/add-trade-modal';
-
-// Mock data - replace with actual API call
-const mockTrades: TradeResponse[] = [
-  {
-    id: 1,
-    date: "2025-10-05",
-    pair: "EUR/USD",
-    system: "Trend Following",
-    action: "BUY",
-    risk: "1%",
-    risk_percent: 1,
-    lots: 0.1,
-    entry: 1.0850,
-    sl1_pips: 10,
-    tp1_pips: 30,
-    sl2_pips: 20,
-    tp2_pips: 60,
-    cancelled: false,
-    profit_or_loss: 150,
-    comments: "Strong uptrend confirmed",
-    owner_id: 1
-  },
-  {
-    id: 2,
-    date: "2025-10-04",
-    pair: "GBP/USD",
-    system: "Mean Reversion",
-    action: "SELL",
-    risk: "0.5%",
-    risk_percent: 0.5,
-    lots: 0.05,
-    entry: 1.2650,
-    sl1_pips: 15,
-    tp1_pips: 25,
-    sl2_pips: 30,
-    tp2_pips: 50,
-    cancelled: false,
-    profit_or_loss: -75,
-    comments: "Resistance level hold",
-    owner_id: 1
-  },
-  {
-    id: 3,
-    date: "2025-10-03",
-    pair: "USD/JPY",
-    system: "Breakout",
-    action: "BUY",
-    risk: "2%",
-    risk_percent: 2,
-    lots: 0.2,
-    entry: 148.50,
-    sl1_pips: 20,
-    tp1_pips: 40,
-    sl2_pips: 25,
-    tp2_pips: 80,
-    cancelled: true,
-    profit_or_loss: 0,
-    comments: "Cancelled due to news event",
-    owner_id: 1
-  },
-  {
-    id: 4,
-    date: "2025-10-02",
-    pair: "EUR/USD",
-    system: "Trend Following",
-    action: "SELL",
-    risk: "1.5%",
-    risk_percent: 1.5,
-    lots: 0.15,
-    entry: 1.0950,
-    sl1_pips: 12,
-    tp1_pips: 35,
-    sl2_pips: 18,
-    tp2_pips: 70,
-    cancelled: false,
-    profit_or_loss: 220,
-    comments: "Downtrend breakout",
-    owner_id: 1
-  },
-  {
-    id: 5,
-    date: "2025-10-01",
-    pair: "AUD/USD",
-    system: "Mean Reversion",
-    action: "BUY",
-    risk: "0.8%",
-    risk_percent: 0.8,
-    lots: 0.08,
-    entry: 0.6450,
-    sl1_pips: 8,
-    tp1_pips: 22,
-    sl2_pips: 15,
-    tp2_pips: 45,
-    cancelled: false,
-    profit_or_loss: -45,
-    comments: "Support break failed",
-    owner_id: 1
-  }
-];
 
 export function TradesView() {
   const [trades, setTrades] = useState<TradeResponse[]>([]);
@@ -153,21 +54,19 @@ export function TradesView() {
   }, []);
 
   const fetchTrades = async () => {
-    try {
-      setLoading(true);
-      // Replace with actual API call
-      // const response = await fetch('/api/trades');
-      // const data = await response.json();
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setTrades(mockTrades);
-    } catch (err) {
+    listTradesTradesGet().then(response => {
+      if (response.error) {
+        setError('Failed to fetch trades');
+        console.error('Error fetching trades:', response.error);
+      } else {
+        setTrades(response.data || []);
+      }
+      setLoading(false);
+    }).catch(err => {
       setError('Failed to fetch trades');
       console.error('Error fetching trades:', err);
-    } finally {
       setLoading(false);
-    }
+    });
   };
 
   // Filter trades based on search and filters
@@ -211,7 +110,7 @@ export function TradesView() {
     setAddModalOpen(false);
   };
 
-  const handleDeleteTrade = async (tradeId: number) => {
+/*   const handleDeleteTrade = async (tradeId: number) => {
     if (!confirm('Are you sure you want to delete this trade?')) return;
 
     try {
@@ -223,7 +122,7 @@ export function TradesView() {
       setError('Failed to delete trade');
       console.error('Error deleting trade:', err);
     }
-  };
+  }; */
 
   const getStatusColor = (trade: TradeResponse) => {
     if (trade.cancelled) return 'warning';
@@ -447,7 +346,7 @@ export function TradesView() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Stack direction="row" spacing={1}>
                         <Tooltip title="Edit Trade">
                           <IconButton size="small">
@@ -464,7 +363,7 @@ export function TradesView() {
                           </IconButton>
                         </Tooltip>
                       </Stack>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
