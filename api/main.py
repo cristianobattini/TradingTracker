@@ -2,6 +2,9 @@ import uvicorn
 from dotenv import load_dotenv
 import os
 
+# Importa l'app da api.py
+from api import app
+
 # Carica le variabili d'ambiente
 load_dotenv()
 
@@ -46,7 +49,7 @@ if __name__ == "__main__":
     print(f"📝 Log Level: {config['log_level']}")
     
     uvicorn.run(
-        "api:app", 
+        app,  # Usa l'app importata direttamente invece di "api:app"
         host=config["host"],
         port=config["port"], 
         reload=config["reload"],
