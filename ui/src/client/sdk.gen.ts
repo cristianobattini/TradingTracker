@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CreateTradeTradesPostData, CreateTradeTradesPostErrors, CreateTradeTradesPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, GetReportReportGetData, GetReportReportGetResponses, GetUsersUsersGetData, GetUsersUsersGetResponses, ListTradesTradesGetData, ListTradesTradesGetResponses, LoginLoginPostData, LoginLoginPostErrors, LoginLoginPostResponses, ReadUsersMeUsersMeGetData, ReadUsersMeUsersMeGetResponses } from './types.gen';
+import type { CancelTradeTradesTradeIdCancelPostData, CancelTradeTradesTradeIdCancelPostErrors, CancelTradeTradesTradeIdCancelPostResponses, ChangeOwnPasswordUsersMeChangePasswordPostData, ChangeOwnPasswordUsersMeChangePasswordPostErrors, ChangeOwnPasswordUsersMeChangePasswordPostResponses, ChangeUserPasswordUsersUserIdChangePasswordPostData, ChangeUserPasswordUsersUserIdChangePasswordPostErrors, ChangeUserPasswordUsersUserIdChangePasswordPostResponses, CreateTradeTradesPostData, CreateTradeTradesPostErrors, CreateTradeTradesPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, DeleteTradeTradesTradeIdDeleteData, DeleteTradeTradesTradeIdDeleteErrors, DeleteTradeTradesTradeIdDeleteResponses, DeleteUserUsersUserIdDeleteData, DeleteUserUsersUserIdDeleteErrors, DeleteUserUsersUserIdDeleteResponses, GetReportReportGetData, GetReportReportGetResponses, GetTradeTradesTradeIdGetData, GetTradeTradesTradeIdGetErrors, GetTradeTradesTradeIdGetResponses, GetUsersUsersGetData, GetUsersUsersGetResponses, GetUserUsersUserIdGetData, GetUserUsersUserIdGetErrors, GetUserUsersUserIdGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListTradesTradesGetData, ListTradesTradesGetResponses, LoginLoginPostData, LoginLoginPostErrors, LoginLoginPostResponses, ReadUsersMeUsersMeGetData, ReadUsersMeUsersMeGetResponses, RootGetData, RootGetResponses, UpdateTradeTradesTradeIdPutData, UpdateTradeTradesTradeIdPutErrors, UpdateTradeTradesTradeIdPutResponses, UpdateUserUsersUserIdPutData, UpdateUserUsersUserIdPutErrors, UpdateUserUsersUserIdPutResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -46,6 +46,98 @@ export const createUserUsersPost = <ThrowOnError extends boolean = false>(option
             }
         ],
         url: '/users/',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Delete User
+ */
+export const deleteUserUsersUserIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteUserUsersUserIdDeleteData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteUserUsersUserIdDeleteResponses, DeleteUserUsersUserIdDeleteErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/{user_id}',
+        ...options
+    });
+};
+
+/**
+ * Get User
+ */
+export const getUserUsersUserIdGet = <ThrowOnError extends boolean = false>(options: Options<GetUserUsersUserIdGetData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetUserUsersUserIdGetResponses, GetUserUsersUserIdGetErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/{user_id}',
+        ...options
+    });
+};
+
+/**
+ * Update User
+ */
+export const updateUserUsersUserIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateUserUsersUserIdPutData, ThrowOnError>) => {
+    return (options.client ?? client).put<UpdateUserUsersUserIdPutResponses, UpdateUserUsersUserIdPutErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/{user_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Change Own Password
+ */
+export const changeOwnPasswordUsersMeChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeOwnPasswordUsersMeChangePasswordPostData, ThrowOnError>) => {
+    return (options.client ?? client).post<ChangeOwnPasswordUsersMeChangePasswordPostResponses, ChangeOwnPasswordUsersMeChangePasswordPostErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/me/change-password',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Change User Password
+ */
+export const changeUserPasswordUsersUserIdChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeUserPasswordUsersUserIdChangePasswordPostData, ThrowOnError>) => {
+    return (options.client ?? client).post<ChangeUserPasswordUsersUserIdChangePasswordPostResponses, ChangeUserPasswordUsersUserIdChangePasswordPostErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/{user_id}/change-password',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -122,6 +214,74 @@ export const createTradeTradesPost = <ThrowOnError extends boolean = false>(opti
 };
 
 /**
+ * Delete Trade
+ */
+export const deleteTradeTradesTradeIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteTradeTradesTradeIdDeleteData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteTradeTradesTradeIdDeleteResponses, DeleteTradeTradesTradeIdDeleteErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/trades/{trade_id}',
+        ...options
+    });
+};
+
+/**
+ * Get Trade
+ */
+export const getTradeTradesTradeIdGet = <ThrowOnError extends boolean = false>(options: Options<GetTradeTradesTradeIdGetData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetTradeTradesTradeIdGetResponses, GetTradeTradesTradeIdGetErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/trades/{trade_id}',
+        ...options
+    });
+};
+
+/**
+ * Update Trade
+ */
+export const updateTradeTradesTradeIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateTradeTradesTradeIdPutData, ThrowOnError>) => {
+    return (options.client ?? client).put<UpdateTradeTradesTradeIdPutResponses, UpdateTradeTradesTradeIdPutErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/trades/{trade_id}',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Cancel Trade
+ */
+export const cancelTradeTradesTradeIdCancelPost = <ThrowOnError extends boolean = false>(options: Options<CancelTradeTradesTradeIdCancelPostData, ThrowOnError>) => {
+    return (options.client ?? client).post<CancelTradeTradesTradeIdCancelPostResponses, CancelTradeTradesTradeIdCancelPostErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/trades/{trade_id}/cancel',
+        ...options
+    });
+};
+
+/**
  * Get Report
  */
 export const getReportReportGet = <ThrowOnError extends boolean = false>(options?: Options<GetReportReportGetData, ThrowOnError>) => {
@@ -133,6 +293,26 @@ export const getReportReportGet = <ThrowOnError extends boolean = false>(options
             }
         ],
         url: '/report/',
+        ...options
+    });
+};
+
+/**
+ * Health Check
+ */
+export const healthCheckHealthGet = <ThrowOnError extends boolean = false>(options?: Options<HealthCheckHealthGetData, ThrowOnError>) => {
+    return (options?.client ?? client).get<HealthCheckHealthGetResponses, unknown, ThrowOnError>({
+        url: '/health',
+        ...options
+    });
+};
+
+/**
+ * Root
+ */
+export const rootGet = <ThrowOnError extends boolean = false>(options?: Options<RootGetData, ThrowOnError>) => {
+    return (options?.client ?? client).get<RootGetResponses, unknown, ThrowOnError>({
+        url: '/',
         ...options
     });
 };

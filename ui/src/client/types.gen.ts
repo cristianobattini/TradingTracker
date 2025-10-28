@@ -45,6 +45,20 @@ export type HttpValidationError = {
 };
 
 /**
+ * PasswordChange
+ */
+export type PasswordChange = {
+    /**
+     * Current Password
+     */
+    current_password: string;
+    /**
+     * New Password
+     */
+    new_password: string;
+};
+
+/**
  * ReportResponse
  */
 export type ReportResponse = {
@@ -243,6 +257,40 @@ export type TradeResponse = {
 };
 
 /**
+ * TradeUpdate
+ */
+export type TradeUpdate = {
+    /**
+     * Symbol
+     */
+    symbol?: string | null;
+    /**
+     * Entry Price
+     */
+    entry_price?: number | null;
+    /**
+     * Exit Price
+     */
+    exit_price?: number | null;
+    /**
+     * Quantity
+     */
+    quantity?: number | null;
+    /**
+     * Position Type
+     */
+    position_type?: string | null;
+    /**
+     * Profit Or Loss
+     */
+    profit_or_loss?: number | null;
+    /**
+     * Cancelled
+     */
+    cancelled?: boolean | null;
+};
+
+/**
  * UserCreate
  */
 export type UserCreate = {
@@ -293,6 +341,32 @@ export type UserResponse = {
 };
 
 /**
+ * UserUpdate
+ */
+export type UserUpdate = {
+    /**
+     * Username
+     */
+    username?: string | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Role
+     */
+    role?: string | null;
+    /**
+     * Initial Capital
+     */
+    initial_capital?: number | null;
+    /**
+     * Valid
+     */
+    valid?: boolean | null;
+};
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -320,6 +394,7 @@ export type GetUsersUsersGetData = {
 export type GetUsersUsersGetResponses = {
     /**
      * Response Get Users Users  Get
+     *
      * Successful Response
      */
     200: Array<UserResponse>;
@@ -351,6 +426,145 @@ export type CreateUserUsersPostResponses = {
 };
 
 export type CreateUserUsersPostResponse = CreateUserUsersPostResponses[keyof CreateUserUsersPostResponses];
+
+export type DeleteUserUsersUserIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/users/{user_id}';
+};
+
+export type DeleteUserUsersUserIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteUserUsersUserIdDeleteError = DeleteUserUsersUserIdDeleteErrors[keyof DeleteUserUsersUserIdDeleteErrors];
+
+export type DeleteUserUsersUserIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetUserUsersUserIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/users/{user_id}';
+};
+
+export type GetUserUsersUserIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetUserUsersUserIdGetError = GetUserUsersUserIdGetErrors[keyof GetUserUsersUserIdGetErrors];
+
+export type GetUserUsersUserIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type GetUserUsersUserIdGetResponse = GetUserUsersUserIdGetResponses[keyof GetUserUsersUserIdGetResponses];
+
+export type UpdateUserUsersUserIdPutData = {
+    body: UserUpdate;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/users/{user_id}';
+};
+
+export type UpdateUserUsersUserIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateUserUsersUserIdPutError = UpdateUserUsersUserIdPutErrors[keyof UpdateUserUsersUserIdPutErrors];
+
+export type UpdateUserUsersUserIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type UpdateUserUsersUserIdPutResponse = UpdateUserUsersUserIdPutResponses[keyof UpdateUserUsersUserIdPutResponses];
+
+export type ChangeOwnPasswordUsersMeChangePasswordPostData = {
+    body: PasswordChange;
+    path?: never;
+    query?: never;
+    url: '/users/me/change-password';
+};
+
+export type ChangeOwnPasswordUsersMeChangePasswordPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ChangeOwnPasswordUsersMeChangePasswordPostError = ChangeOwnPasswordUsersMeChangePasswordPostErrors[keyof ChangeOwnPasswordUsersMeChangePasswordPostErrors];
+
+export type ChangeOwnPasswordUsersMeChangePasswordPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ChangeUserPasswordUsersUserIdChangePasswordPostData = {
+    body: PasswordChange;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/users/{user_id}/change-password';
+};
+
+export type ChangeUserPasswordUsersUserIdChangePasswordPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ChangeUserPasswordUsersUserIdChangePasswordPostError = ChangeUserPasswordUsersUserIdChangePasswordPostErrors[keyof ChangeUserPasswordUsersUserIdChangePasswordPostErrors];
+
+export type ChangeUserPasswordUsersUserIdChangePasswordPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type LoginLoginPostData = {
     body: BodyLoginLoginPost;
@@ -403,6 +617,7 @@ export type ListTradesTradesGetData = {
 export type ListTradesTradesGetResponses = {
     /**
      * Response List Trades Trades  Get
+     *
      * Successful Response
      */
     200: Array<TradeResponse>;
@@ -435,6 +650,122 @@ export type CreateTradeTradesPostResponses = {
 
 export type CreateTradeTradesPostResponse = CreateTradeTradesPostResponses[keyof CreateTradeTradesPostResponses];
 
+export type DeleteTradeTradesTradeIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Trade Id
+         */
+        trade_id: number;
+    };
+    query?: never;
+    url: '/trades/{trade_id}';
+};
+
+export type DeleteTradeTradesTradeIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTradeTradesTradeIdDeleteError = DeleteTradeTradesTradeIdDeleteErrors[keyof DeleteTradeTradesTradeIdDeleteErrors];
+
+export type DeleteTradeTradesTradeIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetTradeTradesTradeIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Trade Id
+         */
+        trade_id: number;
+    };
+    query?: never;
+    url: '/trades/{trade_id}';
+};
+
+export type GetTradeTradesTradeIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetTradeTradesTradeIdGetError = GetTradeTradesTradeIdGetErrors[keyof GetTradeTradesTradeIdGetErrors];
+
+export type GetTradeTradesTradeIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: TradeResponse;
+};
+
+export type GetTradeTradesTradeIdGetResponse = GetTradeTradesTradeIdGetResponses[keyof GetTradeTradesTradeIdGetResponses];
+
+export type UpdateTradeTradesTradeIdPutData = {
+    body: TradeUpdate;
+    path: {
+        /**
+         * Trade Id
+         */
+        trade_id: number;
+    };
+    query?: never;
+    url: '/trades/{trade_id}';
+};
+
+export type UpdateTradeTradesTradeIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateTradeTradesTradeIdPutError = UpdateTradeTradesTradeIdPutErrors[keyof UpdateTradeTradesTradeIdPutErrors];
+
+export type UpdateTradeTradesTradeIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: TradeResponse;
+};
+
+export type UpdateTradeTradesTradeIdPutResponse = UpdateTradeTradesTradeIdPutResponses[keyof UpdateTradeTradesTradeIdPutResponses];
+
+export type CancelTradeTradesTradeIdCancelPostData = {
+    body?: never;
+    path: {
+        /**
+         * Trade Id
+         */
+        trade_id: number;
+    };
+    query?: never;
+    url: '/trades/{trade_id}/cancel';
+};
+
+export type CancelTradeTradesTradeIdCancelPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CancelTradeTradesTradeIdCancelPostError = CancelTradeTradesTradeIdCancelPostErrors[keyof CancelTradeTradesTradeIdCancelPostErrors];
+
+export type CancelTradeTradesTradeIdCancelPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type GetReportReportGetData = {
     body?: never;
     path?: never;
@@ -450,3 +781,31 @@ export type GetReportReportGetResponses = {
 };
 
 export type GetReportReportGetResponse = GetReportReportGetResponses[keyof GetReportReportGetResponses];
+
+export type HealthCheckHealthGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/health';
+};
+
+export type HealthCheckHealthGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type RootGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/';
+};
+
+export type RootGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};

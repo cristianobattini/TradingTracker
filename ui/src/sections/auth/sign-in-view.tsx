@@ -20,58 +20,61 @@ export function SignInView() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password');
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    setIsLoading(true);
-    setError('');
-
-    try {
-      // Pass username and password as an object as expected by the API client
-      const response = await loginLoginPost({
-        body: {
-          username,
-          password,
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
-      if (response.error) {
-        const detail = response.error.detail;
-        let errorMessage = "Login failed";
-        
-        if (Array.isArray(detail) && typeof detail[0] === "string") {
-          errorMessage = detail[0];
-        } else if (typeof detail === "string") {
-          errorMessage = detail;
-        }
-        
-        setError(errorMessage);
-      } else {
-        const token = response.data?.access_token;
-        const role = response.data?.role;
-        if (token) {
-          setLocalStorageItem('accessToken', token);
-          setLocalStorageItem('role', role || 'user');
-          router.push('/');
-        } else {
-          setError('No access token received');
-        }
+      if (!username.trim() || !password.trim()) {
+        setError('Please enter both username and password');
+        return;
       }
-    } catch (err: any) {
-      console.error('Login exception:', err);
-      setError(err.message || 'An unexpected error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [username, password, router]);
+
+      setIsLoading(true);
+      setError('');
+
+      try {
+        // Pass username and password as an object as expected by the API client
+        const response = await loginLoginPost({
+          body: {
+            username,
+            password,
+          },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
+
+        if (response.error) {
+          const detail = response.error.detail;
+          let errorMessage = 'Login failed';
+
+          if (Array.isArray(detail) && typeof detail[0] === 'string') {
+            errorMessage = detail[0];
+          } else if (typeof detail === 'string') {
+            errorMessage = detail;
+          }
+
+          setError(errorMessage);
+        } else {
+          const token = response.data?.access_token;
+          const role = response.data?.role;
+          if (token) {
+            setLocalStorageItem('accessToken', token);
+            setLocalStorageItem('role', role || 'user');
+            router.push('/');
+          } else {
+            setError('No access token received');
+          }
+        }
+      } catch (err: any) {
+        console.error('Login exception:', err);
+        setError(err.message || 'An unexpected error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [username, password, router]
+  );
 
   const handleChangeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -89,7 +92,7 @@ export function SignInView() {
 
   const renderForm = (
     <Box
-      component="form" 
+      component="form"
       onSubmit={handleSubmit}
       sx={{
         display: 'flex',
@@ -109,7 +112,7 @@ export function SignInView() {
           inputLabel: { shrink: true },
         }}
         disabled={isLoading}
-        required 
+        required
       />
 
       <TextField
@@ -126,8 +129,8 @@ export function SignInView() {
           input: {
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton 
-                  onClick={() => setShowPassword(!showPassword)} 
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
                   edge="end"
                   disabled={isLoading}
                 >
@@ -138,7 +141,7 @@ export function SignInView() {
           },
         }}
         sx={{ mb: 3 }}
-        required 
+        required
       />
 
       <Button
@@ -148,9 +151,9 @@ export function SignInView() {
         color="inherit"
         variant="contained"
         disabled={isLoading}
-        sx={{ 
+        sx={{
           mb: 2,
-          opacity: isLoading ? 0.7 : 1 
+          opacity: isLoading ? 0.7 : 1,
         }}
       >
         {isLoading ? 'Signing in...' : 'Sign in'}
@@ -173,18 +176,13 @@ export function SignInView() {
       </Box>
       {renderForm}
 
-      <Snackbar 
-        open={error !== ''} 
+      <Snackbar
+        open={error !== ''}
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseError} 
-          severity="error" 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={handleCloseError} severity="error" variant="filled" sx={{ width: '100%' }}>
           {error}
         </Alert>
       </Snackbar>

@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -11,6 +11,7 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
 
 Base.metadata.create_all(bind=engine)
 
@@ -66,11 +67,8 @@ app.add_middleware(
     allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type"],
 )
-
-# --- OAuth2 Scheme ---
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # --- Dependencies ---
 def get_db():
@@ -259,7 +257,7 @@ def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)))
+    access_token_expires = timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60)))
     access_token = auth_service.create_access_token(
         data={"sub": user.username}, 
         expires_delta=access_token_expires

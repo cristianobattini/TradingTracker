@@ -23,7 +23,7 @@ type AppProps = {
 };
 
 client.setConfig({
-  baseUrl: 'https://vmtrbc01.northeurope.cloudapp.azure.com/api/',
+  baseUrl: 'https://vmtrbc01.northeurope.cloudapp.azure.com/',
   auth: (auth) => {
     const token = getLocalStorageItem('accessToken');
     return token ? `${token}` : undefined;
