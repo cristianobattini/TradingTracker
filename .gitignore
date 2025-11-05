@@ -1,6 +1,5 @@
 /.venv
 /.vs
-./api/.env
 ./api/__pycache__
 ./api/venv
 ./ui/node_modules

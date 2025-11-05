@@ -51,12 +51,7 @@ class AuthService:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        print("Token received in get_current_user:", token)
         try:
-            print("Decoding token...")
-            print("Using SECRET_KEY:", os.getenv("SECRET_KEY"))
-            print("Using ALGORITHM:", os.getenv("ALGORITHM"))
-            print(jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")]))
             payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
             username: str = payload.get("sub")
             if username is None:
