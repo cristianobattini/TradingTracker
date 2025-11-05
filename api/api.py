@@ -139,6 +139,7 @@ def get_users(
     users = db.query(User).all()
     return users
 
+##### LEAVE HERE !!!!!!! UPSIDE get_user, or it will missmatch the names !!!!! ####
 # --- Get current user ---
 @app.get("/users/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_user)):
