@@ -139,6 +139,11 @@ def get_users(
     users = db.query(User).all()
     return users
 
+# --- Get current user ---
+@app.get("/users/me", response_model=UserResponse)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
 # --- Get user by ID (admin only) ---
 @app.get("/users/{user_id}", response_model=UserResponse)
 def get_user(
@@ -263,11 +268,6 @@ def login(
         expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "role": user.role}
-
-# --- Get current user ---
-@app.get("/users/me", response_model=UserResponse)
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
 
 # === TRADE MANAGEMENT ===
 
