@@ -1,127 +1,176 @@
+# 🚀 Project Management Guide
 
-# start_project.sh — usage and behavior
+Questo progetto include due script Bash per automatizzare il ciclo di vita del tuo ambiente di sviluppo e produzione:
 
-This README documents the purpose and usage of the `start_project.sh` helper script included in this repository. The script is intended to automate a local development workflow (Linux/macOS) by:
+- `scripts/start_project.sh` → avvia e prepara backend + frontend  
+- `scripts/manage_project.sh` → gestisce stato, log, aggiornamenti e riavvii
 
-- creating/activating a Python virtual environment under `api/venv`,
-- installing Python backend dependencies from `api/requirements.txt`,
-- installing frontend dependencies (in `ui/`),
-- starting the backend and frontend dev servers, and
-- generating TypeScript client code from the running backend OpenAPI spec (if available).
+Entrambi funzionano su **Linux** e **macOS**. Su **Windows** puoi usare **WSL** o **Git Bash**.
 
-The script is written for POSIX shells (bash) and is best run on Linux or macOS. For Windows, use WSL/Git Bash or adapt the commands manually (see notes below).
+---
 
-## Quick run (Linux / macOS)
+## 🧩 1. Struttura generale del progetto
 
-Make the script executable and run it from the repository root:
+| Directory | Descrizione |
+|------------|-------------|
+| `api/` | Backend FastAPI (Python) |
+| `ui/` | Frontend (Vite + React / TypeScript) |
+| `scripts/` | Script di gestione e automazione |
+| `logs/` | Log dei servizi |
+| `pids/` | PID dei processi backend/frontend |
+| `.project_config` | File generato automaticamente con info sull’ambiente |
+
+---
+
+## ⚙️ 2. Requisiti
+
+Assicurati che siano installati:
+
+- `python3` (≥ 3.9)
+- `pip`
+- `npm`
+- `curl`
+- `bash`
+
+E che l’ambiente `DATABASE_URL` sia configurato nel file `api/.env`:
 
 ```bash
-chmod +x start_project.sh
-./start_project.sh
+DATABASE_URL=postgresql://user:password@localhost:5432/tradingtracker
 ```
 
-What the script will do (high level):
+---
 
-- Check for required commands: `python3`, `npm`, `curl`.
-- Create a Python venv at `api/venv` if missing and activate it.
-- Install Python packages from `api/requirements.txt` (or fall back to a small default set).
-- Install frontend dependencies in `ui/` using `npm install --legacy-peer-deps`.
-- Start the backend (runs `python3 main.py` in `api/`) in the background on port 8000.
-- Wait for the backend to serve `/docs` and `/openapi.json`.
-- Generate TypeScript client code under `ui/src/client` using `npx @hey-api/openapi-ts` (with a fallback approach when direct generation fails).
-- Patch the generated client OpenAPI base URL to `http://localhost:8000` if necessary.
-- Start the frontend dev server (`npm run dev`) in the background (Vite default port used by the project is 3039).
-- Monitor both processes and stop them (cleanup) on Ctrl+C.
+## ▶️ 3. Avvio del progetto
 
-The script prints progress messages and returns non-zero exit codes on fatal errors (like missing commands or failed installs).
+Esegui dalla root del progetto:
 
-## Required environment variables / files
+```bash
+chmod +x scripts/start_project.sh
+chmod +x scripts/manage_project.sh
+```
 
-- `DATABASE_URL` — The backend will raise an error if this environment variable is not present. Create a file `api/.env` with this line or export the variable in your shell before running the script.
+### Avvio in modalità sviluppo
+```bash
+./scripts/manage_project.sh dev
+```
+oppure
+```bash
+./scripts/manage_project.sh start development
+```
 
-Example `api/.env`:
+### Avvio in modalità produzione
+```bash
+./scripts/manage_project.sh prod
+```
+oppure
+```bash
+./scripts/manage_project.sh start production
+```
 
-DATABASE_URL=postgresql://user:password@localhost:5432/tradingtracker
+Durante l’avvio:
 
-Other environment variables used by the backend (secrets, admin credentials) should be set as needed.
+- Crea e attiva un virtual environment (`api/venv`)
+- Installa le dipendenze Python e Node.js
+- Avvia il backend (`FastAPI` su `http://localhost:8000`)
+- Avvia il frontend (`Vite` su `http://localhost:3039`)
+- Genera il client TypeScript (`ui/src/client`) da `/openapi.json`
+- Salva PID e log in `pids/` e `logs/`
+- Registra l’ambiente in `.project_config`
 
-## Behavior and idempotency
+---
 
-- If `api/venv` exists the script will attempt to activate it rather than recreate it.
-- The script is safe to re-run; it will skip venv creation if present and will reinstall npm dependencies each time (unless you modify it).
-- The script runs backend and frontend as background processes and prints PIDs. It traps SIGINT (Ctrl+C) to gracefully kill both processes.
+## 🧠 4. Comandi disponibili (`manage_project.sh`)
 
-## Troubleshooting and common errors
+### 🔹 Avvio
+```bash
+./scripts/manage_project.sh start [env]
+```
 
-- "Python3 / npm / curl not found": install the missing program(s) or ensure they are in PATH.
-- "DATABASE_URL non trovata": create `api/.env` or export `DATABASE_URL` in your shell before running.
-- Frontend install errors: try `npm install --legacy-peer-deps` manually in `ui/` or use `yarn install`.
-- OpenAPI generation failures: ensure `http://localhost:8000/openapi.json` is reachable. The script attempts a second approach (download then generate) if the direct generation fails.
+### 🔹 Stop
+```bash
+./scripts/manage_project.sh stop
+```
 
-If a command in the script fails, the script prints helpful messages and often stops further execution.
+### 🔹 Stato
+```bash
+./scripts/manage_project.sh status
+```
 
-## Notes for Windows users
+### 🔹 Riavvio
+```bash
+./scripts/manage_project.sh restart
+```
 
+### 🔹 Log
+```bash
+./scripts/manage_project.sh logs [service] [lines]
+```
 
-The script is POSIX/bash only. Recommended options for Windows environments:
+### 🔹 Aggiornamento
+```bash
+./scripts/manage_project.sh update
+```
 
-- Use WSL (Windows Subsystem for Linux) and run the script from a WSL shell.
-- Use Git Bash or another POSIX-compatible shell that supports bash scripts.
-- Alternatively, run the included PowerShell helper: `start_project.ps1` (Windows PowerShell / PowerShell Core). This script mirrors `start_project.sh` behavior for Windows-native environments.
+---
 
-To run the PowerShell script from the repository root (PowerShell):
+## 🧱 5. Dettagli di `start_project.sh`
+
+Questo script viene richiamato automaticamente da `manage_project.sh` e si occupa di:
+
+1. Setup ambiente Python (`api/venv` + `requirements.txt`)
+2. Setup frontend (`npm install`)
+3. Avvio backend (FastAPI su porta 8000)
+4. Attesa `/openapi.json`
+5. Generazione client TypeScript
+6. Avvio frontend (porta 3039)
+7. Gestione PID e log
+
+---
+
+## 🪶 6. File generati automaticamente
+
+| File / Directory | Descrizione |
+|------------------|-------------|
+| `.project_config` | Contiene l’ambiente attivo e parametri di servizio |
+| `logs/backend.log` | Log del backend |
+| `logs/frontend.log` | Log del frontend |
+| `pids/backend.pid` | PID backend |
+| `pids/frontend.pid` | PID frontend |
+
+---
+
+## 💡 7. Troubleshooting
+
+| Problema | Soluzione |
+|-----------|------------|
+| `DATABASE_URL non trovata` | Crea `api/.env` con la variabile |
+| `Error loading ASGI app` | Assicurati che in `api/main.py` esista `app = FastAPI()` |
+| `Permission denied` | Esegui `chmod +x scripts/*.sh` |
+| `422 su /users/me` | Metti `/users/me` sopra `/users/{user_id}` in FastAPI |
+| Frontend non si avvia | Controlla la porta 3039 |
+| OpenAPI client non generato | Controlla `http://localhost:8000/openapi.json` |
+
+---
+
+## 🪟 8. Utilizzo su Windows
+
+Usa **WSL (Ubuntu)** o **Git Bash**.  
+In alternativa, la versione PowerShell è `scripts/start_project.ps1`:
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-.\start_project.ps1
+.\scripts\start_project.ps1
 ```
 
-The PowerShell script will create `api\venv`, install Python and frontend dependencies, start the backend and frontend, attempt OpenAPI-based client generation, and keep processes running until stopped.
+---
 
-## Database setup (PostgreSQL)
-
-The backend requires a PostgreSQL database reachable from the server running the backend. Below are quick steps to create a database and user.
-
-Linux (Ubuntu) example:
+## 🧭 9. Esempio di ciclo completo
 
 ```bash
-# Install Postgres if needed
-sudo apt update
-sudo apt install -y postgresql postgresql-contrib
-
-# Switch to postgres user
-sudo -u postgres psql
-
-# Inside psql create user and database (replace password and names)
-CREATE USER trading_user WITH PASSWORD 'strongpassword';
-CREATE DATABASE trading_db OWNER trading_user;
-# Exit
-\q
-
-# Example DATABASE_URL
-export DATABASE_URL="postgresql://trading_user:strongpassword@localhost:5432/trading_db"
+./scripts/manage_project.sh start development
+./scripts/manage_project.sh status
+./scripts/manage_project.sh logs backend 30
+./scripts/manage_project.sh restart
+./scripts/manage_project.sh update
+./scripts/manage_project.sh stop
 ```
-
-Windows (PowerShell) example using PostgreSQL installer:
-
-1. Install PostgreSQL from https://www.postgresql.org/download/windows/ and note the postgres superuser password.
-2. Open PowerShell and run psql (adjust path if necessary):
-
-```powershell
-# Start psql (you may need to provide the full path to psql.exe)
-pSQL -U postgres
-
-# In psql create user and database
-CREATE USER trading_user WITH PASSWORD 'strongpassword';
-CREATE DATABASE trading_db OWNER trading_user;
-\q
-
-# Example DATABASE_URL (PowerShell)
-$env:DATABASE_URL = 'postgresql://trading_user:strongpassword@localhost:5432/trading_db'
-```
-
-Notes:
-
-- Use strong passwords and consider creating the database and user with restrictive permissions appropriate for production.
-- You can also use managed Postgres services (RDS, Azure Database for PostgreSQL, etc.) and set `DATABASE_URL` accordingly.
-
