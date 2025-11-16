@@ -427,6 +427,22 @@ export type CreateUserUsersPostResponses = {
 
 export type CreateUserUsersPostResponse = CreateUserUsersPostResponses[keyof CreateUserUsersPostResponses];
 
+export type ReadUsersMeUsersMeGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type ReadUsersMeUsersMeGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type ReadUsersMeUsersMeGetResponse = ReadUsersMeUsersMeGetResponses[keyof ReadUsersMeUsersMeGetResponses];
+
 export type DeleteUserUsersUserIdDeleteData = {
     body?: never;
     path: {
@@ -590,22 +606,6 @@ export type LoginLoginPostResponses = {
 };
 
 export type LoginLoginPostResponse = LoginLoginPostResponses[keyof LoginLoginPostResponses];
-
-export type ReadUsersMeUsersMeGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/users/me';
-};
-
-export type ReadUsersMeUsersMeGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserResponse;
-};
-
-export type ReadUsersMeUsersMeGetResponse = ReadUsersMeUsersMeGetResponses[keyof ReadUsersMeUsersMeGetResponses];
 
 export type ListTradesTradesGetData = {
     body?: never;

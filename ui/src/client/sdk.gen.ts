@@ -55,6 +55,22 @@ export const createUserUsersPost = <ThrowOnError extends boolean = false>(option
 };
 
 /**
+ * Read Users Me
+ */
+export const readUsersMeUsersMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReadUsersMeUsersMeGetData, ThrowOnError>) => {
+    return (options?.client ?? client).get<ReadUsersMeUsersMeGetResponses, unknown, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/users/me',
+        ...options
+    });
+};
+
+/**
  * Delete User
  */
 export const deleteUserUsersUserIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteUserUsersUserIdDeleteData, ThrowOnError>) => {
@@ -158,22 +174,6 @@ export const loginLoginPost = <ThrowOnError extends boolean = false>(options: Op
             'Content-Type': 'application/x-www-form-urlencoded',
             ...options.headers
         }
-    });
-};
-
-/**
- * Read Users Me
- */
-export const readUsersMeUsersMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReadUsersMeUsersMeGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<ReadUsersMeUsersMeGetResponses, unknown, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/me',
-        ...options
     });
 };
 

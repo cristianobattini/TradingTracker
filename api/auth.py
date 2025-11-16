@@ -46,6 +46,7 @@ class AuthService:
         return encoded_jwt
 
     def get_current_user(self, token: str):  
+        print("Getting current user from token:", token)
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -55,10 +56,22 @@ class AuthService:
             payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
             username: str = payload.get("sub")
             if username is None:
-                raise credentials_exception
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Could not validate credentials: username missing",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
         except jwt.PyJWTError:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials: token decode error",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         user = self.get_user(username)
         if user is None:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials: user not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         return user
