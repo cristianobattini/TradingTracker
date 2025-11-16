@@ -6,12 +6,6 @@
 ./NOTES.md
 node_modules
 
-# Environment files
-.env
-.env.prod
-.env.local
-.env.*.local
-
 # Database files
 *.db
 *.sqlite3
