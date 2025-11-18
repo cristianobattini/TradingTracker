@@ -1,12 +1,17 @@
 #!/bin/bash
 
-# manage_project.sh - Unified management script
+# =====================================================
+# manage_project.sh - Unified project management script
+# =====================================================
 
-CONFIG_FILE="./.project_config"
-LOG_DIR="./logs"
-PID_DIR="./pids"
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
+CONFIG_FILE="$BASE_DIR/.project_config"
+LOG_DIR="$BASE_DIR/logs"
+PID_DIR="$BASE_DIR/pids"
 
-# Load configuration
+# ------------------------
+# Load saved configuration
+# ------------------------
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -15,22 +20,24 @@ load_config() {
     return 1
 }
 
+# ------------------------
 # Show status
+# ------------------------
 show_status() {
     if ! load_config; then
         echo "❌ Project not configured. Run start script first."
         return 1
     fi
-    
+
     echo "=== PROJECT STATUS ==="
     echo "Environment: $PROJECT_ENV"
     echo "Started: $(date -r "$CONFIG_FILE" '+%Y-%m-%d %H:%M:%S')"
     echo ""
-    
-    # Backend status
+
+    # Backend
     if [ -f "$PID_DIR/backend.pid" ]; then
-        local pid=$(cat "$PID_DIR/backend.pid")
-        if kill -0 $pid 2>/dev/null; then
+        pid=$(cat "$PID_DIR/backend.pid")
+        if kill -0 "$pid" 2>/dev/null; then
             echo "✅ Backend: RUNNING (PID: $pid)"
             echo "   URL: http://$BACKEND_HOST:$BACKEND_PORT"
             echo "   Docs: http://$BACKEND_HOST:$BACKEND_PORT/docs"
@@ -41,11 +48,11 @@ show_status() {
     else
         echo "❌ Backend: NOT RUNNING"
     fi
-    
-    # Frontend status
+
+    # Frontend
     if [ -f "$PID_DIR/frontend.pid" ]; then
-        local pid=$(cat "$PID_DIR/frontend.pid")
-        if kill -0 $pid 2>/dev/null; then
+        pid=$(cat "$PID_DIR/frontend.pid")
+        if kill -0 "$pid" 2>/dev/null; then
             echo "✅ Frontend: RUNNING (PID: $pid)"
             echo "   URL: http://localhost:$FRONTEND_PORT"
         else
@@ -55,39 +62,39 @@ show_status() {
     else
         echo "❌ Frontend: NOT RUNNING"
     fi
-    
-    # Log files
+
+    # Logs
     echo ""
-    echo "Log Files:"
-    ls -la "$LOG_DIR/" 2>/dev/null || echo "No log directory"
+    echo "Log files:"
+    ls -la "$LOG_DIR" 2>/dev/null || echo "No log directory"
 }
 
+# ------------------------
 # Stop services
+# ------------------------
 stop_services() {
     echo "🛑 Stopping services..."
-    
-    if [ -f "$PID_DIR/backend.pid" ]; then
-        local pid=$(cat "$PID_DIR/backend.pid")
-        echo "Stopping backend (PID: $pid)..."
-        kill $pid 2>/dev/null && rm -f "$PID_DIR/backend.pid" && echo "✅ Backend stopped"
-    fi
-    
-    if [ -f "$PID_DIR/frontend.pid" ]; then
-        local pid=$(cat "$PID_DIR/frontend.pid")
-        echo "Stopping frontend (PID: $pid)..."
-        kill $pid 2>/dev/null && rm -f "$PID_DIR/frontend.pid" && echo "✅ Frontend stopped"
-    fi
-    
+
+    for service in backend frontend; do
+        pid_file="$PID_DIR/${service}.pid"
+        if [ -f "$pid_file" ]; then
+            pid=$(cat "$pid_file")
+            echo "Stopping $service (PID: $pid)..."
+            kill "$pid" 2>/dev/null && rm -f "$pid_file" && echo "✅ $service stopped"
+        fi
+    done
+
     echo "✅ All services stopped"
 }
 
+# ------------------------
 # Show logs
+# ------------------------
 show_logs() {
-    local service=${1:-"backend"}
-    local lines=${2:-20}
-    
-    local log_file="$LOG_DIR/${service}.log"
-    
+    service=${1:-backend}
+    lines=${2:-20}
+    log_file="$LOG_DIR/${service}.log"
+
     if [ -f "$log_file" ]; then
         echo "=== Last $lines lines of $service log ==="
         tail -n "$lines" "$log_file"
@@ -96,84 +103,59 @@ show_logs() {
     fi
 }
 
+# ------------------------
 # Restart services
+# ------------------------
 restart_services() {
-    local env="development"
-    
-    if load_config; then
-        env="$PROJECT_ENV"
-    fi
-    
+    env="development"
+    load_config && env="$PROJECT_ENV"
+
     stop_services
     sleep 2
     echo "🔄 Restarting services in $env mode..."
     ./scripts/start_project.sh "$env"
 }
 
-# Update project
+# ------------------------
+# Update dependencies
+# ------------------------
 update_project() {
     echo "🔄 Updating project..."
-    
-    # Update backend
-    if [ -d "./api" ]; then
-        echo "Updating backend dependencies..."
-        cd ./api && source venv/bin/activate && pip install -r requirements.txt && cd ..
+
+    if [ -d "$BASE_DIR/api" ]; then
+        echo "Updating backend..."
+        cd "$BASE_DIR/api" || return
+        [ -d venv ] && source venv/bin/activate
+        pip install -r requirements.txt
+        cd - > /dev/null
     fi
-    
-    # Update frontend
-    if [ -d "./ui" ]; then
-        echo "Updating frontend dependencies..."
-        cd ./ui && npm install && cd ..
+
+    if [ -d "$BASE_DIR/ui" ]; then
+        echo "Updating frontend..."
+        cd "$BASE_DIR/ui" || return
+        npm install --legacy-peer-deps
+        cd - > /dev/null
     fi
-    
+
     echo "✅ Project updated"
 }
 
-# Main command handler
+# ------------------------
+# CLI command handler
+# ------------------------
 case "${1:-}" in
-    start)
-        ./scripts/start_project.sh "${2:-development}"
-        ;;
-    stop)
-        stop_services
-        ;;
-    status)
-        show_status
-        ;;
-    restart)
-        restart_services
-        ;;
-    logs)
-        show_logs "${2:-backend}" "${3:-20}"
-        ;;
-    update)
-        update_project
-        ;;
-    prod|production)
-        ./scripts/start_project.sh production
-        ;;
-    dev|development)
-        ./scripts/start_project.sh development
-        ;;
-    *)
+    start)      ./scripts/start_project.sh "${2:-development}" ;;
+    stop)       stop_services ;;
+    status)     show_status ;;
+    restart)    restart_services ;;
+    logs)       show_logs "${2:-backend}" "${3:-20}" ;;
+    update)     update_project ;;
+    prod)       ./scripts/start_project.sh production ;;
+    dev)        ./scripts/start_project.sh development ;;
+    *) 
         echo "Project Management Script"
         echo ""
-        echo "Usage: $0 {command} [options]"
-        echo ""
-        echo "Commands:"
-        echo "  start [env]     Start services (dev|prod)"
-        echo "  stop            Stop all services"
-        echo "  status          Show service status"
-        echo "  restart         Restart all services"
-        echo "  logs [service]  Show logs (backend|frontend)"
-        echo "  update          Update dependencies"
-        echo "  prod            Start in production mode"
-        echo "  dev             Start in development mode"
-        echo ""
-        echo "Examples:"
-        echo "  $0 start prod     # Start production"
-        echo "  $0 logs backend   # Show backend logs"
-        echo "  $0 status         # Check status"
+        echo "Usage: $0 {start|stop|status|restart|logs|update|prod|dev}"
         exit 1
         ;;
 esac
