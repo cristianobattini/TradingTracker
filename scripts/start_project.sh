@@ -120,17 +120,36 @@ deploy_frontend_files() {
 # Start backend
 # ------------------------
 start_backend() {
+    local env=$1
     cd "$BACKEND_PATH" || exit_with_error "Backend directory not found"
-    [ ! -f ".env" ] && ln -sf "$ENV_FILE" ".env"
+
+    # Set up .env symlink
+    [ -f "../$ENV_FILE" ] && [ ! -f ".env" ] && ln -sf "../$ENV_FILE" ".env"
+
     source "$VENV_PATH/bin/activate"
 
-    echo "🚀 Starting backend ($PROJECT_ENV)..."
-    nohup python3 main.py --host "$BACKEND_HOST" --port "$BACKEND_PORT" > "$LOG_DIR/backend.log" 2>&1 &
-    BACKEND_PID=$!
-    echo "$BACKEND_PID" > "$PID_DIR/backend.pid"
-    echo "✅ Backend started (PID: $BACKEND_PID)"
+    echo "🚀 Starting backend ($env mode)..."
+
+    if [ "$env" = "production" ]; then
+        # Run Uvicorn via CLI for proper workers handling
+        nohup uvicorn api:app \
+            --host "$BACKEND_HOST" \
+            --port "$BACKEND_PORT" \
+            --workers 2 \
+            --log-level info \
+            > "../$LOG_DIR/backend.log" 2>&1 &
+
+        BACKEND_PID=$!
+        echo "$BACKEND_PID" > "../$PID_DIR/backend.pid"
+        echo "✅ Backend started in background (PID: $BACKEND_PID, Port: $BACKEND_PORT)"
+    else
+        # Development mode with reload
+        uvicorn api:app --host "$BACKEND_HOST" --port "$BACKEND_PORT" --reload
+    fi
+
     cd - > /dev/null
 }
+
 
 # ------------------------
 # Start frontend
