@@ -134,7 +134,7 @@ export function ProfileView() {
               <Typography>Loading...</Typography>
             ) : user ? (
               <Stack spacing={1}>
-                {user.role === 'admin' && !editMode && (
+                {!editMode && (
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button size="small" variant="outlined" onClick={handleStartEdit}>
                       Edit Profile
