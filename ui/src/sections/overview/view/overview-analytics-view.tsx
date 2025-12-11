@@ -19,7 +19,7 @@ interface PerformanceMetrics {
 import { TradingRecentTrades } from '../trading-recent-trades';
 import { TradingPerformanceSummary } from '../trading-performance-summary';
 import { TradingWinLossChart } from '../trading-win-loss-chart';
-import { getReportReportGet, listTradesTradesGet, ReportResponse, TradeResponse } from 'src/client';
+import { getReportReportGet, listTradesTradesGet, readUsersMeUsersMeGet, ReportResponse, TradeResponse, UserResponse } from 'src/client';
 import { TradingCapitalGrowth } from '../trading-capital-growth';
 import { TradingPairsDistribution } from '../trading-pairs-distribution';
 import { TradingSystemPerformance } from '../trading-system-performance';
@@ -33,6 +33,7 @@ import { AddTradeModal } from '../add-trade-modal';
 export function OverviewAnalyticsView() {
   const [trades, setTrades] = useState<TradeResponse[]>([]);
   const [report, setReport] = useState<ReportResponse>();
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '' });
@@ -49,6 +50,13 @@ export function OverviewAnalyticsView() {
       .catch(() => {
         setTrades([]);
       });
+
+    // fetch current user (to get initial capital)
+    readUsersMeUsersMeGet()
+      .then((response) => {
+        setUser(response.data || null);
+      })
+      .catch(() => setUser(null));
 
     getReportReportGet()
       .then((response) => {
@@ -144,17 +152,25 @@ export function OverviewAnalyticsView() {
         <Grid2 size={{ xs: 12, md: 8, lg:9 }}>
           <TradingCapitalGrowth
             title="Capital Growth"
-            data={
-              trades.reduce<{ date: string; capital: number }[]>((acc, trade) => {
-          const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : report?.capital ?? 0;
-          const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
-          acc.push({
-            date: trade.date ?? '',
-            capital: newCapital,
-          });
-          return acc;
-              }, [])
-            }
+              data={
+                // use initial capital from user if available, otherwise fallback to report.capital or 0
+                (() => {
+                  const initialCapital = user?.initial_capital ?? report?.capital ?? 0;
+                  // sort trades by date ascending to build a chronological series
+                  const sorted = [...trades].sort((a, b) => {
+                    const ta = a.date ? new Date(a.date).getTime() : 0;
+                    const tb = b.date ? new Date(b.date).getTime() : 0;
+                    return ta - tb;
+                  });
+
+                  return sorted.reduce<{ date: string; capital: number }[]>((acc, trade) => {
+                    const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : initialCapital;
+                    const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
+                    acc.push({ date: trade.date ?? '', capital: newCapital });
+                    return acc;
+                  }, []);
+                })()
+              }
           />
         </Grid2>
 
