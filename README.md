@@ -1,176 +1,279 @@
-# 🚀 Project Management Guide
+# 📌 TradingTracker
 
-Questo progetto include due script Bash per automatizzare il ciclo di vita del tuo ambiente di sviluppo e produzione:
+**TradingTracker** is a full-stack web application designed to track and
+visualize trading activity and performance.\
+It includes:
 
-- `scripts/start_project.sh` → avvia e prepara backend + frontend  
-- `scripts/manage_project.sh` → gestisce stato, log, aggiornamenti e riavvii
+-   A **FastAPI backend**
+-   A **modern SPA frontend** (React / Angular / Vue / Vite)
+-   Production deployment using **NGINX** (static + reverse proxy)
+-   FastAPI running as a **systemd service**
 
-Entrambi funzionano su **Linux** e **macOS**. Su **Windows** puoi usare **WSL** o **Git Bash**.
+This document includes:
 
----
+1.  Project overview\
+2.  Development setup\
+3.  Full deployment guide for Linux servers\
+4.  NGINX configuration\
+5.  systemd service setup\
+6.  Useful commands (logs, restart, reload)
 
-## 🧩 1. Struttura generale del progetto
+------------------------------------------------------------------------
 
-| Directory | Descrizione |
-|------------|-------------|
-| `api/` | Backend FastAPI (Python) |
-| `ui/` | Frontend (Vite + React / TypeScript) |
-| `scripts/` | Script di gestione e automazione |
-| `logs/` | Log dei servizi |
-| `pids/` | PID dei processi backend/frontend |
-| `.project_config` | File generato automaticamente con info sull’ambiente |
+# 🚀 Features
 
----
+-   Fast and scalable **FastAPI backend**
+-   SPA frontend compiled to `dist/`
+-   REST API with automatic docs (`/docs`, `/redoc`)
+-   Can be deployed in production with:
+    -   `systemd` service for API
+    -   `NGINX` serving frontend and proxying backend
 
-## ⚙️ 2. Requisiti
+------------------------------------------------------------------------
 
-Assicurati che siano installati:
+# 📁 Repository Structure
 
-- `python3` (≥ 3.9)
-- `pip`
-- `npm`
-- `curl`
-- `bash`
+    /
+    ├── backend/
+    │   ├── app/
+    │   │   ├── api/
+    │   │   ├── core/
+    │   │   ├── db/
+    │   │   ├── models/
+    │   │   ├── schemas/
+    │   │   └── main.py
+    │   ├── requirements.txt
+    │   └── alembic/
+    ├── frontend/
+    │   ├── src/
+    │   ├── public/
+    │   └── dist/          # production build output
+    ├── README.md
+    └── GUIDE.md (merged into this README)
 
-E che l’ambiente `DATABASE_URL` sia configurato nel file `api/.env`:
+------------------------------------------------------------------------
 
-```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/tradingtracker
+# 🧠 API Docs
+
+After running the backend:
+
+-   Swagger UI → `http://localhost:8000/docs`
+-   ReDoc → `http://localhost:8000/redoc`
+
+------------------------------------------------------------------------
+
+# 🧩 1) Local Development
+
+## Backend (FastAPI)
+
+### 1. Create a virtual environment
+
+``` bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
 ```
 
----
+### 2. Install dependencies
 
-## ▶️ 3. Avvio del progetto
-
-Esegui dalla root del progetto:
-
-```bash
-chmod +x scripts/start_project.sh
-chmod +x scripts/manage_project.sh
+``` bash
+pip install -r requirements.txt
 ```
 
-### Avvio in modalità sviluppo
-```bash
-./scripts/manage_project.sh dev
-```
-oppure
-```bash
-./scripts/manage_project.sh start development
+### 3. Run development server
+
+``` bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Avvio in modalità produzione
-```bash
-./scripts/manage_project.sh prod
-```
-oppure
-```bash
-./scripts/manage_project.sh start production
-```
+------------------------------------------------------------------------
 
-Durante l’avvio:
+## Frontend (SPA)
 
-- Crea e attiva un virtual environment (`api/venv`)
-- Installa le dipendenze Python e Node.js
-- Avvia il backend (`FastAPI` su `http://localhost:8000`)
-- Avvia il frontend (`Vite` su `http://localhost:3039`)
-- Genera il client TypeScript (`ui/src/client`) da `/openapi.json`
-- Salva PID e log in `pids/` e `logs/`
-- Registra l’ambiente in `.project_config`
+### 1. Install dependencies
 
----
-
-## 🧠 4. Comandi disponibili (`manage_project.sh`)
-
-### 🔹 Avvio
-```bash
-./scripts/manage_project.sh start [env]
+``` bash
+cd frontend
+npm install
 ```
 
-### 🔹 Stop
-```bash
-./scripts/manage_project.sh stop
+### 2. Start development server
+
+``` bash
+npm run dev
 ```
 
-### 🔹 Stato
-```bash
-./scripts/manage_project.sh status
+### 3. Build for production
+
+``` bash
+npm run build
 ```
 
-### 🔹 Riavvio
-```bash
-./scripts/manage_project.sh restart
+The output appears in:
+
+    frontend/dist/
+
+------------------------------------------------------------------------
+
+# 🚢 2) Production Deployment on Linux
+
+This guide explains how to deploy:
+
+-   Backend served by **systemd** (Uvicorn)
+-   Frontend served by **NGINX**
+-   NGINX reverse proxy forwarding `/api/*` to FastAPI
+
+------------------------------------------------------------------------
+
+# 🏗 Backend Setup (Production)
+
+### 1. Copy repository to server
+
+    /var/www/tradingtracker/
+
+### 2. Create Python environment
+
+``` bash
+cd /var/www/tradingtracker/backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### 🔹 Log
-```bash
-./scripts/manage_project.sh logs [service] [lines]
+### 3. Test manually
+
+``` bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 🔹 Aggiornamento
-```bash
-./scripts/manage_project.sh update
+------------------------------------------------------------------------
+
+# 🏗 Frontend Setup (Production)
+
+### 1. Build the frontend
+
+``` bash
+cd /var/www/tradingtracker/frontend
+npm install
+npm run build
 ```
 
----
+Build output is stored in:
 
-## 🧱 5. Dettagli di `start_project.sh`
+    /var/www/tradingtracker/frontend/dist
 
-Questo script viene richiamato automaticamente da `manage_project.sh` e si occupa di:
+------------------------------------------------------------------------
 
-1. Setup ambiente Python (`api/venv` + `requirements.txt`)
-2. Setup frontend (`npm install`)
-3. Avvio backend (FastAPI su porta 8000)
-4. Attesa `/openapi.json`
-5. Generazione client TypeScript
-6. Avvio frontend (porta 3039)
-7. Gestione PID e log
+# ⚙️ NGINX Configuration (Production)
 
----
+Create:
 
-## 🪶 6. File generati automaticamente
+    /etc/nginx/sites-available/tradingtracker
 
-| File / Directory | Descrizione |
-|------------------|-------------|
-| `.project_config` | Contiene l’ambiente attivo e parametri di servizio |
-| `logs/backend.log` | Log del backend |
-| `logs/frontend.log` | Log del frontend |
-| `pids/backend.pid` | PID backend |
-| `pids/frontend.pid` | PID frontend |
+Paste:
 
----
+``` nginx
+server {
+    listen 80;
+    server_name your-domain.com;
 
-## 💡 7. Troubleshooting
+    # Serve SPA
+    root /var/www/tradingtracker/frontend/dist;
+    index index.html;
 
-| Problema | Soluzione |
-|-----------|------------|
-| `DATABASE_URL non trovata` | Crea `api/.env` con la variabile |
-| `Error loading ASGI app` | Assicurati che in `api/main.py` esista `app = FastAPI()` |
-| `Permission denied` | Esegui `chmod +x scripts/*.sh` |
-| `422 su /users/me` | Metti `/users/me` sopra `/users/{user_id}` in FastAPI |
-| Frontend non si avvia | Controlla la porta 3039 |
-| OpenAPI client non generato | Controlla `http://localhost:8000/openapi.json` |
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
 
----
-
-## 🪟 8. Utilizzo su Windows
-
-Usa **WSL (Ubuntu)** o **Git Bash**.  
-In alternativa, la versione PowerShell è `scripts/start_project.ps1`:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-.\scripts\start_project.ps1
+    # API reverse proxy
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
 ```
 
----
+Enable and restart nginx:
 
-## 🧭 9. Esempio di ciclo completo
-
-```bash
-./scripts/manage_project.sh start development
-./scripts/manage_project.sh status
-./scripts/manage_project.sh logs backend 30
-./scripts/manage_project.sh restart
-./scripts/manage_project.sh update
-./scripts/manage_project.sh stop
+``` bash
+sudo ln -s /etc/nginx/sites-available/tradingtracker /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 ```
+
+------------------------------------------------------------------------
+
+# 🔁 3) FastAPI as a systemd Service
+
+Create:
+
+    /etc/systemd/system/fastapi.service
+
+Paste:
+
+``` ini
+[Unit]
+Description=FastAPI Uvicorn Service
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/tradingtracker/backend
+Environment="PATH=/var/www/tradingtracker/backend/venv/bin"
+ExecStart=/var/www/tradingtracker/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+[Install]
+WantedBy=multi-user.target
+```
+
+------------------------------------------------------------------------
+
+## Enable & start service
+
+``` bash
+sudo systemctl daemon-reload
+sudo systemctl start fastapi
+sudo systemctl enable fastapi
+```
+
+------------------------------------------------------------------------
+
+# 🧰 Useful Commands
+
+### View logs
+
+``` bash
+sudo journalctl -u fastapi -f
+```
+
+### Restart service
+
+``` bash
+sudo systemctl restart fastapi
+```
+
+### Reload systemd config
+
+``` bash
+sudo systemctl daemon-reload
+```
+
+------------------------------------------------------------------------
+
+# 🧪 Testing Your Deployment
+
+Visit:
+
+-   **Frontend** → `http://your-domain.com`
+-   **API** → `http://your-domain.com/api/...`
+
+------------------------------------------------------------------------
+
+# 🎉 Done!
+
+Your TradingTracker project is now fully documented and deployable in
+both **local** and **production** environments using **FastAPI**,
+**systemd**, and **NGINX**.
