@@ -1,0 +1,36 @@
+TradingTracker - Proprietary / Commercial License
+
+Copyright (c) 2025 Cristiano Battini. All rights reserved.
+
+1. LICENSE GRANT
+----------------
+Subject to the terms and conditions of this License, the Licensor grants the Licensee a non-exclusive, non-transferable, revocable license to:
+  a) Install, use, and operate the TradingTracker software solely for the Licensee’s internal business purposes;
+  b) Make a reasonable number of copies for backup or archival purposes.
+
+2. RESTRICTIONS
+---------------
+The Licensee may NOT:
+  a) Redistribute, sell, sublicense, or lease the software to third parties without explicit written consent from the Licensor;
+  b) Modify, reverse engineer, decompile, or disassemble the software except as permitted by law;
+  c) Remove or alter any proprietary notices, labels, or marks on the software.
+
+3. OWNERSHIP
+------------
+The software, including all copies, modifications, and derivatives, remains the exclusive property of the Licensor. No ownership rights are transferred under this license.
+
+4. SUPPORT AND WARRANTY
+----------------------
+The software is provided “as-is”. The Licensor makes no warranties, express or implied, regarding its performance, quality, or fitness for any particular purpose. The Licensee assumes all risks related to its use.
+
+5. TERMINATION
+--------------
+This license is effective until terminated. It will automatically terminate without notice if the Licensee fails to comply with any terms of this License. Upon termination, the Licensee must destroy all copies of the software.
+
+6. GOVERNING LAW
+----------------
+This License shall be governed by and construed in accordance with the laws of Italy, without regard to its conflict of law provisions.
+
+7. COMMERCIAL USAGE
+------------------
+Any commercial use, sale, or distribution of the software outside the Licensee’s internal operations requires a separate commercial agreement with the Licensor.
