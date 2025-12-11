@@ -20,7 +20,7 @@ export function TradingWinLossChart({ title, data }: TradingWinLossChartProps) {
   ];
 
   return (
-    <Card>
+    <Card style={{height: "100%"}}>
       <CardHeader title={title} />
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
@@ -30,8 +30,8 @@ export function TradingWinLossChart({ title, data }: TradingWinLossChartProps) {
             cy="50%"
             labelLine={false}
             label={(props) => {
-              const { name, percent } = props as unknown as { name: string; percent: number };
-              return `${name} ${(percent * 100).toFixed(0)}%`;
+              const { percent } = props as unknown as { name: string; percent: number };
+              return `${(percent * 100).toFixed(0)}%`;
             }}
             outerRadius={80}
             fill="#8884d8"

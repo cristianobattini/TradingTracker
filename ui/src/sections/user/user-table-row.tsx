@@ -12,6 +12,7 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { deleteUserUsersUserIdDelete } from 'src/client';
 
 // ----------------------------------------------------------------------
 
@@ -26,10 +27,12 @@ export type UserProps = {
 type UserTableRowProps = {
   row: UserProps;
   selected: boolean;
-  onSelectRow: () => void;
+  onSelectRow: (rowContent: UserProps) => void;
+  onDeleteRow: () => void;
+  showActions?: boolean;
 };
 
-export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, onDeleteRow, showActions }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -40,13 +43,27 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
     setOpenPopover(null);
   }, []);
 
+  const handleDeleteRow = useCallback(() => {
+    if(confirm(`Are you sure you want to delete user "${row.username}"?`)) {
+      deleteUserUsersUserIdDelete({
+        path: { user_id: Number(row.id) },
+      }).then(() => {
+        onDeleteRow();
+      })
+    }
+    handleClosePopover();
+  }, [handleClosePopover]);
+
+  const handleUpdateRow = useCallback(() => {
+    onSelectRow(row);
+  }, [onSelectRow]);
+
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-{/*         <TableCell padding="checkbox">
+        {/*         <TableCell padding="checkbox">
           <Checkbox disableRipple checked={selected} onChange={onSelectRow} />
         </TableCell> */}
-
         <TableCell component="th" scope="row">
           <Box
             sx={{
@@ -58,20 +75,17 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
             {row.username}
           </Box>
         </TableCell>
-
         <TableCell>{row.email}</TableCell>
-
         <TableCell>{row.role}</TableCell>
-
-        <TableCell align="center">
-          {row.initial_capital}€
-        </TableCell>
-
-        <TableCell align="right">
-          <IconButton onClick={handleOpenPopover}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </TableCell>
+        <TableCell align="center">{row.initial_capital}€</TableCell>
+        
+        { (showActions && row.role != 'admin') &&
+          <TableCell align="right">
+            <IconButton onClick={handleOpenPopover}>
+              <Iconify icon="eva:more-vertical-fill" />
+            </IconButton>
+          </TableCell>
+        }
       </TableRow>
 
       <Popover
@@ -97,12 +111,12 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
+          <MenuItem onClick={handleUpdateRow}>
             <Iconify icon="solar:pen-bold" />
             Edit
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDeleteRow} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
           </MenuItem>

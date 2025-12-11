@@ -141,7 +141,7 @@ export function OverviewAnalyticsView() {
         </Grid2>
 
         {/* Capital Growth Chart */}
-        <Grid2 size={{ xs: 12, md: 8, lg: 9 }}>
+        <Grid2 size={{ xs: 12, md: 8, lg:9 }}>
           <TradingCapitalGrowth
             title="Capital Growth"
             data={

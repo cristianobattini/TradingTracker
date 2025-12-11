@@ -24,7 +24,10 @@ import type { UserProps } from '../user-table-row';
 import { getUsersUsersGet, UserResponse } from 'src/client';
 import { useEffect } from 'react';
 import CreateUserModal from './create-user-modal';
+import UpdateUserModal from './update-user-modal';
 import { Snackbar, Alert } from '@mui/material';
+import { useLocalStorage } from 'minimal-shared/hooks';
+import { getLocalStorageItem } from 'src/services/local-storage-service';
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +39,11 @@ export function UserView() {
   const [loading, setLoading] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateModalUser, setUpdateModalUser] = useState({} as UserProps);
   const [notification, setNotification] = useState({ open: false, message: '' });
+
+  const currentUserRole = getLocalStorageItem('role');
 
   const handleUserCreated = (newUser: UserResponse) => {
     setNotification({
@@ -94,6 +101,11 @@ export function UserView() {
       });
   };
 
+  const handleUpdateUser = (row: UserProps) => {
+    setUpdateModalUser(row);
+    setUpdateModalOpen(true);
+  };
+
   const dataFiltered: UserProps[] = applyFilter({
     inputData: users,
     comparator: getComparator(table.order, table.orderBy),
@@ -129,6 +141,16 @@ export function UserView() {
         onClose={() => setModalOpen(false)}
         onUserCreated={handleUserCreated}
       />
+
+      {updateModalOpen && (
+        <UpdateUserModal
+          open={updateModalOpen}
+          onClose={() => setUpdateModalOpen(false)}
+          user={updateModalUser}
+          userId={Number(updateModalUser.id)}
+          onUserUpdated={() => refreshUsers()}
+        />
+      )}
 
       <Card>
         <UserTableToolbar
@@ -181,7 +203,12 @@ export function UserView() {
                         key={row.id}
                         row={row}
                         selected={table.selected.includes(row.id)}
-                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onSelectRow={(row) => handleUpdateUser(row)}
+                        onDeleteRow={() => {
+                          console.log('Row deleted');
+                          refreshUsers();
+                        }}
+                        showActions={currentUserRole === 'admin'}
                       />
                     ))
                 )}

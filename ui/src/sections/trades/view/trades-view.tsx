@@ -33,8 +33,9 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { listTradesTradesGet, TradeResponse } from 'src/client';
+import { deleteTradeTradesTradeIdDelete, listTradesTradesGet, TradeResponse } from 'src/client';
 import { AddTradeModal } from 'src/sections/overview/add-trade-modal';
+import { UpdateTradeModal } from 'src/sections/overview/update-trade-modal';
 
 export function TradesView() {
   const [trades, setTrades] = useState<TradeResponse[]>([]);
@@ -47,6 +48,8 @@ export function TradesView() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pairFilter, setPairFilter] = useState<string>('all');
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState<TradeResponse | null>(null);
 
   // Fetch trades on component mount
   useEffect(() => {
@@ -145,6 +148,16 @@ export function TradesView() {
       minimumFractionDigits: 0,
     }).format(amount);
   };
+
+  const handleDeleteTrade = async (tradeId: number) => {
+    if (confirm('Are you sure you want to delete this trade?')) {
+      deleteTradeTradesTradeIdDelete({ path: { trade_id: tradeId } }).then(() => {
+        setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+      }).catch(err => {
+        setError('Failed to delete trade');
+      });
+    };
+  }
 
   if (loading && trades.length === 0) {
     return (
@@ -346,13 +359,13 @@ export function TradesView() {
                         size="small"
                       />
                     </TableCell>
-                    {/* <TableCell>
+                    <TableCell>
                       <Stack direction="row" spacing={1}>
-                        <Tooltip title="Edit Trade">
-                          <IconButton size="small">
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
+                          <Tooltip title="Edit Trade">
+                            <IconButton size="small" onClick={() => { setSelectedTrade(trade); setEditModalOpen(true); }}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
                         <Tooltip title="Delete Trade">
                           <IconButton
                             size="small"
@@ -363,7 +376,7 @@ export function TradesView() {
                           </IconButton>
                         </Tooltip>
                       </Stack>
-                    </TableCell> */}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -414,6 +427,19 @@ export function TradesView() {
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onTradeAdded={handleTradeAdded}
+        loading={false}
+      />
+
+      {/* Update Trade Modal */}
+      <UpdateTradeModal
+        open={editModalOpen}
+        onClose={() => { setEditModalOpen(false); setSelectedTrade(null); }}
+        trade={selectedTrade}
+        onTradeUpdated={(updated) => {
+          setTrades(prev => prev.map(t => (t.id === updated.id ? updated : t)));
+          setEditModalOpen(false);
+          setSelectedTrade(null);
+        }}
         loading={false}
       />
     </DashboardContent>
