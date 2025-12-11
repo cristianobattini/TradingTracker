@@ -101,10 +101,13 @@ def require_admin(
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 
+# === CREATE ROUTER ===
+router = APIRouter(prefix="/api")
+
 # === USER MANAGEMENT ===
 
 # --- User registration by admin ---
-@app.post("/users/", response_model=UserResponse)
+@router.post("/users/", response_model=UserResponse)
 def create_user(
     new_user: UserCreate,
     db: Session = Depends(get_db),
@@ -131,7 +134,7 @@ def create_user(
     return user
 
 # --- Get all users (admin only) ---
-@app.get("/users/", response_model=List[UserResponse])
+@router.get("/users/", response_model=List[UserResponse])
 def get_users(
     db: Session = Depends(get_db),
     current_admin: User = Depends(require_admin),
@@ -141,12 +144,12 @@ def get_users(
 
 ##### LEAVE HERE !!!!!!! UPSIDE get_user, or it will missmatch the names !!!!! ####
 # --- Get current user ---
-@app.get("/users/me", response_model=UserResponse)
+@router.get("/users/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 # --- Get user by ID (admin only) ---
-@app.get("/users/{user_id}", response_model=UserResponse)
+@router.get("/users/{user_id}", response_model=UserResponse)
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
@@ -158,7 +161,7 @@ def get_user(
     return user
 
 # --- Update user (admin only) ---
-@app.put("/users/{user_id}", response_model=UserResponse)
+@router.put("/users/{user_id}", response_model=UserResponse)
 def update_user(
     user_id: int,
     user_update: UserUpdate,
@@ -191,7 +194,7 @@ def update_user(
     return user
 
 # --- Delete user (admin only) ---
-@app.delete("/users/{user_id}")
+@router.delete("/users/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
@@ -212,7 +215,7 @@ def delete_user(
 # === PASSWORD MANAGEMENT ===
 
 # --- Change own password ---
-@app.post("/users/me/change-password")
+@router.post("/users/me/change-password")
 def change_own_password(
     password_change: PasswordChange,
     db: Session = Depends(get_db),
@@ -230,7 +233,7 @@ def change_own_password(
     return {"message": "Password changed successfully"}
 
 # --- Change user password (admin only) ---
-@app.post("/users/{user_id}/change-password")
+@router.post("/users/{user_id}/change-password")
 def change_user_password(
     user_id: int,
     password_change: PasswordChange,
@@ -251,7 +254,7 @@ def change_user_password(
 # === AUTHENTICATION ===
 
 # --- Login ---
-@app.post("/login", response_model=TokenSchema)
+@router.post("/login", response_model=TokenSchema)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     auth_service: AuthService = Depends(get_auth_service)
@@ -273,7 +276,7 @@ def login(
 # === TRADE MANAGEMENT ===
 
 # --- Create trade ---
-@app.post("/trades/", response_model=TradeResponse)
+@router.post("/trades/", response_model=TradeResponse)
 def create_trade(
     trade: TradeCreate,
     db: Session = Depends(get_db),
@@ -286,7 +289,7 @@ def create_trade(
     return db_trade
 
 # --- List trades for current user ---
-@app.get("/trades/", response_model=List[TradeResponse])
+@router.get("/trades/", response_model=List[TradeResponse])
 def list_trades(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -294,7 +297,7 @@ def list_trades(
     return db.query(Trade).filter(Trade.owner_id == current_user.id).all()
 
 # --- Get specific trade ---
-@app.get("/trades/{trade_id}", response_model=TradeResponse)
+@router.get("/trades/{trade_id}", response_model=TradeResponse)
 def get_trade(
     trade_id: int,
     db: Session = Depends(get_db),
@@ -306,7 +309,7 @@ def get_trade(
     return trade
 
 # --- Update trade ---
-@app.put("/trades/{trade_id}", response_model=TradeResponse)
+@router.put("/trades/{trade_id}", response_model=TradeResponse)
 def update_trade(
     trade_id: int,
     trade_update: TradeUpdate,
@@ -327,7 +330,7 @@ def update_trade(
     return trade
 
 # --- Delete trade ---
-@app.delete("/trades/{trade_id}")
+@router.delete("/trades/{trade_id}")
 def delete_trade(
     trade_id: int,
     db: Session = Depends(get_db),
@@ -342,7 +345,7 @@ def delete_trade(
     return {"message": "Trade deleted successfully"}
 
 # --- Cancel trade (soft delete) ---
-@app.post("/trades/{trade_id}/cancel")
+@router.post("/trades/{trade_id}/cancel")
 def cancel_trade(
     trade_id: int,
     db: Session = Depends(get_db),
@@ -359,7 +362,7 @@ def cancel_trade(
 # === REPORTS ===
 
 # --- Report per user ---
-@app.get("/report/", response_model=ReportResponse)
+@router.get("/report/", response_model=ReportResponse)
 def get_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -388,7 +391,7 @@ def get_report(
     )
 
 # --- Health check ---
-@app.get("/health")
+@router.get("/health")
 def health_check():
     return {
         "status": "healthy", 
@@ -396,10 +399,13 @@ def health_check():
         "debug": os.getenv("DEBUG", "False")
     }
 
-@app.get("/")
+@router.get("/")
 async def root():
     return {
         "message": "Trading API", 
         "environment": os.getenv("PROJECT_ENV", "development"),
         "version": "1.0.0"
     }
+
+# === INCLUDE ROUTER ===
+app.include_router(router)
