@@ -16,3 +16,6 @@ logs/
 
 # Virtual environment
 api/venv/
+
+.vscode/
+.vscode
