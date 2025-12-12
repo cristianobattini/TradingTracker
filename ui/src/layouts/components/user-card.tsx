@@ -11,7 +11,7 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import { readUsersMeUsersMeGet, UserResponse } from 'src/client';
+import { readUsersMeApiUsersMeGet, UserResponse } from 'src/client';
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ export function UserCard({ sx, ...other }: WorkspacesPopoverProps) {
   const [user, setUser] = useState<UserResponse>();
 
   useEffect(() => {
-    readUsersMeUsersMeGet().then((response) => {
+    readUsersMeApiUsersMeGet().then((response) => {
       setUser(response.data);
     });
   }, []);

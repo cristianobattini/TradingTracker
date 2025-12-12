@@ -19,7 +19,7 @@ interface PerformanceMetrics {
 import { TradingRecentTrades } from '../trading-recent-trades';
 import { TradingPerformanceSummary } from '../trading-performance-summary';
 import { TradingWinLossChart } from '../trading-win-loss-chart';
-import { getReportReportGet, listTradesTradesGet, readUsersMeUsersMeGet, ReportResponse, TradeResponse, UserResponse } from 'src/client';
+import { getReportApiReportGet, listTradesApiTradesGet, readUsersMeApiUsersMeGet, ReportResponse, TradeResponse, UserResponse } from 'src/client';
 import { TradingCapitalGrowth } from '../trading-capital-growth';
 import { TradingPairsDistribution } from '../trading-pairs-distribution';
 import { TradingSystemPerformance } from '../trading-system-performance';
@@ -38,8 +38,10 @@ export function OverviewAnalyticsView() {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '' });
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    listTradesTradesGet()
+    listTradesApiTradesGet()
       .then((response) => {
         if (response.data) {
           setTrades(Array.isArray(response.data) ? response.data : []);
@@ -52,19 +54,21 @@ export function OverviewAnalyticsView() {
       });
 
     // fetch current user (to get initial capital)
-    readUsersMeUsersMeGet()
+    readUsersMeApiUsersMeGet()
       .then((response) => {
         setUser(response.data || null);
       })
       .catch(() => setUser(null));
 
-    getReportReportGet()
+    getReportApiReportGet()
       .then((response) => {
         setReport(response.data);
       })
       .catch(() => {
         setReport(undefined);
       });
+
+    setMounted(true);
   }, []);
 
   // Calculate additional metrics from trades
@@ -87,6 +91,10 @@ export function OverviewAnalyticsView() {
     netProfit: (report?.total_profit ?? 0) + (report?.total_loss ?? 0),
     currentCapital: report?.capital ?? 0,
   };
+
+  if (!mounted) return null;
+
+  if (typeof document === 'undefined') return null;
 
   return (
     <DashboardContent maxWidth="xl">
@@ -149,28 +157,28 @@ export function OverviewAnalyticsView() {
         </Grid2>
 
         {/* Capital Growth Chart */}
-        <Grid2 size={{ xs: 12, md: 8, lg:9 }}>
+        <Grid2 size={{ xs: 12, md: 8, lg: 9 }}>
           <TradingCapitalGrowth
             title="Capital Growth"
-              data={
-                // use initial capital from user if available, otherwise fallback to report.capital or 0
-                (() => {
-                  const initialCapital = user?.initial_capital ?? report?.capital ?? 0;
-                  // sort trades by date ascending to build a chronological series
-                  const sorted = [...trades].sort((a, b) => {
-                    const ta = a.date ? new Date(a.date).getTime() : 0;
-                    const tb = b.date ? new Date(b.date).getTime() : 0;
-                    return ta - tb;
-                  });
+            data={
+              // use initial capital from user if available, otherwise fallback to report.capital or 0
+              (() => {
+                const initialCapital = user?.initial_capital ?? report?.capital ?? 0;
+                // sort trades by date ascending to build a chronological series
+                const sorted = [...trades].sort((a, b) => {
+                  const ta = a.date ? new Date(a.date).getTime() : 0;
+                  const tb = b.date ? new Date(b.date).getTime() : 0;
+                  return ta - tb;
+                });
 
-                  return sorted.reduce<{ date: string; capital: number }[]>((acc, trade) => {
-                    const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : initialCapital;
-                    const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
-                    acc.push({ date: trade.date ?? '', capital: newCapital });
-                    return acc;
-                  }, []);
-                })()
-              }
+                return sorted.reduce<{ date: string; capital: number }[]>((acc, trade) => {
+                  const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : initialCapital;
+                  const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
+                  acc.push({ date: trade.date ?? '', capital: newCapital });
+                  return acc;
+                }, []);
+              })()
+            }
           />
         </Grid2>
 
@@ -234,7 +242,7 @@ export function OverviewAnalyticsView() {
         onClose={() => setModalOpen(false)}
         onTradeAdded={() => {
           setLoading(true);
-          listTradesTradesGet()
+          listTradesApiTradesGet()
             .then((response) => {
               if (response.data) {
                 setTrades(Array.isArray(response.data) ? response.data : []);
@@ -252,7 +260,7 @@ export function OverviewAnalyticsView() {
             })
             .finally(() => setLoading(false));
 
-          getReportReportGet()
+          getReportApiReportGet()
             .then((response) => {
               setReport(response.data);
             })

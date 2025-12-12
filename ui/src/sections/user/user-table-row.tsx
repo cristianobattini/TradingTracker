@@ -12,7 +12,7 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import { deleteUserUsersUserIdDelete } from 'src/client';
+import { deleteUserApiUsersUserIdDelete } from 'src/client';
 
 // ----------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ export function UserTableRow({ row, selected, onSelectRow, onDeleteRow, showActi
 
   const handleDeleteRow = useCallback(() => {
     if(confirm(`Are you sure you want to delete user "${row.username}"?`)) {
-      deleteUserUsersUserIdDelete({
+      deleteUserApiUsersUserIdDelete({
         path: { user_id: Number(row.id) },
       }).then(() => {
         onDeleteRow();

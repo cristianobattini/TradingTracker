@@ -10,7 +10,7 @@ import { ThemeProvider } from 'src/theme/theme-provider';
 
 import { Iconify } from 'src/components/iconify';
 
-import { readUsersMeUsersMeGet } from 'src/client';
+import { readUsersMeApiUsersMeGet } from 'src/client';
 import { getLocalStorageItem } from './services/local-storage-service';
 import { getAuthHeaders } from './lib/client-config';
 
@@ -23,8 +23,8 @@ type AppProps = {
 };
 
 client.setConfig({
-  baseUrl: 'https://vmtrbc01b.northeurope.cloudapp.azure.com/api',
-  // baseUrl: 'http://localhost:8000/api',
+  // baseUrl: 'https://vmtrbc01b.northeurope.cloudapp.azure.com/api',
+  baseUrl: 'http://localhost:8000',
   auth: (auth) => {
     const token = getLocalStorageItem('accessToken');
     return token ? `${token}` : undefined;
@@ -53,7 +53,7 @@ export default function App({ children }: AppProps) {
 
       try {
         // Use the auth headers for the API call
-        const response = await readUsersMeUsersMeGet({
+        const response = await readUsersMeApiUsersMeGet({
           headers: getAuthHeaders()
         });
         

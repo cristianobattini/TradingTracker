@@ -8,7 +8,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { useRouter } from 'src/routes/hooks';
 import { Iconify } from 'src/components/iconify';
 import { Snackbar, Alert } from '@mui/material';
-import { loginLoginPost } from 'src/client';
+import { loginApiLoginPost } from 'src/client';
 import { setLocalStorageItem } from 'src/services/local-storage-service';
 
 export function SignInView() {
@@ -34,7 +34,7 @@ export function SignInView() {
 
       try {
         // Pass username and password as an object as expected by the API client
-        const response = await loginLoginPost({
+        const response = await loginApiLoginPost({
           body: {
             username,
             password,

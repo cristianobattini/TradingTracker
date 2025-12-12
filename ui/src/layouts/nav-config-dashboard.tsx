@@ -20,7 +20,7 @@ export const navData = [
     title: 'Dashboard',
     enabled: true,
     path: '/',
-    icon: icon('ic-analytics'),
+    icon: icon('ic-dashboard'),
   },
   {
     title: 'Trades',
@@ -29,15 +29,21 @@ export const navData = [
     icon: icon('ic-analytics'),
   },
   {
+    title: 'AI',
+    enabled: true,
+    path: '/ai',
+    icon: icon('ic-star'),
+  },
+  {
     title: 'Profile',
     enabled: true,
     path: '/profile',
-    icon: icon('ic-user'),
+    icon: icon('ic-profile'),
   },
   {
-    title: 'User',
+    title: 'Users',
     enabled: getLocalStorageItem('role') == 'admin',
     path: '/user',
-    icon: icon('ic-user'),
+    icon: icon('ic-users'),
   },
 ];

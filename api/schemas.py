@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     role: RoleEnum
     valid: bool
     initial_capital: float
+    avatar: str
 
     class Config:
         from_attributes = True

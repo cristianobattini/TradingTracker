@@ -5,6 +5,7 @@
 ./ui/node_modules
 ./NOTES.md
 node_modules
+api/.env
 
 # Database files
 *.db

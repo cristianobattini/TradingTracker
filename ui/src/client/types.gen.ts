@@ -5,9 +5,9 @@ export type ClientOptions = {
 };
 
 /**
- * Body_login_login_post
+ * Body_login_api_login_post
  */
-export type BodyLoginLoginPost = {
+export type BodyLoginApiLoginPost = {
     /**
      * Grant Type
      */
@@ -32,6 +32,16 @@ export type BodyLoginLoginPost = {
      * Client Secret
      */
     client_secret?: string | null;
+};
+
+/**
+ * Body_upload_avatar_api_users__user_id__avatar_post
+ */
+export type BodyUploadAvatarApiUsersUserIdAvatarPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
 };
 
 /**
@@ -338,6 +348,10 @@ export type UserResponse = {
      * Initial Capital
      */
     initial_capital: number;
+    /**
+     * Avatar
+     */
+    avatar: string;
 };
 
 /**
@@ -384,94 +398,135 @@ export type ValidationError = {
     type: string;
 };
 
-export type GetUsersUsersGetData = {
+export type GetAvatarApiUsersUserIdAvatarGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/users/';
+    url: '/api/users/{user_id}/avatar';
 };
 
-export type GetUsersUsersGetResponses = {
-    /**
-     * Response Get Users Users  Get
-     *
-     * Successful Response
-     */
-    200: Array<UserResponse>;
-};
-
-export type GetUsersUsersGetResponse = GetUsersUsersGetResponses[keyof GetUsersUsersGetResponses];
-
-export type CreateUserUsersPostData = {
-    body: UserCreate;
-    path?: never;
-    query?: never;
-    url: '/users/';
-};
-
-export type CreateUserUsersPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type CreateUserUsersPostError = CreateUserUsersPostErrors[keyof CreateUserUsersPostErrors];
-
-export type CreateUserUsersPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserResponse;
-};
-
-export type CreateUserUsersPostResponse = CreateUserUsersPostResponses[keyof CreateUserUsersPostResponses];
-
-export type ReadUsersMeUsersMeGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/users/me';
-};
-
-export type ReadUsersMeUsersMeGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: UserResponse;
-};
-
-export type ReadUsersMeUsersMeGetResponse = ReadUsersMeUsersMeGetResponses[keyof ReadUsersMeUsersMeGetResponses];
-
-export type DeleteUserUsersUserIdDeleteData = {
-    body?: never;
-    path: {
-        /**
-         * User Id
-         */
-        user_id: number;
-    };
-    query?: never;
-    url: '/users/{user_id}';
-};
-
-export type DeleteUserUsersUserIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type DeleteUserUsersUserIdDeleteError = DeleteUserUsersUserIdDeleteErrors[keyof DeleteUserUsersUserIdDeleteErrors];
-
-export type DeleteUserUsersUserIdDeleteResponses = {
+export type GetAvatarApiUsersUserIdAvatarGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetUserUsersUserIdGetData = {
+export type UploadAvatarApiUsersUserIdAvatarPostData = {
+    body: BodyUploadAvatarApiUsersUserIdAvatarPost;
+    path?: never;
+    query?: never;
+    url: '/api/users/{user_id}/avatar';
+};
+
+export type UploadAvatarApiUsersUserIdAvatarPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadAvatarApiUsersUserIdAvatarPostError = UploadAvatarApiUsersUserIdAvatarPostErrors[keyof UploadAvatarApiUsersUserIdAvatarPostErrors];
+
+export type UploadAvatarApiUsersUserIdAvatarPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type AskQuestionApiAiAskPostData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Question
+         */
+        question: string;
+        /**
+         * User Data Required
+         */
+        user_data_required?: boolean;
+    };
+    url: '/api/ai/ask';
+};
+
+export type AskQuestionApiAiAskPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AskQuestionApiAiAskPostError = AskQuestionApiAiAskPostErrors[keyof AskQuestionApiAiAskPostErrors];
+
+export type AskQuestionApiAiAskPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetUsersApiUsersGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/users/';
+};
+
+export type GetUsersApiUsersGetResponses = {
+    /**
+     * Response Get Users Api Users  Get
+     *
+     * Successful Response
+     */
+    200: Array<UserResponse>;
+};
+
+export type GetUsersApiUsersGetResponse = GetUsersApiUsersGetResponses[keyof GetUsersApiUsersGetResponses];
+
+export type CreateUserApiUsersPostData = {
+    body: UserCreate;
+    path?: never;
+    query?: never;
+    url: '/api/users/';
+};
+
+export type CreateUserApiUsersPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateUserApiUsersPostError = CreateUserApiUsersPostErrors[keyof CreateUserApiUsersPostErrors];
+
+export type CreateUserApiUsersPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type CreateUserApiUsersPostResponse = CreateUserApiUsersPostResponses[keyof CreateUserApiUsersPostResponses];
+
+export type ReadUsersMeApiUsersMeGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/users/me';
+};
+
+export type ReadUsersMeApiUsersMeGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type ReadUsersMeApiUsersMeGetResponse = ReadUsersMeApiUsersMeGetResponses[keyof ReadUsersMeApiUsersMeGetResponses];
+
+export type DeleteUserApiUsersUserIdDeleteData = {
     body?: never;
     path: {
         /**
@@ -480,28 +535,56 @@ export type GetUserUsersUserIdGetData = {
         user_id: number;
     };
     query?: never;
-    url: '/users/{user_id}';
+    url: '/api/users/{user_id}';
 };
 
-export type GetUserUsersUserIdGetErrors = {
+export type DeleteUserApiUsersUserIdDeleteErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetUserUsersUserIdGetError = GetUserUsersUserIdGetErrors[keyof GetUserUsersUserIdGetErrors];
+export type DeleteUserApiUsersUserIdDeleteError = DeleteUserApiUsersUserIdDeleteErrors[keyof DeleteUserApiUsersUserIdDeleteErrors];
 
-export type GetUserUsersUserIdGetResponses = {
+export type DeleteUserApiUsersUserIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetUserApiUsersUserIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/users/{user_id}';
+};
+
+export type GetUserApiUsersUserIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetUserApiUsersUserIdGetError = GetUserApiUsersUserIdGetErrors[keyof GetUserApiUsersUserIdGetErrors];
+
+export type GetUserApiUsersUserIdGetResponses = {
     /**
      * Successful Response
      */
     200: UserResponse;
 };
 
-export type GetUserUsersUserIdGetResponse = GetUserUsersUserIdGetResponses[keyof GetUserUsersUserIdGetResponses];
+export type GetUserApiUsersUserIdGetResponse = GetUserApiUsersUserIdGetResponses[keyof GetUserApiUsersUserIdGetResponses];
 
-export type UpdateUserUsersUserIdPutData = {
+export type UpdateUserApiUsersUserIdPutData = {
     body: UserUpdate;
     path: {
         /**
@@ -510,51 +593,51 @@ export type UpdateUserUsersUserIdPutData = {
         user_id: number;
     };
     query?: never;
-    url: '/users/{user_id}';
+    url: '/api/users/{user_id}';
 };
 
-export type UpdateUserUsersUserIdPutErrors = {
+export type UpdateUserApiUsersUserIdPutErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateUserUsersUserIdPutError = UpdateUserUsersUserIdPutErrors[keyof UpdateUserUsersUserIdPutErrors];
+export type UpdateUserApiUsersUserIdPutError = UpdateUserApiUsersUserIdPutErrors[keyof UpdateUserApiUsersUserIdPutErrors];
 
-export type UpdateUserUsersUserIdPutResponses = {
+export type UpdateUserApiUsersUserIdPutResponses = {
     /**
      * Successful Response
      */
     200: UserResponse;
 };
 
-export type UpdateUserUsersUserIdPutResponse = UpdateUserUsersUserIdPutResponses[keyof UpdateUserUsersUserIdPutResponses];
+export type UpdateUserApiUsersUserIdPutResponse = UpdateUserApiUsersUserIdPutResponses[keyof UpdateUserApiUsersUserIdPutResponses];
 
-export type ChangeOwnPasswordUsersMeChangePasswordPostData = {
+export type ChangeOwnPasswordApiUsersMeChangePasswordPostData = {
     body: PasswordChange;
     path?: never;
     query?: never;
-    url: '/users/me/change-password';
+    url: '/api/users/me/change-password';
 };
 
-export type ChangeOwnPasswordUsersMeChangePasswordPostErrors = {
+export type ChangeOwnPasswordApiUsersMeChangePasswordPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ChangeOwnPasswordUsersMeChangePasswordPostError = ChangeOwnPasswordUsersMeChangePasswordPostErrors[keyof ChangeOwnPasswordUsersMeChangePasswordPostErrors];
+export type ChangeOwnPasswordApiUsersMeChangePasswordPostError = ChangeOwnPasswordApiUsersMeChangePasswordPostErrors[keyof ChangeOwnPasswordApiUsersMeChangePasswordPostErrors];
 
-export type ChangeOwnPasswordUsersMeChangePasswordPostResponses = {
+export type ChangeOwnPasswordApiUsersMeChangePasswordPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type ChangeUserPasswordUsersUserIdChangePasswordPostData = {
+export type ChangeUserPasswordApiUsersUserIdChangePasswordPostData = {
     body: PasswordChange;
     path: {
         /**
@@ -563,94 +646,94 @@ export type ChangeUserPasswordUsersUserIdChangePasswordPostData = {
         user_id: number;
     };
     query?: never;
-    url: '/users/{user_id}/change-password';
+    url: '/api/users/{user_id}/change-password';
 };
 
-export type ChangeUserPasswordUsersUserIdChangePasswordPostErrors = {
+export type ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type ChangeUserPasswordUsersUserIdChangePasswordPostError = ChangeUserPasswordUsersUserIdChangePasswordPostErrors[keyof ChangeUserPasswordUsersUserIdChangePasswordPostErrors];
+export type ChangeUserPasswordApiUsersUserIdChangePasswordPostError = ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors[keyof ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors];
 
-export type ChangeUserPasswordUsersUserIdChangePasswordPostResponses = {
+export type ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type LoginLoginPostData = {
-    body: BodyLoginLoginPost;
+export type LoginApiLoginPostData = {
+    body: BodyLoginApiLoginPost;
     path?: never;
     query?: never;
-    url: '/login';
+    url: '/api/login';
 };
 
-export type LoginLoginPostErrors = {
+export type LoginApiLoginPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type LoginLoginPostError = LoginLoginPostErrors[keyof LoginLoginPostErrors];
+export type LoginApiLoginPostError = LoginApiLoginPostErrors[keyof LoginApiLoginPostErrors];
 
-export type LoginLoginPostResponses = {
+export type LoginApiLoginPostResponses = {
     /**
      * Successful Response
      */
     200: TokenSchema;
 };
 
-export type LoginLoginPostResponse = LoginLoginPostResponses[keyof LoginLoginPostResponses];
+export type LoginApiLoginPostResponse = LoginApiLoginPostResponses[keyof LoginApiLoginPostResponses];
 
-export type ListTradesTradesGetData = {
+export type ListTradesApiTradesGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/trades/';
+    url: '/api/trades/';
 };
 
-export type ListTradesTradesGetResponses = {
+export type ListTradesApiTradesGetResponses = {
     /**
-     * Response List Trades Trades  Get
+     * Response List Trades Api Trades  Get
      *
      * Successful Response
      */
     200: Array<TradeResponse>;
 };
 
-export type ListTradesTradesGetResponse = ListTradesTradesGetResponses[keyof ListTradesTradesGetResponses];
+export type ListTradesApiTradesGetResponse = ListTradesApiTradesGetResponses[keyof ListTradesApiTradesGetResponses];
 
-export type CreateTradeTradesPostData = {
+export type CreateTradeApiTradesPostData = {
     body: TradeCreate;
     path?: never;
     query?: never;
-    url: '/trades/';
+    url: '/api/trades/';
 };
 
-export type CreateTradeTradesPostErrors = {
+export type CreateTradeApiTradesPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type CreateTradeTradesPostError = CreateTradeTradesPostErrors[keyof CreateTradeTradesPostErrors];
+export type CreateTradeApiTradesPostError = CreateTradeApiTradesPostErrors[keyof CreateTradeApiTradesPostErrors];
 
-export type CreateTradeTradesPostResponses = {
+export type CreateTradeApiTradesPostResponses = {
     /**
      * Successful Response
      */
     200: TradeResponse;
 };
 
-export type CreateTradeTradesPostResponse = CreateTradeTradesPostResponses[keyof CreateTradeTradesPostResponses];
+export type CreateTradeApiTradesPostResponse = CreateTradeApiTradesPostResponses[keyof CreateTradeApiTradesPostResponses];
 
-export type DeleteTradeTradesTradeIdDeleteData = {
+export type DeleteTradeApiTradesTradeIdDeleteData = {
     body?: never;
     path: {
         /**
@@ -659,26 +742,26 @@ export type DeleteTradeTradesTradeIdDeleteData = {
         trade_id: number;
     };
     query?: never;
-    url: '/trades/{trade_id}';
+    url: '/api/trades/{trade_id}';
 };
 
-export type DeleteTradeTradesTradeIdDeleteErrors = {
+export type DeleteTradeApiTradesTradeIdDeleteErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type DeleteTradeTradesTradeIdDeleteError = DeleteTradeTradesTradeIdDeleteErrors[keyof DeleteTradeTradesTradeIdDeleteErrors];
+export type DeleteTradeApiTradesTradeIdDeleteError = DeleteTradeApiTradesTradeIdDeleteErrors[keyof DeleteTradeApiTradesTradeIdDeleteErrors];
 
-export type DeleteTradeTradesTradeIdDeleteResponses = {
+export type DeleteTradeApiTradesTradeIdDeleteResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetTradeTradesTradeIdGetData = {
+export type GetTradeApiTradesTradeIdGetData = {
     body?: never;
     path: {
         /**
@@ -687,28 +770,28 @@ export type GetTradeTradesTradeIdGetData = {
         trade_id: number;
     };
     query?: never;
-    url: '/trades/{trade_id}';
+    url: '/api/trades/{trade_id}';
 };
 
-export type GetTradeTradesTradeIdGetErrors = {
+export type GetTradeApiTradesTradeIdGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type GetTradeTradesTradeIdGetError = GetTradeTradesTradeIdGetErrors[keyof GetTradeTradesTradeIdGetErrors];
+export type GetTradeApiTradesTradeIdGetError = GetTradeApiTradesTradeIdGetErrors[keyof GetTradeApiTradesTradeIdGetErrors];
 
-export type GetTradeTradesTradeIdGetResponses = {
+export type GetTradeApiTradesTradeIdGetResponses = {
     /**
      * Successful Response
      */
     200: TradeResponse;
 };
 
-export type GetTradeTradesTradeIdGetResponse = GetTradeTradesTradeIdGetResponses[keyof GetTradeTradesTradeIdGetResponses];
+export type GetTradeApiTradesTradeIdGetResponse = GetTradeApiTradesTradeIdGetResponses[keyof GetTradeApiTradesTradeIdGetResponses];
 
-export type UpdateTradeTradesTradeIdPutData = {
+export type UpdateTradeApiTradesTradeIdPutData = {
     body: TradeUpdate;
     path: {
         /**
@@ -717,28 +800,28 @@ export type UpdateTradeTradesTradeIdPutData = {
         trade_id: number;
     };
     query?: never;
-    url: '/trades/{trade_id}';
+    url: '/api/trades/{trade_id}';
 };
 
-export type UpdateTradeTradesTradeIdPutErrors = {
+export type UpdateTradeApiTradesTradeIdPutErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type UpdateTradeTradesTradeIdPutError = UpdateTradeTradesTradeIdPutErrors[keyof UpdateTradeTradesTradeIdPutErrors];
+export type UpdateTradeApiTradesTradeIdPutError = UpdateTradeApiTradesTradeIdPutErrors[keyof UpdateTradeApiTradesTradeIdPutErrors];
 
-export type UpdateTradeTradesTradeIdPutResponses = {
+export type UpdateTradeApiTradesTradeIdPutResponses = {
     /**
      * Successful Response
      */
     200: TradeResponse;
 };
 
-export type UpdateTradeTradesTradeIdPutResponse = UpdateTradeTradesTradeIdPutResponses[keyof UpdateTradeTradesTradeIdPutResponses];
+export type UpdateTradeApiTradesTradeIdPutResponse = UpdateTradeApiTradesTradeIdPutResponses[keyof UpdateTradeApiTradesTradeIdPutResponses];
 
-export type CancelTradeTradesTradeIdCancelPostData = {
+export type CancelTradeApiTradesTradeIdCancelPostData = {
     body?: never;
     path: {
         /**
@@ -747,63 +830,63 @@ export type CancelTradeTradesTradeIdCancelPostData = {
         trade_id: number;
     };
     query?: never;
-    url: '/trades/{trade_id}/cancel';
+    url: '/api/trades/{trade_id}/cancel';
 };
 
-export type CancelTradeTradesTradeIdCancelPostErrors = {
+export type CancelTradeApiTradesTradeIdCancelPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type CancelTradeTradesTradeIdCancelPostError = CancelTradeTradesTradeIdCancelPostErrors[keyof CancelTradeTradesTradeIdCancelPostErrors];
+export type CancelTradeApiTradesTradeIdCancelPostError = CancelTradeApiTradesTradeIdCancelPostErrors[keyof CancelTradeApiTradesTradeIdCancelPostErrors];
 
-export type CancelTradeTradesTradeIdCancelPostResponses = {
+export type CancelTradeApiTradesTradeIdCancelPostResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type GetReportReportGetData = {
+export type GetReportApiReportGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/report/';
+    url: '/api/report/';
 };
 
-export type GetReportReportGetResponses = {
+export type GetReportApiReportGetResponses = {
     /**
      * Successful Response
      */
     200: ReportResponse;
 };
 
-export type GetReportReportGetResponse = GetReportReportGetResponses[keyof GetReportReportGetResponses];
+export type GetReportApiReportGetResponse = GetReportApiReportGetResponses[keyof GetReportApiReportGetResponses];
 
-export type HealthCheckHealthGetData = {
+export type HealthCheckApiHealthGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/health';
+    url: '/api/health';
 };
 
-export type HealthCheckHealthGetResponses = {
+export type HealthCheckApiHealthGetResponses = {
     /**
      * Successful Response
      */
     200: unknown;
 };
 
-export type RootGetData = {
+export type RootApiGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/';
+    url: '/api/';
 };
 
-export type RootGetResponses = {
+export type RootApiGetResponses = {
     /**
      * Successful Response
      */

@@ -18,7 +18,7 @@ import {
   Grid2,
   Chip,
 } from '@mui/material';
-import { updateTradeTradesTradeIdPut, TradeResponse, TradeUpdate } from 'src/client';
+import { updateTradeApiTradesTradeIdPut, TradeResponse, TradeUpdate } from 'src/client';
 
 interface UpdateTradeModalProps {
   open: boolean;
@@ -182,7 +182,7 @@ export function UpdateTradeModal({
       return;
     }
 
-    updateTradeTradesTradeIdPut({ path: { trade_id: formData.id }, body: updateBody })
+    updateTradeApiTradesTradeIdPut({ path: { trade_id: formData.id }, body: updateBody })
       .then((response) => {
         if (response.data) {
           onTradeUpdated(response.data);

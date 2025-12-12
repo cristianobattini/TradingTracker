@@ -18,7 +18,7 @@ import {
   Grid2,
   Chip,
 } from '@mui/material';
-import { createTradeTradesPost, TradeCreate, TradeResponse } from 'src/client';
+import { createTradeApiTradesPost, TradeCreate, TradeResponse } from 'src/client';
 
 interface AddTradeModalProps {
   open: boolean;
@@ -155,7 +155,7 @@ export function AddTradeModal({
         profit_or_loss: formData.cancelled ? 0 : formData.profit_or_loss,
     };
 
-    createTradeTradesPost({ body: newTrade })
+    createTradeApiTradesPost({ body: newTrade })
       .then((response) => {
         if (response.data) {
           onTradeAdded(response.data);
