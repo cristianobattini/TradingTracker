@@ -7,6 +7,8 @@
 node_modules
 api/.env
 
+./api/uploads
+
 # Database files
 *.db
 *.sqlite3
