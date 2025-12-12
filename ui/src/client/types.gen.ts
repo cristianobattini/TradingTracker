@@ -443,6 +443,10 @@ export type AskQuestionApiAiAskPostData = {
          * Question
          */
         question: string;
+        /**
+         * User Data Required
+         */
+        user_data_required?: boolean;
     };
     url: '/api/ai/ask';
 };

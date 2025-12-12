@@ -158,6 +158,7 @@ async def get_avatar(
 @router.post("/ai/ask")
 def ask_question(
     question: str,
+    user_data_required: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -177,7 +178,7 @@ def ask_question(
         )
 
         # build a markdown table with recent trades for the AI prompt using actual Trade fields
-        if current_user and recent_trades:
+        if current_user and recent_trades and user_data_required:
             lines = [
                 "Recent trades (most recent first):",
                 "| id | date | pair | system | action | risk | risk_pct | lots | entry | sl1_pips | tp1_pips | sl2_pips | tp2_pips | profit_or_loss | comments |",
@@ -210,17 +211,20 @@ def ask_question(
 
             trades_md = "\n".join(lines)
         else:
-            trades_md = "No recent trades included. (Unauthenticated request or no recent trades.)"
+            trades_md = "Ask theuser to check the checkbox called \"Upload\", by checking the checkbox you will recive trades data."
 
         # compose a prompt that includes user info, trades summary and the question
         # add clear instructions so the AI knows which fields are available and how to use them
         user_info = f"User: {current_user.username} (id: {current_user.id})" if current_user else "Anonymous user"
-        instruction = (
-            "You are a professional trader and risk manager. You will receive a table of the user's recent trades "
-            "with the following available fields: id, date, pair, system, action, risk, risk_pct, lots, entry, sl1_pips, tp1_pips, sl2_pips, tp2_pips, profit_or_loss, comments. "
-            "If a particular value is missing, note it. Use the provided data to evaluate trade selection, risk management, position sizing, and execution quality. "
-            "Provide actionable recommendations and, where possible, show simple calculations (e.g., average profit, win rate) derived from these trades."
-        )
+        instruction = "You are a professional trader, helping another trader."
+        
+        if(user_data_required):
+            instruction += (
+                "You are a professional trader and risk manager. You will receive a table of the user's recent trades "
+                "with the following available fields: id, date, pair, system, action, risk, risk_pct, lots, entry, sl1_pips, tp1_pips, sl2_pips, tp2_pips, profit_or_loss, comments. "
+                "If a particular value is missing, note it. Use the provided data to evaluate trade selection, risk management, position sizing, and execution quality. "
+                "Provide actionable recommendations and, where possible, show simple calculations (e.g., average profit, win rate) derived from these trades."
+            )
 
         composed_prompt = f"{instruction}\n\n{user_info}\n\n{trades_md}\n\nQuestion: {question}"
 

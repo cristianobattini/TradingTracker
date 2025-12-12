@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert, Checkbox, FormControlLabel } from '@mui/material';
 import { askQuestionApiAiAskPost } from 'src/client';
 import { DashboardContent } from 'src/layouts/dashboard';
 import StarIcon from '@mui/icons-material/Star';
@@ -25,10 +25,15 @@ import { AccountAvatar } from 'src/layouts/components/account-avatar';
 
 export function AIView() {
     const [isLoading, setIsLoading] = useState(false);
+    const [isUserDataRequired, setIsUserDataRequired] = useState(false);
     const [prompt, setPrompt] = useState("");
     const [error, setError] = useState("");
     const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
     const listRef = useRef<HTMLDivElement | null>(null);
+
+    const handleChangeUploadCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setIsUserDataRequired(e.target.checked);
+    };
 
     const handleSubmit = useCallback(
         async (e?: React.FormEvent) => {
@@ -41,7 +46,7 @@ export function AIView() {
             setIsLoading(true);
 
             try {
-                const response = await askQuestionApiAiAskPost({ query: { question: userMessage.content } });
+                const response = await askQuestionApiAiAskPost({ query: { question: userMessage.content, user_data_required: isUserDataRequired } });
                 const md = (response.data as { answer: string }).answer;
                 const assistantMessage = { role: 'assistant' as const, content: md };
                 setMessages((m) => [...m, assistantMessage]);
@@ -143,6 +148,9 @@ export function AIView() {
             </Box>
 
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems:'center' }}>
+                    <FormControlLabel control={<Checkbox onChange={(e) => handleChangeUploadCheckbox(e)} />} label="Upload" />
+                </Box>
                 <TextField
                     fullWidth
                     name="prompt"
