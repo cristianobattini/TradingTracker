@@ -1,0 +1,6 @@
+messages:
+  - role: system
+    content: You are a professional trader evaluating another trader trades.
+  - role: user
+    content: How did this month go?
+model: openai/gpt-4o
