@@ -20,7 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import SendIcon from '@mui/icons-material/Send';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { AccountIcon } from 'src/layouts/components/account-icon';
+import { AccountAvatar } from 'src/layouts/components/account-avatar';
 
 
 export function AIView() {
@@ -98,7 +98,7 @@ export function AIView() {
                             <ListItem alignItems="flex-start">
                                 <ListItemAvatar>
                                     <Avatar sx={{ bgcolor: m.role === 'user' ? 'primary.main' : 'transparent' }}>
-                                        {m.role === 'user' ? <AccountIcon /> : <img height={'90%'} src='/assets/ai-logo.png' />}
+                                        {m.role === 'user' ? <AccountAvatar /> : <img height={'90%'} src='/assets/ai-logo.png' />}
                                     </Avatar>
                                 </ListItemAvatar>
                                 <ListItemText

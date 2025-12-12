@@ -13,7 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { useRouter, usePathname } from 'src/routes/hooks';
-import { AccountIcon } from './account-icon';
+import { AccountAvatar } from './account-avatar';
 
 // ----------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
   return (
     <>
-      <AccountIcon
+      <AccountAvatar
         onClick={handleOpenPopover}
         sx={{
           p: '2px',
@@ -72,7 +72,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 {/*         <Avatar src={_myAccount.photoURL} alt={_myAccount.displayName} sx={{ width: 1, height: 1 }}>
           {_myAccount.displayName.charAt(0).toUpperCase()}
         </Avatar> */}
-      </AccountIcon>
+      </AccountAvatar>
 
       <Popover
         open={!!openPopover}

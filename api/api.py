@@ -112,7 +112,7 @@ def require_admin(
 # === CREATE ROUTER ===
 router = APIRouter(prefix="/api")
 
-# === AVATAR UPLOAD ===
+# === AVATAR ===
 UPLOAD_FOLDER = "uploads/avatars/"
 
 @router.post("/users/{user_id}/avatar")
@@ -121,25 +121,38 @@ async def upload_avatar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Generate a unique filename
-    ext = file.filename.split(".")[-1]
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = f"{UPLOAD_FOLDER}{filename}"
-
-    # Save the file to disk
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    # Update DB
+    # Recupera l'utente
     user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         return {"error": "User not found"}
 
+    # Se esiste un avatar precedente, elimina il file
+    if user.avatar:
+        old_avatar_path = os.path.join(UPLOAD_FOLDER, user.avatar)
+        if os.path.exists(old_avatar_path):
+            os.remove(old_avatar_path)
+
+    # Genera un nuovo filename
+    ext = file.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    # Salva il nuovo file
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Aggiorna il DB
     user.avatar = filename
     db.commit()
     db.refresh(user)
 
     return {"message": "Avatar updated", "avatar": filename}
+
+@router.get("/users/{user_id}/avatar")
+async def get_avatar(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user.avatar
 
 # === AI INTERFACE ===
 @router.post("/ai/ask")

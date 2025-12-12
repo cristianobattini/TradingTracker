@@ -35,6 +35,16 @@ export type BodyLoginApiLoginPost = {
 };
 
 /**
+ * Body_upload_avatar_api_users__user_id__avatar_post
+ */
+export type BodyUploadAvatarApiUsersUserIdAvatarPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -338,6 +348,10 @@ export type UserResponse = {
      * Initial Capital
      */
     initial_capital: number;
+    /**
+     * Avatar
+     */
+    avatar: string;
 };
 
 /**
@@ -382,6 +396,43 @@ export type ValidationError = {
      * Error Type
      */
     type: string;
+};
+
+export type GetAvatarApiUsersUserIdAvatarGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/users/{user_id}/avatar';
+};
+
+export type GetAvatarApiUsersUserIdAvatarGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type UploadAvatarApiUsersUserIdAvatarPostData = {
+    body: BodyUploadAvatarApiUsersUserIdAvatarPost;
+    path?: never;
+    query?: never;
+    url: '/api/users/{user_id}/avatar';
+};
+
+export type UploadAvatarApiUsersUserIdAvatarPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadAvatarApiUsersUserIdAvatarPostError = UploadAvatarApiUsersUserIdAvatarPostErrors[keyof UploadAvatarApiUsersUserIdAvatarPostErrors];
+
+export type UploadAvatarApiUsersUserIdAvatarPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
 };
 
 export type AskQuestionApiAiAskPostData = {
