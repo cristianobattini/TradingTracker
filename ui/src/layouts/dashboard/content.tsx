@@ -6,6 +6,7 @@ import { mergeClasses } from 'minimal-shared/utils';
 import Container from '@mui/material/Container';
 
 import { layoutClasses } from '../core/classes';
+import { useState, useEffect } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -23,6 +24,13 @@ export function DashboardContent({
   layoutQuery = 'lg',
   ...other
 }: DashboardContentProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   return (
     <Container
       className={mergeClasses([layoutClasses.content, className])}

@@ -57,8 +57,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
   return (
     <>
+    <Button onClick={handleOpenPopover}>
       <AccountAvatar
-        onClick={handleOpenPopover}
         sx={{
           p: '2px',
           width: 40,
@@ -73,8 +73,10 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
           {_myAccount.displayName.charAt(0).toUpperCase()}
         </Avatar> */}
       </AccountAvatar>
+    </Button>
 
       <Popover
+        disableScrollLock
         open={!!openPopover}
         anchorEl={openPopover}
         onClose={handleClosePopover}

@@ -87,6 +87,7 @@ export function NavMobile({
 
   return (
     <Drawer
+      disableScrollLock
       open={open}
       onClose={onClose}
       sx={{
@@ -117,7 +118,7 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
 
       {/* <WorkspacesPopover data={workspaces} sx={{ my: 2 }} /> */}
 
-      <UserCard sx={{ my: 2 }} /> 
+      <UserCard sx={{ my: 2 }} />
 
       <Scrollbar fillContent>
         <Box
