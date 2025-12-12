@@ -4,8 +4,8 @@ from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
 
 endpoint = "https://models.github.ai/inference"
-model = "openai/gpt-4.1"
-token = os.getenv("GITHUB_TOKEN")
+model = "deepseek/DeepSeek-V3-0324"
+token = os.environ["GITHUB_TOKEN"]
 if not token:
     raise ValueError("GITHUB_TOKEN environment variable is not set.")
 
@@ -22,7 +22,8 @@ def ask_ai(question: str):
         ],
         temperature=1.0,
         top_p=1.0,
+        max_tokens=1000,
         model=model
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content 

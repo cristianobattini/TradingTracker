@@ -25,6 +25,7 @@ SQLAlchemy==2.0.43
 starlette==0.47.3
 typing_extensions==4.15.0
 uvicorn==0.35.0
+openai==2.11.0
 
 # Database - includi entrambi per flessibilità
 psycopg2-binary==2.9.10

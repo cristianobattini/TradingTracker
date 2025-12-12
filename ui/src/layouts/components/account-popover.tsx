@@ -59,15 +59,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     <>
     <Button onClick={handleOpenPopover}>
       <AccountAvatar
-        sx={{
-          p: '2px',
-          width: 40,
-          height: 40,
-          background: (theme: { vars: { palette: { primary: { light: any; }; warning: { light: any; }; }; }; }) =>
-            `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
-          ...sx,
-        }}
-        {...other}
+        size={48}
       >
 {/*         <Avatar src={_myAccount.photoURL} alt={_myAccount.displayName} sx={{ width: 1, height: 1 }}>
           {_myAccount.displayName.charAt(0).toUpperCase()}
