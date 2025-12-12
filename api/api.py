@@ -1,10 +1,14 @@
+import shutil
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
+import uuid
+from fastapi import FastAPI, Depends, File, HTTPException, UploadFile, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from database import Base, SessionLocal, engine
 from models import User, Trade
+from ai import ask_ai
 from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate
 from auth import AuthService, oauth2_scheme 
 import os
@@ -28,6 +32,8 @@ def get_cors_origins():
             "http://vmtrbc01.northeurope.cloudapp.azure.com",
         ]
 
+os.makedirs("uploads/avatars", exist_ok=True)
+
 app = FastAPI(
     title="Trading API",
     description="A trading platform API",
@@ -37,6 +43,8 @@ app = FastAPI(
     openapi_url="/openapi.json",
     debug=os.getenv("DEBUG", "False").lower() == "true"
 )
+
+app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
 
 def custom_openapi():
     if app.openapi_schema:
@@ -103,6 +111,110 @@ def require_admin(
 
 # === CREATE ROUTER ===
 router = APIRouter(prefix="/api")
+
+# === AVATAR UPLOAD ===
+UPLOAD_FOLDER = "uploads/avatars/"
+
+@router.post("/users/{user_id}/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Generate a unique filename
+    ext = file.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    filepath = f"{UPLOAD_FOLDER}{filename}"
+
+    # Save the file to disk
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Update DB
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        return {"error": "User not found"}
+
+    user.avatar = filename
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Avatar updated", "avatar": filename}
+
+# === AI INTERFACE ===
+@router.post("/ai/ask")
+def ask_question(
+    question: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Ask the AI a question and include a summary of the current user's recent trades
+    so the AI can make considerations about the user's trading activity.
+    Requires the request to be authenticated (uses current_user dependency).
+    """
+    try:
+        # fetch recent non-cancelled trades for the current user (limit 20)
+        recent_trades = (
+            db.query(Trade)
+            .filter(Trade.owner_id == current_user.id, Trade.cancelled == False)
+            .order_by(Trade.id.desc())
+            .limit(20)
+            .all()
+        )
+
+        # build a markdown table with recent trades for the AI prompt using actual Trade fields
+        if current_user and recent_trades:
+            lines = [
+                "Recent trades (most recent first):",
+                "| id | date | pair | system | action | risk | risk_pct | lots | entry | sl1_pips | tp1_pips | sl2_pips | tp2_pips | profit_or_loss | comments |",
+                "|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+            ]
+            for t in recent_trades:
+                # format values (fallback to empty string if None)
+                date = getattr(t, 'date', '')
+                pair = getattr(t, 'pair', '')
+                system = getattr(t, 'system', '')
+                action = getattr(t, 'action', '')
+                risk = getattr(t, 'risk', '')
+                risk_pct = getattr(t, 'risk_percent', '')
+                lots = getattr(t, 'lots', '')
+                entry = getattr(t, 'entry', '')
+                sl1 = getattr(t, 'sl1_pips', '')
+                tp1 = getattr(t, 'tp1_pips', '')
+                sl2 = getattr(t, 'sl2_pips', '')
+                tp2 = getattr(t, 'tp2_pips', '')
+                profit = getattr(t, 'profit_or_loss', '')
+                comments = getattr(t, 'comments', '')
+
+                # escape pipe characters in comments to not break the table
+                if isinstance(comments, str):
+                    comments = comments.replace('|', '\\|')
+
+                lines.append(
+                    f"| {t.id} | {date} | {pair} | {system} | {action} | {risk} | {risk_pct} | {lots} | {entry} | {sl1} | {tp1} | {sl2} | {tp2} | {profit} | {comments} |"
+                )
+
+            trades_md = "\n".join(lines)
+        else:
+            trades_md = "No recent trades included. (Unauthenticated request or no recent trades.)"
+
+        # compose a prompt that includes user info, trades summary and the question
+        # add clear instructions so the AI knows which fields are available and how to use them
+        user_info = f"User: {current_user.username} (id: {current_user.id})" if current_user else "Anonymous user"
+        instruction = (
+            "You are a professional trader and risk manager. You will receive a table of the user's recent trades "
+            "with the following available fields: id, date, pair, system, action, risk, risk_pct, lots, entry, sl1_pips, tp1_pips, sl2_pips, tp2_pips, profit_or_loss, comments. "
+            "If a particular value is missing, note it. Use the provided data to evaluate trade selection, risk management, position sizing, and execution quality. "
+            "Provide actionable recommendations and, where possible, show simple calculations (e.g., average profit, win rate) derived from these trades."
+        )
+
+        composed_prompt = f"{instruction}\n\n{user_info}\n\n{trades_md}\n\nQuestion: {question}"
+
+        answer = ask_ai(composed_prompt)
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # === USER MANAGEMENT ===
 

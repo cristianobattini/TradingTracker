@@ -14,7 +14,7 @@ import {
   Select,
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import { createUserUsersPost, RoleEnum } from 'src/client';
+import { createUserApiUsersPost, RoleEnum } from 'src/client';
 
 const modalStyle = {
   position: 'absolute',
@@ -77,7 +77,7 @@ const CreateUserModal = ({
         throw new Error('Password must be at least 6 characters long');
       }
 
-      const response = await createUserUsersPost({
+      const response = await createUserApiUsersPost({
         body: {
           username: formData.username,
           email: formData.email,

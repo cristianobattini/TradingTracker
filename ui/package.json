@@ -6,7 +6,7 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx ./scripts/apigen.ts && vite",
     "start": "vite preview",
     "build": "tsc && vite build",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -21,7 +21,8 @@
     "re:build-npm": "npm run clean && npm install && npm run build",
     "tsc:dev": "yarn dev & yarn tsc:watch",
     "tsc:watch": "tsc --noEmit --watch",
-    "tsc:print": "npx tsc --showConfig"
+    "tsc:print": "npx tsc --showConfig",
+    "generate:api": "tsx ./scripts/apigen.ts"
   },
   "engines": {
     "node": ">=20"
@@ -33,8 +34,6 @@
     "@emotion/styled": "^11.14.1",
     "@fontsource-variable/dm-sans": "^5.2.5",
     "@fontsource/barlow": "^5.2.5",
-    "@hey-api/client-fetch": "^0.13.1",
-    "@hey-api/openapi-ts": "^0.84.4",
     "@iconify/react": "^5.2.1",
     "@mui/icons-material": "^7.3.4",
     "@mui/lab": "^7.0.0-beta.10",
@@ -47,12 +46,17 @@
     "react": "^19.1.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.4.1",
     "recharts": "^3.2.1",
-    "simplebar-react": "^3.3.0"
+    "remark-gfm": "^4.0.1",
+    "simplebar-react": "^3.3.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
+    "@hey-api/client-fetch": "^0.13.1",
+    "@hey-api/openapi-ts": "^0.89.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",

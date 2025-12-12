@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { useRouter, usePathname } from 'src/routes/hooks';
+import { AccountIcon } from './account-icon';
 
 // ----------------------------------------------------------------------
 
@@ -56,13 +57,13 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
   return (
     <>
-      <IconButton
+      <AccountIcon
         onClick={handleOpenPopover}
         sx={{
           p: '2px',
           width: 40,
           height: 40,
-          background: (theme) =>
+          background: (theme: { vars: { palette: { primary: { light: any; }; warning: { light: any; }; }; }; }) =>
             `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
           ...sx,
         }}
@@ -71,7 +72,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 {/*         <Avatar src={_myAccount.photoURL} alt={_myAccount.displayName} sx={{ width: 1, height: 1 }}>
           {_myAccount.displayName.charAt(0).toUpperCase()}
         </Avatar> */}
-      </IconButton>
+      </AccountIcon>
 
       <Popover
         open={!!openPopover}

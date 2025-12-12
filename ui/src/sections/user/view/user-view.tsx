@@ -21,7 +21,7 @@ import { UserTableToolbar } from '../user-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 import type { UserProps } from '../user-table-row';
-import { getUsersUsersGet, UserResponse } from 'src/client';
+import { getUsersApiUsersGet, UserResponse } from 'src/client';
 import { useEffect } from 'react';
 import CreateUserModal from './create-user-modal';
 import UpdateUserModal from './update-user-modal';
@@ -56,7 +56,7 @@ export function UserView() {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    getUsersUsersGet()
+    getUsersApiUsersGet()
       .then((response) => {
         if (mounted) {
           setUsers(
@@ -82,7 +82,7 @@ export function UserView() {
 
   const refreshUsers = () => {
     setLoading(true);
-    getUsersUsersGet()
+    getUsersApiUsersGet()
       .then((response) => {
         return setUsers(
           Array.isArray(response.data)

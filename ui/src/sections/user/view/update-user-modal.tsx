@@ -14,7 +14,7 @@ import {
   Select,
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import { createUserUsersPost, RoleEnum, updateUserUsersUserIdPut, UserUpdate } from 'src/client';
+import { RoleEnum, updateUserApiUsersUserIdPut, UserUpdate } from 'src/client';
 
 const modalStyle = {
   position: 'absolute',
@@ -76,7 +76,7 @@ const UpdateUserModal = ({
         throw new Error('Please fill in all required fields');
       }
 
-      const response = await updateUserUsersUserIdPut({
+      const response = await updateUserApiUsersUserIdPut({
         path: { user_id: userId },
         body: {
           username: formData.username,

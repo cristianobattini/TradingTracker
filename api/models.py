@@ -17,6 +17,7 @@ class User(Base):
     valid = Column(Boolean, default=True)
     role = Column(Enum(RoleEnum), default=RoleEnum.user)
     initial_capital = Column(Float, default=1000.0)
+    avatar = Column(String, default="default_avatar.png")
 
     trades = relationship("Trade", back_populates="owner")
 

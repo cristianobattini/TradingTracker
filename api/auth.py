@@ -46,7 +46,6 @@ class AuthService:
         return encoded_jwt
 
     def get_current_user(self, token: str):  
-        print("Getting current user from token:", token)
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

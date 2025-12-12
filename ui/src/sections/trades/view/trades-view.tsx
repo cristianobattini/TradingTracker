@@ -33,7 +33,7 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { deleteTradeTradesTradeIdDelete, listTradesTradesGet, TradeResponse } from 'src/client';
+import { deleteTradeApiTradesTradeIdDelete, DeleteTradeApiTradesTradeIdDeleteData, listTradesApiTradesGet, TradeResponse } from 'src/client';
 import { AddTradeModal } from 'src/sections/overview/add-trade-modal';
 import { UpdateTradeModal } from 'src/sections/overview/update-trade-modal';
 
@@ -57,7 +57,7 @@ export function TradesView() {
   }, []);
 
   const fetchTrades = async () => {
-    listTradesTradesGet().then(response => {
+    listTradesApiTradesGet().then(response => {
       if (response.error) {
         setError('Failed to fetch trades');
         console.error('Error fetching trades:', response.error);
@@ -151,7 +151,7 @@ export function TradesView() {
 
   const handleDeleteTrade = async (tradeId: number) => {
     if (confirm('Are you sure you want to delete this trade?')) {
-      deleteTradeTradesTradeIdDelete({ path: { trade_id: tradeId } }).then(() => {
+      deleteTradeApiTradesTradeIdDelete({ path: { trade_id: tradeId } }).then(() => {
         setTrades(prev => prev.filter(trade => trade.id !== tradeId));
       }).catch(err => {
         setError('Failed to delete trade');

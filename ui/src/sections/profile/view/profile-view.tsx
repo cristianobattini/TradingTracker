@@ -9,9 +9,9 @@ import TextField from '@mui/material/TextField';
 import Divider from '@mui/material/Divider';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
-  readUsersMeUsersMeGet,
-  changeOwnPasswordUsersMeChangePasswordPost,
-  updateUserUsersUserIdPut,
+  readUsersMeApiUsersMeGet,
+  changeOwnPasswordApiUsersMeChangePasswordPost,
+  updateUserApiUsersUserIdPut,
   UserResponse,
   UserUpdate,
 } from 'src/client';
@@ -32,7 +32,7 @@ export function ProfileView() {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    readUsersMeUsersMeGet()
+    readUsersMeApiUsersMeGet()
       .then((res) => {
         if (mounted) setUser(res.data || null);
       })
@@ -65,7 +65,7 @@ export function ProfileView() {
     }
 
     setSubmitting(true);
-    changeOwnPasswordUsersMeChangePasswordPost({
+    changeOwnPasswordApiUsersMeChangePasswordPost({
       body: { current_password: currentPassword, new_password: newPassword },
     })
       .then(() => {
@@ -104,7 +104,7 @@ export function ProfileView() {
     };
 
     setSubmitting(true);
-    updateUserUsersUserIdPut({ path: { user_id: user.id }, body })
+    updateUserApiUsersUserIdPut({ path: { user_id: user.id }, body })
       .then((res) => {
         setMessage({ type: 'success', text: 'Profile updated successfully.' });
         setUser(res.data || null);

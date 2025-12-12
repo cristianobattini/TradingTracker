@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CancelTradeTradesTradeIdCancelPostData, CancelTradeTradesTradeIdCancelPostErrors, CancelTradeTradesTradeIdCancelPostResponses, ChangeOwnPasswordUsersMeChangePasswordPostData, ChangeOwnPasswordUsersMeChangePasswordPostErrors, ChangeOwnPasswordUsersMeChangePasswordPostResponses, ChangeUserPasswordUsersUserIdChangePasswordPostData, ChangeUserPasswordUsersUserIdChangePasswordPostErrors, ChangeUserPasswordUsersUserIdChangePasswordPostResponses, CreateTradeTradesPostData, CreateTradeTradesPostErrors, CreateTradeTradesPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, DeleteTradeTradesTradeIdDeleteData, DeleteTradeTradesTradeIdDeleteErrors, DeleteTradeTradesTradeIdDeleteResponses, DeleteUserUsersUserIdDeleteData, DeleteUserUsersUserIdDeleteErrors, DeleteUserUsersUserIdDeleteResponses, GetReportReportGetData, GetReportReportGetResponses, GetTradeTradesTradeIdGetData, GetTradeTradesTradeIdGetErrors, GetTradeTradesTradeIdGetResponses, GetUsersUsersGetData, GetUsersUsersGetResponses, GetUserUsersUserIdGetData, GetUserUsersUserIdGetErrors, GetUserUsersUserIdGetResponses, HealthCheckHealthGetData, HealthCheckHealthGetResponses, ListTradesTradesGetData, ListTradesTradesGetResponses, LoginLoginPostData, LoginLoginPostErrors, LoginLoginPostResponses, ReadUsersMeUsersMeGetData, ReadUsersMeUsersMeGetResponses, RootGetData, RootGetResponses, UpdateTradeTradesTradeIdPutData, UpdateTradeTradesTradeIdPutErrors, UpdateTradeTradesTradeIdPutResponses, UpdateUserUsersUserIdPutData, UpdateUserUsersUserIdPutErrors, UpdateUserUsersUserIdPutResponses } from './types.gen';
+import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,300 +19,196 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
+ * Ask Question
+ *
+ * Ask the AI a question and include a summary of the current user's recent trades
+ * so the AI can make considerations about the user's trading activity.
+ * Requires the request to be authenticated (uses current_user dependency).
+ */
+export const askQuestionApiAiAskPost = <ThrowOnError extends boolean = false>(options: Options<AskQuestionApiAiAskPostData, ThrowOnError>) => (options.client ?? client).post<AskQuestionApiAiAskPostResponses, AskQuestionApiAiAskPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/ai/ask',
+    ...options
+});
+
+/**
  * Get Users
  */
-export const getUsersUsersGet = <ThrowOnError extends boolean = false>(options?: Options<GetUsersUsersGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetUsersUsersGetResponses, unknown, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/',
-        ...options
-    });
-};
+export const getUsersApiUsersGet = <ThrowOnError extends boolean = false>(options?: Options<GetUsersApiUsersGetData, ThrowOnError>) => (options?.client ?? client).get<GetUsersApiUsersGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/',
+    ...options
+});
 
 /**
  * Create User
  */
-export const createUserUsersPost = <ThrowOnError extends boolean = false>(options: Options<CreateUserUsersPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<CreateUserUsersPostResponses, CreateUserUsersPostErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const createUserApiUsersPost = <ThrowOnError extends boolean = false>(options: Options<CreateUserApiUsersPostData, ThrowOnError>) => (options.client ?? client).post<CreateUserApiUsersPostResponses, CreateUserApiUsersPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Read Users Me
  */
-export const readUsersMeUsersMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReadUsersMeUsersMeGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<ReadUsersMeUsersMeGetResponses, unknown, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/me',
-        ...options
-    });
-};
+export const readUsersMeApiUsersMeGet = <ThrowOnError extends boolean = false>(options?: Options<ReadUsersMeApiUsersMeGetData, ThrowOnError>) => (options?.client ?? client).get<ReadUsersMeApiUsersMeGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/me',
+    ...options
+});
 
 /**
  * Delete User
  */
-export const deleteUserUsersUserIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteUserUsersUserIdDeleteData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteUserUsersUserIdDeleteResponses, DeleteUserUsersUserIdDeleteErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/{user_id}',
-        ...options
-    });
-};
+export const deleteUserApiUsersUserIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteUserApiUsersUserIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteUserApiUsersUserIdDeleteResponses, DeleteUserApiUsersUserIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/{user_id}',
+    ...options
+});
 
 /**
  * Get User
  */
-export const getUserUsersUserIdGet = <ThrowOnError extends boolean = false>(options: Options<GetUserUsersUserIdGetData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetUserUsersUserIdGetResponses, GetUserUsersUserIdGetErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/{user_id}',
-        ...options
-    });
-};
+export const getUserApiUsersUserIdGet = <ThrowOnError extends boolean = false>(options: Options<GetUserApiUsersUserIdGetData, ThrowOnError>) => (options.client ?? client).get<GetUserApiUsersUserIdGetResponses, GetUserApiUsersUserIdGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/{user_id}',
+    ...options
+});
 
 /**
  * Update User
  */
-export const updateUserUsersUserIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateUserUsersUserIdPutData, ThrowOnError>) => {
-    return (options.client ?? client).put<UpdateUserUsersUserIdPutResponses, UpdateUserUsersUserIdPutErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/{user_id}',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const updateUserApiUsersUserIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateUserApiUsersUserIdPutData, ThrowOnError>) => (options.client ?? client).put<UpdateUserApiUsersUserIdPutResponses, UpdateUserApiUsersUserIdPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/{user_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Change Own Password
  */
-export const changeOwnPasswordUsersMeChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeOwnPasswordUsersMeChangePasswordPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<ChangeOwnPasswordUsersMeChangePasswordPostResponses, ChangeOwnPasswordUsersMeChangePasswordPostErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/me/change-password',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const changeOwnPasswordApiUsersMeChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeOwnPasswordApiUsersMeChangePasswordPostData, ThrowOnError>) => (options.client ?? client).post<ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/me/change-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Change User Password
  */
-export const changeUserPasswordUsersUserIdChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeUserPasswordUsersUserIdChangePasswordPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<ChangeUserPasswordUsersUserIdChangePasswordPostResponses, ChangeUserPasswordUsersUserIdChangePasswordPostErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/users/{user_id}/change-password',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const changeUserPasswordApiUsersUserIdChangePasswordPost = <ThrowOnError extends boolean = false>(options: Options<ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ThrowOnError>) => (options.client ?? client).post<ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/{user_id}/change-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Login
  */
-export const loginLoginPost = <ThrowOnError extends boolean = false>(options: Options<LoginLoginPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<LoginLoginPostResponses, LoginLoginPostErrors, ThrowOnError>({
-        ...urlSearchParamsBodySerializer,
-        url: '/login',
-        ...options,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            ...options.headers
-        }
-    });
-};
+export const loginApiLoginPost = <ThrowOnError extends boolean = false>(options: Options<LoginApiLoginPostData, ThrowOnError>) => (options.client ?? client).post<LoginApiLoginPostResponses, LoginApiLoginPostErrors, ThrowOnError>({
+    ...urlSearchParamsBodySerializer,
+    url: '/api/login',
+    ...options,
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...options.headers
+    }
+});
 
 /**
  * List Trades
  */
-export const listTradesTradesGet = <ThrowOnError extends boolean = false>(options?: Options<ListTradesTradesGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<ListTradesTradesGetResponses, unknown, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/',
-        ...options
-    });
-};
+export const listTradesApiTradesGet = <ThrowOnError extends boolean = false>(options?: Options<ListTradesApiTradesGetData, ThrowOnError>) => (options?.client ?? client).get<ListTradesApiTradesGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/',
+    ...options
+});
 
 /**
  * Create Trade
  */
-export const createTradeTradesPost = <ThrowOnError extends boolean = false>(options: Options<CreateTradeTradesPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<CreateTradeTradesPostResponses, CreateTradeTradesPostErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const createTradeApiTradesPost = <ThrowOnError extends boolean = false>(options: Options<CreateTradeApiTradesPostData, ThrowOnError>) => (options.client ?? client).post<CreateTradeApiTradesPostResponses, CreateTradeApiTradesPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Delete Trade
  */
-export const deleteTradeTradesTradeIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteTradeTradesTradeIdDeleteData, ThrowOnError>) => {
-    return (options.client ?? client).delete<DeleteTradeTradesTradeIdDeleteResponses, DeleteTradeTradesTradeIdDeleteErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/{trade_id}',
-        ...options
-    });
-};
+export const deleteTradeApiTradesTradeIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteTradeApiTradesTradeIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/{trade_id}',
+    ...options
+});
 
 /**
  * Get Trade
  */
-export const getTradeTradesTradeIdGet = <ThrowOnError extends boolean = false>(options: Options<GetTradeTradesTradeIdGetData, ThrowOnError>) => {
-    return (options.client ?? client).get<GetTradeTradesTradeIdGetResponses, GetTradeTradesTradeIdGetErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/{trade_id}',
-        ...options
-    });
-};
+export const getTradeApiTradesTradeIdGet = <ThrowOnError extends boolean = false>(options: Options<GetTradeApiTradesTradeIdGetData, ThrowOnError>) => (options.client ?? client).get<GetTradeApiTradesTradeIdGetResponses, GetTradeApiTradesTradeIdGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/{trade_id}',
+    ...options
+});
 
 /**
  * Update Trade
  */
-export const updateTradeTradesTradeIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateTradeTradesTradeIdPutData, ThrowOnError>) => {
-    return (options.client ?? client).put<UpdateTradeTradesTradeIdPutResponses, UpdateTradeTradesTradeIdPutErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/{trade_id}',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const updateTradeApiTradesTradeIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateTradeApiTradesTradeIdPutData, ThrowOnError>) => (options.client ?? client).put<UpdateTradeApiTradesTradeIdPutResponses, UpdateTradeApiTradesTradeIdPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/{trade_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Cancel Trade
  */
-export const cancelTradeTradesTradeIdCancelPost = <ThrowOnError extends boolean = false>(options: Options<CancelTradeTradesTradeIdCancelPostData, ThrowOnError>) => {
-    return (options.client ?? client).post<CancelTradeTradesTradeIdCancelPostResponses, CancelTradeTradesTradeIdCancelPostErrors, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/trades/{trade_id}/cancel',
-        ...options
-    });
-};
+export const cancelTradeApiTradesTradeIdCancelPost = <ThrowOnError extends boolean = false>(options: Options<CancelTradeApiTradesTradeIdCancelPostData, ThrowOnError>) => (options.client ?? client).post<CancelTradeApiTradesTradeIdCancelPostResponses, CancelTradeApiTradesTradeIdCancelPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/{trade_id}/cancel',
+    ...options
+});
 
 /**
  * Get Report
  */
-export const getReportReportGet = <ThrowOnError extends boolean = false>(options?: Options<GetReportReportGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetReportReportGetResponses, unknown, ThrowOnError>({
-        security: [
-            {
-                scheme: 'bearer',
-                type: 'http'
-            }
-        ],
-        url: '/report/',
-        ...options
-    });
-};
+export const getReportApiReportGet = <ThrowOnError extends boolean = false>(options?: Options<GetReportApiReportGetData, ThrowOnError>) => (options?.client ?? client).get<GetReportApiReportGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/report/',
+    ...options
+});
 
 /**
  * Health Check
  */
-export const healthCheckHealthGet = <ThrowOnError extends boolean = false>(options?: Options<HealthCheckHealthGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<HealthCheckHealthGetResponses, unknown, ThrowOnError>({
-        url: '/health',
-        ...options
-    });
-};
+export const healthCheckApiHealthGet = <ThrowOnError extends boolean = false>(options?: Options<HealthCheckApiHealthGetData, ThrowOnError>) => (options?.client ?? client).get<HealthCheckApiHealthGetResponses, unknown, ThrowOnError>({ url: '/api/health', ...options });
 
 /**
  * Root
  */
-export const rootGet = <ThrowOnError extends boolean = false>(options?: Options<RootGetData, ThrowOnError>) => {
-    return (options?.client ?? client).get<RootGetResponses, unknown, ThrowOnError>({
-        url: '/',
-        ...options
-    });
-};
+export const rootApiGet = <ThrowOnError extends boolean = false>(options?: Options<RootApiGetData, ThrowOnError>) => (options?.client ?? client).get<RootApiGetResponses, unknown, ThrowOnError>({ url: '/api/', ...options });

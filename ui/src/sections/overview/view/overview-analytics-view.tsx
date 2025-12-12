@@ -19,7 +19,7 @@ interface PerformanceMetrics {
 import { TradingRecentTrades } from '../trading-recent-trades';
 import { TradingPerformanceSummary } from '../trading-performance-summary';
 import { TradingWinLossChart } from '../trading-win-loss-chart';
-import { getReportReportGet, listTradesTradesGet, readUsersMeUsersMeGet, ReportResponse, TradeResponse, UserResponse } from 'src/client';
+import { getReportApiReportGet, listTradesApiTradesGet, readUsersMeApiUsersMeGet, ReportResponse, TradeResponse, UserResponse } from 'src/client';
 import { TradingCapitalGrowth } from '../trading-capital-growth';
 import { TradingPairsDistribution } from '../trading-pairs-distribution';
 import { TradingSystemPerformance } from '../trading-system-performance';
@@ -39,7 +39,7 @@ export function OverviewAnalyticsView() {
   const [notification, setNotification] = useState({ open: false, message: '' });
 
   useEffect(() => {
-    listTradesTradesGet()
+    listTradesApiTradesGet()
       .then((response) => {
         if (response.data) {
           setTrades(Array.isArray(response.data) ? response.data : []);
@@ -52,13 +52,13 @@ export function OverviewAnalyticsView() {
       });
 
     // fetch current user (to get initial capital)
-    readUsersMeUsersMeGet()
+    readUsersMeApiUsersMeGet()
       .then((response) => {
         setUser(response.data || null);
       })
       .catch(() => setUser(null));
 
-    getReportReportGet()
+    getReportApiReportGet()
       .then((response) => {
         setReport(response.data);
       })
@@ -234,7 +234,7 @@ export function OverviewAnalyticsView() {
         onClose={() => setModalOpen(false)}
         onTradeAdded={() => {
           setLoading(true);
-          listTradesTradesGet()
+          listTradesApiTradesGet()
             .then((response) => {
               if (response.data) {
                 setTrades(Array.isArray(response.data) ? response.data : []);
@@ -252,7 +252,7 @@ export function OverviewAnalyticsView() {
             })
             .finally(() => setLoading(false));
 
-          getReportReportGet()
+          getReportApiReportGet()
             .then((response) => {
               setReport(response.data);
             })
