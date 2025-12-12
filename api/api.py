@@ -44,7 +44,6 @@ app = FastAPI(
     debug=os.getenv("DEBUG", "False").lower() == "true"
 )
 
-app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
 
 def custom_openapi():
     if app.openapi_schema:
@@ -111,6 +110,8 @@ def require_admin(
 
 # === CREATE ROUTER ===
 router = APIRouter(prefix="/api")
+
+app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
 
 # === AVATAR ===
 UPLOAD_FOLDER = "uploads/avatars/"
