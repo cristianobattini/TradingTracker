@@ -15,14 +15,28 @@ import {
   UserResponse,
   UserUpdate,
   uploadAvatarApiUsersUserIdAvatarPost,
+  importTradesApiTradesImportPost
 } from 'src/client';
 import { Alert, Stack } from '@mui/material';
 import { getLocalStorageItem } from 'src/services/local-storage-service';
-
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { styled } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { AccountAvatar } from 'src/layouts/components/account-avatar';
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 export function ProfileView() {
   const [user, setUser] = useState<UserResponse | null>(null);
@@ -32,6 +46,7 @@ export function ProfileView() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [formUser, setFormUser] = useState<Partial<UserResponse>>({});
@@ -59,6 +74,23 @@ export function ProfileView() {
       setFormUser(user);
     }
   }, [user]);
+
+  const handleImportExcel = async (files: FileList | null) => {
+    setImportMessage(null);
+    if (!files || files.length === 0) {
+      setImportMessage({ type: 'error', text: 'No file selected.' });
+      return;
+    }
+    const file = files[0];
+    importTradesApiTradesImportPost({ body: { file } })
+      .then(() => {
+        setImportMessage({ type: 'success', text: 'Excel file imported successfully.' });
+      })
+      .catch((err) => {
+        console.error('Import Excel error', err);
+        setImportMessage({ type: 'error', text: err?.message || 'Failed to import Excel file.' });
+      });
+  }
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,6 +345,35 @@ export function ProfileView() {
                   {submitting ? 'Updating...' : 'Change Password'}
                 </Button>
               </Stack>
+            </Box>
+          </Card>
+          <Card sx={{ p: 3, mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Import Excel
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            {importMessage && (
+              <Alert severity={importMessage.type} sx={{ mb: 2 }} onClose={() => setImportMessage(null)}>
+                {importMessage.text}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<CloudUploadIcon />}
+              >
+                Upload file
+                <VisuallyHiddenInput
+                  type="file"
+                  onChange={(event: any) => handleImportExcel(event.target.files)}
+                  multiple
+                />
+              </Button>
             </Box>
           </Card>
         </Grid>

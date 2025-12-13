@@ -5,6 +5,16 @@ export type ClientOptions = {
 };
 
 /**
+ * Body_import_trades_api_trades_import_post
+ */
+export type BodyImportTradesApiTradesImportPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * Body_login_api_login_post
  */
 export type BodyLoginApiLoginPost = {
@@ -396,6 +406,29 @@ export type ValidationError = {
      * Error Type
      */
     type: string;
+};
+
+export type ImportTradesApiTradesImportPostData = {
+    body: BodyImportTradesApiTradesImportPost;
+    path?: never;
+    query?: never;
+    url: '/api/trades/import';
+};
+
+export type ImportTradesApiTradesImportPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ImportTradesApiTradesImportPostError = ImportTradesApiTradesImportPostErrors[keyof ImportTradesApiTradesImportPostErrors];
+
+export type ImportTradesApiTradesImportPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
 };
 
 export type GetAvatarApiUsersUserIdAvatarGetData = {

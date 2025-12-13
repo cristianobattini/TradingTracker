@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from database import Base, SessionLocal, engine
 from models import User, Trade
-from ai import ask_ai
+from ai import ask_ai, import_excel_ai
 from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate
 from auth import AuthService, oauth2_scheme 
 import os
@@ -112,6 +112,31 @@ def require_admin(
 router = APIRouter(prefix="/api")
 
 app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
+
+# === EXCEL ===
+EXCEL_UPLOAD_FOLDER = "uploads/excel/"
+@router.post("/trades/import")
+async def import_trades(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    os.makedirs(EXCEL_UPLOAD_FOLDER, exist_ok=True)
+    file_location = os.path.join(EXCEL_UPLOAD_FOLDER, file.filename)
+    
+    with open(file_location, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    trades = import_excel_ai(file_location, current_user.id)
+    
+    os.remove(file_location)
+    
+    for trade in trades:
+        db.add(trade)
+    db.commit()
+    
+    return {"message": f"Imported {len(trades)} trades successfully."}
+    
 
 # === AVATAR ===
 UPLOAD_FOLDER = "uploads/avatars/"
