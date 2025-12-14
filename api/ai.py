@@ -86,51 +86,72 @@ from models import Trade
 from typing import List
 
 
-def import_excel_ai(file_path: str, owner_id: int) -> List[Trade]:
-    df = pd.read_excel(file_path)
+TRADE_FIELDS = {
+    "date", "pair", "system", "action", "risk", "risk_percent",
+    "lots", "entry",
+    "sl1_pips", "tp1_pips", "sl2_pips", "tp2_pips",
+    "cancelled", "profit_or_loss", "comments"
+}
 
-    # Convert columns to strings
+
+def import_excel_ai(file_path: str, owner_id: int):
+    df = pd.read_excel(file_path)
     df.columns = df.columns.astype(str)
 
-    # Send sample rows to AI
     sample_rows = df.head(3).to_dict(orient="records")
+    column_mapping = ai_map_columns(df.columns.tolist(), sample_rows)
 
-    column_mapping = ai_map_columns(
-        excel_columns=df.columns.tolist(),
-        sample_rows=sample_rows
-    )
+    trades = []
+    issues = []
 
-    trades: List[Trade] = []
-
-    for _, row in df.iterrows():
+    for idx, row in df.iterrows():
         data = {}
+        missing_fields = []
+        conversion_errors = []
 
-        for excel_col, model_col in column_mapping.items():
-            if model_col is None:
+        for field in TRADE_FIELDS:
+            # find excel column mapped to this field
+            excel_cols = [
+                col for col, mapped in column_mapping.items()
+                if mapped == field
+            ]
+
+            if not excel_cols:
+                missing_fields.append(field)
                 continue
 
+            excel_col = excel_cols[0]
             value = row.get(excel_col)
 
             if pd.isna(value):
+                missing_fields.append(field)
                 continue
 
-            data[model_col] = value
+            try:
+                if field == "date":
+                    if isinstance(value, str):
+                        value = datetime.fromisoformat(value).date()
+                    else:
+                        value = value.date()
+                elif field == "cancelled":
+                    value = bool(value)
+                else:
+                    value = value
+            except Exception:
+                conversion_errors.append(field)
+                continue
 
-        # Type normalization
-        if "date" in data:
-            if isinstance(data["date"], str):
-                data["date"] = datetime.fromisoformat(data["date"]).date()
-            else:
-                data["date"] = data["date"].date()
+            data[field] = value
 
-        if "cancelled" in data:
-            data["cancelled"] = bool(data["cancelled"])
-
-        trade = Trade(
-            **data,
-            owner_id=owner_id
-        )
-
+        trade = Trade(**data, owner_id=owner_id)
         trades.append(trade)
 
-    return trades
+        if missing_fields or conversion_errors:
+            issues.append({
+                "row": idx + 2,
+                "missing_fields": missing_fields,
+                "conversion_errors": conversion_errors
+            })
+
+    return trades, issues
+

@@ -42,21 +42,21 @@ class TokenSchema(BaseModel):
 
 # --- Trades ---
 class TradeCreate(BaseModel):
-    date: date
-    pair: str
-    system: str
-    action: str
-    risk: str
-    risk_percent: float
-    lots: float
-    entry: float
-    sl1_pips: float
-    tp1_pips: float
-    sl2_pips: float
-    tp2_pips: float
-    cancelled: bool
-    profit_or_loss: float
-    comments: str
+    date: Optional[date]
+    pair: Optional[str]
+    system: Optional[str]
+    action: Optional[str]
+    risk: Optional[str]
+    risk_percent: Optional[float]
+    lots: Optional[float]
+    entry: Optional[float]
+    sl1_pips: Optional[float]
+    tp1_pips: Optional[float]
+    sl2_pips: Optional[float]
+    tp2_pips: Optional[float]
+    cancelled: Optional[bool]
+    profit_or_loss: Optional[float]
+    comments: Optional[str]
 
 class TradeResponse(TradeCreate):
     id: int

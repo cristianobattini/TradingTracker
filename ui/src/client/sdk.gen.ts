@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
+import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -165,6 +165,19 @@ export const loginApiLoginPost = <ThrowOnError extends boolean = false>(options:
     ...options,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Trades
+ */
+export const deleteTradesApiTradesDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteTradesApiTradesDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteTradesApiTradesDeleteResponses, DeleteTradesApiTradesDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/trades/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
         ...options.headers
     }
 });

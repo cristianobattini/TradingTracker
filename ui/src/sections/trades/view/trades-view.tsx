@@ -33,8 +33,9 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { deleteTradeApiTradesTradeIdDelete, DeleteTradeApiTradesTradeIdDeleteData, listTradesApiTradesGet, TradeResponse } from 'src/client';
+import { deleteTradeApiTradesTradeIdDelete, DeleteTradeApiTradesTradeIdDeleteData, deleteTradesApiTradesDelete, listTradesApiTradesGet, TradeResponse } from 'src/client';
 import { AddTradeModal } from 'src/sections/overview/add-trade-modal';
+import Checkbox from '@mui/material/Checkbox';
 import { UpdateTradeModal } from 'src/sections/overview/update-trade-modal';
 
 export function TradesView() {
@@ -50,6 +51,7 @@ export function TradesView() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<TradeResponse | null>(null);
+  const [selectedTrades, setSelectedTrades] = useState<number[]>([]);
 
   // Fetch trades on component mount
   useEffect(() => {
@@ -72,18 +74,37 @@ export function TradesView() {
     });
   };
 
+  const isSelected = (id: number) => selectedTrades.includes(id);
+
+  const toggleSelectTrade = (id: number) => {
+    setSelectedTrades(prev =>
+      prev.includes(id)
+        ? prev.filter(tid => tid !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTrades(paginatedTrades.map(t => t.id));
+    } else {
+      setSelectedTrades([]);
+    }
+  };
+
+
   // Filter trades based on search and filters
   const filteredTrades = trades.filter(trade => {
-    const matchesSearch = 
-      trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trade.system.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trade.comments.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      (trade.pair ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (trade.system ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (trade.comments ?? '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = 
+    const matchesStatus =
       statusFilter === 'all' ||
       (statusFilter === 'cancelled' && trade.cancelled) ||
-      (statusFilter === 'win' && trade.profit_or_loss > 0 && !trade.cancelled) ||
-      (statusFilter === 'loss' && trade.profit_or_loss < 0 && !trade.cancelled);
+      (statusFilter === 'win' && trade.profit_or_loss && trade.profit_or_loss > 0 && !trade.cancelled) ||
+      (statusFilter === 'loss' && trade.profit_or_loss && trade.profit_or_loss < 0 && !trade.cancelled);
 
     const matchesPair = pairFilter === 'all' || trade.pair === pairFilter;
 
@@ -91,7 +112,13 @@ export function TradesView() {
   });
 
   // Get unique pairs for filter
-  const uniquePairs = Array.from(new Set(trades.map(trade => trade.pair)));
+  const uniquePairs = Array.from(
+    new Set(
+      trades
+        .map(trade => trade.pair)
+        .filter((pair): pair is string => typeof pair === 'string')
+    )
+  );
 
   // Pagination
   const paginatedTrades = filteredTrades.slice(
@@ -113,31 +140,31 @@ export function TradesView() {
     setAddModalOpen(false);
   };
 
-/*   const handleDeleteTrade = async (tradeId: number) => {
-    if (!confirm('Are you sure you want to delete this trade?')) return;
-
-    try {
-      // Replace with actual API call
-      // await fetch(`/api/trades/${tradeId}`, { method: 'DELETE' });
-      
-      setTrades(prev => prev.filter(trade => trade.id !== tradeId));
-    } catch (err) {
-      setError('Failed to delete trade');
-      console.error('Error deleting trade:', err);
-    }
-  }; */
+  /*   const handleDeleteTrade = async (tradeId: number) => {
+      if (!confirm('Are you sure you want to delete this trade?')) return;
+  
+      try {
+        // Replace with actual API call
+        // await fetch(`/api/trades/${tradeId}`, { method: 'DELETE' });
+        
+        setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+      } catch (err) {
+        setError('Failed to delete trade');
+        console.error('Error deleting trade:', err);
+      }
+    }; */
 
   const getStatusColor = (trade: TradeResponse) => {
     if (trade.cancelled) return 'warning';
-    if (trade.profit_or_loss > 0) return 'success';
-    if (trade.profit_or_loss < 0) return 'error';
+    if (trade.profit_or_loss && trade.profit_or_loss > 0) return 'success';
+    if (trade.profit_or_loss && trade.profit_or_loss < 0) return 'error';
     return 'default';
   };
 
   const getStatusText = (trade: TradeResponse) => {
     if (trade.cancelled) return 'Cancelled';
-    if (trade.profit_or_loss > 0) return 'Win';
-    if (trade.profit_or_loss < 0) return 'Loss';
+    if (trade.profit_or_loss && trade.profit_or_loss > 0) return 'Win';
+    if (trade.profit_or_loss && trade.profit_or_loss < 0) return 'Loss';
     return 'Breakeven';
   };
 
@@ -217,6 +244,25 @@ export function TradesView() {
               </IconButton>
             </Tooltip>
 
+            {selectedTrades.length > 0 && (
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={async () => {
+                  if (!confirm(`Delete ${selectedTrades.length} trades?`)) return;
+
+                  deleteTradesApiTradesDelete({ body: selectedTrades }).then(() => {
+                    setTrades(prev => prev.filter(t => !selectedTrades.includes(t.id)));
+                    setSelectedTrades([]);
+                  })
+                }
+              }
+              >
+                Delete Selected ({selectedTrades.length})
+              </Button>
+            )}
+
+
             <Button
               startIcon={<RefreshIcon />}
               onClick={fetchTrades}
@@ -275,6 +321,19 @@ export function TradesView() {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={
+                        selectedTrades.length > 0 &&
+                        selectedTrades.length < paginatedTrades.length
+                      }
+                      checked={
+                        paginatedTrades.length > 0 &&
+                        selectedTrades.length === paginatedTrades.length
+                      }
+                      onChange={(e) => toggleSelectAll(e.target.checked)}
+                    />
+                  </TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Pair</TableCell>
                   <TableCell>Action</TableCell>
@@ -290,10 +349,20 @@ export function TradesView() {
               </TableHead>
               <TableBody>
                 {paginatedTrades.map((trade) => (
-                  <TableRow key={trade.id} hover>
+                  <TableRow key={trade.id} hover
+                    selected={isSelected(trade.id)}
+                    sx={{
+                      cursor: 'pointer'
+                    }}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected(trade.id)}
+                        onChange={() => toggleSelectTrade(trade.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {new Date(trade.date).toLocaleDateString()}
+                        {trade.date && new Date(trade.date).toLocaleDateString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -344,12 +413,12 @@ export function TradesView() {
                         variant="body2"
                         fontWeight="medium"
                         color={
-                          trade.profit_or_loss > 0 ? 'success.main' :
-                          trade.profit_or_loss < 0 ? 'error.main' :
-                          'text.primary'
+                          trade.profit_or_loss && trade.profit_or_loss > 0 ? 'success.main' :
+                            trade.profit_or_loss && trade.profit_or_loss < 0 ? 'error.main' :
+                              'text.primary'
                         }
                       >
-                        {formatCurrency(trade.profit_or_loss)}
+                        {trade.profit_or_loss && formatCurrency(trade.profit_or_loss)}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -361,11 +430,11 @@ export function TradesView() {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                          <Tooltip title="Edit Trade">
-                            <IconButton size="small" onClick={() => { setSelectedTrade(trade); setEditModalOpen(true); }}>
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
+                        <Tooltip title="Edit Trade">
+                          <IconButton size="small" onClick={() => { setSelectedTrade(trade); setEditModalOpen(true); }}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Delete Trade">
                           <IconButton
                             size="small"

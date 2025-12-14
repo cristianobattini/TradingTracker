@@ -143,63 +143,63 @@ export type TradeCreate = {
     /**
      * Date
      */
-    date: string;
+    date: string | null;
     /**
      * Pair
      */
-    pair: string;
+    pair: string | null;
     /**
      * System
      */
-    system: string;
+    system: string | null;
     /**
      * Action
      */
-    action: string;
+    action: string | null;
     /**
      * Risk
      */
-    risk: string;
+    risk: string | null;
     /**
      * Risk Percent
      */
-    risk_percent: number;
+    risk_percent: number | null;
     /**
      * Lots
      */
-    lots: number;
+    lots: number | null;
     /**
      * Entry
      */
-    entry: number;
+    entry: number | null;
     /**
      * Sl1 Pips
      */
-    sl1_pips: number;
+    sl1_pips: number | null;
     /**
      * Tp1 Pips
      */
-    tp1_pips: number;
+    tp1_pips: number | null;
     /**
      * Sl2 Pips
      */
-    sl2_pips: number;
+    sl2_pips: number | null;
     /**
      * Tp2 Pips
      */
-    tp2_pips: number;
+    tp2_pips: number | null;
     /**
      * Cancelled
      */
-    cancelled: boolean;
+    cancelled: boolean | null;
     /**
      * Profit Or Loss
      */
-    profit_or_loss: number;
+    profit_or_loss: number | null;
     /**
      * Comments
      */
-    comments: string;
+    comments: string | null;
 };
 
 /**
@@ -209,63 +209,63 @@ export type TradeResponse = {
     /**
      * Date
      */
-    date: string;
+    date: string | null;
     /**
      * Pair
      */
-    pair: string;
+    pair: string | null;
     /**
      * System
      */
-    system: string;
+    system: string | null;
     /**
      * Action
      */
-    action: string;
+    action: string | null;
     /**
      * Risk
      */
-    risk: string;
+    risk: string | null;
     /**
      * Risk Percent
      */
-    risk_percent: number;
+    risk_percent: number | null;
     /**
      * Lots
      */
-    lots: number;
+    lots: number | null;
     /**
      * Entry
      */
-    entry: number;
+    entry: number | null;
     /**
      * Sl1 Pips
      */
-    sl1_pips: number;
+    sl1_pips: number | null;
     /**
      * Tp1 Pips
      */
-    tp1_pips: number;
+    tp1_pips: number | null;
     /**
      * Sl2 Pips
      */
-    sl2_pips: number;
+    sl2_pips: number | null;
     /**
      * Tp2 Pips
      */
-    tp2_pips: number;
+    tp2_pips: number | null;
     /**
      * Cancelled
      */
-    cancelled: boolean;
+    cancelled: boolean | null;
     /**
      * Profit Or Loss
      */
-    profit_or_loss: number;
+    profit_or_loss: number | null;
     /**
      * Comments
      */
-    comments: string;
+    comments: string | null;
     /**
      * Id
      */
@@ -722,6 +722,32 @@ export type LoginApiLoginPostResponses = {
 };
 
 export type LoginApiLoginPostResponse = LoginApiLoginPostResponses[keyof LoginApiLoginPostResponses];
+
+export type DeleteTradesApiTradesDeleteData = {
+    /**
+     * Trade Ids
+     */
+    body: Array<number>;
+    path?: never;
+    query?: never;
+    url: '/api/trades/';
+};
+
+export type DeleteTradesApiTradesDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteTradesApiTradesDeleteError = DeleteTradesApiTradesDeleteErrors[keyof DeleteTradesApiTradesDeleteErrors];
+
+export type DeleteTradesApiTradesDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ListTradesApiTradesGetData = {
     body?: never;

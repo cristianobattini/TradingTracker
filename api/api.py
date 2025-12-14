@@ -123,19 +123,22 @@ async def import_trades(
 ):
     os.makedirs(EXCEL_UPLOAD_FOLDER, exist_ok=True)
     file_location = os.path.join(EXCEL_UPLOAD_FOLDER, file.filename)
-    
+
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    
-    trades = import_excel_ai(file_location, current_user.id)
-    
+
+    trades, issues = import_excel_ai(file_location, current_user.id)
+
     os.remove(file_location)
-    
-    for trade in trades:
-        db.add(trade)
+
+    db.add_all(trades)
     db.commit()
-    
-    return {"message": f"Imported {len(trades)} trades successfully."}
+
+    return {
+        "imported": len(trades),
+        "issues": issues
+    }
+
     
 
 # === AVATAR ===
@@ -498,6 +501,29 @@ def delete_trade(
     db.delete(trade)
     db.commit()
     return {"message": "Trade deleted successfully"}
+
+# --- Delete trade ---
+@router.delete("/trades/")
+def delete_trades(
+    trade_ids: List[int],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deleted = (
+        db.query(Trade)
+        .filter(
+            Trade.id.in_(trade_ids),
+            Trade.owner_id == current_user.id
+        )
+        .delete(synchronize_session=False)
+    )
+
+    db.commit()
+
+    return {
+        "requested": len(trade_ids),
+        "deleted": deleted
+    }
 
 # --- Cancel trade (soft delete) ---
 @router.post("/trades/{trade_id}/cancel")

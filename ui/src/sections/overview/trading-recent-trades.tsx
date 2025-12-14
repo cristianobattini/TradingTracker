@@ -40,7 +40,7 @@ export function TradingRecentTrades({ title, trades }: TradingRecentTradesProps)
                 <TableCell>
                   <Chip 
                     label={`$${trade.profit_or_loss}`} 
-                    color={trade.profit_or_loss > 0 ? 'success' : trade.profit_or_loss < 0 ? 'error' : 'default'} 
+                    color={trade.profit_or_loss ? (trade.profit_or_loss > 0 ? 'success' : trade.profit_or_loss < 0 ? 'error' : 'default') : 'default'} 
                     size="small" 
                   />
                 </TableCell>

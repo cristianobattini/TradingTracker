@@ -52,6 +52,7 @@ export function ProfileView() {
   const [formUser, setFormUser] = useState<Partial<UserResponse>>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [importIssues, setImportIssues] = useState<{ row: number; missing_fields: string[]; conversion_errors: string[] }[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -77,20 +78,25 @@ export function ProfileView() {
 
   const handleImportExcel = async (files: FileList | null) => {
     setImportMessage(null);
+    setImportIssues([]);
     if (!files || files.length === 0) {
       setImportMessage({ type: 'error', text: 'No file selected.' });
       return;
     }
     const file = files[0];
     importTradesApiTradesImportPost({ body: { file } })
-      .then(() => {
-        setImportMessage({ type: 'success', text: 'Excel file imported successfully.' });
+      .then((res: any) => {
+        setImportMessage({ type: 'success', text: `Imported ${res.data.imported} trades successfully.` });
+        if (res.data.issues && res.data.issues.length > 0) {
+          setImportIssues(res.data.issues);
+        }
       })
       .catch((err) => {
         console.error('Import Excel error', err);
         setImportMessage({ type: 'error', text: err?.message || 'Failed to import Excel file.' });
       });
-  }
+  };
+
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,6 +364,30 @@ export function ProfileView() {
                 {importMessage.text}
               </Alert>
             )}
+
+            {importIssues && importIssues.length > 0 && (
+              <Card sx={{ mt: 2, mb:2, p: 2, backgroundColor: "#fff3cd" }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Some fields were missing or had conversion errors:
+                </Typography>
+                <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                  {importIssues.map((issue, idx) => (
+                    <Box key={idx} sx={{ mb: 1 }}>
+                      <Typography variant="body2">
+                        Row {issue.row}:{" "}
+                        {issue.missing_fields.length > 0 && (
+                          <>Missing: {issue.missing_fields.join(", ")}. </>)
+                        }
+                        {issue.conversion_errors.length > 0 && (
+                          <>Conversion errors: {issue.conversion_errors.join(", ")}</>
+                        )}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Card>
+            )}
+
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Button

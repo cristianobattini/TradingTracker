@@ -72,8 +72,8 @@ export function OverviewAnalyticsView() {
   }, []);
 
   // Calculate additional metrics from trades
-  const winningTrades = trades.filter((trade) => trade.profit_or_loss > 0 && !trade.cancelled);
-  const losingTrades = trades.filter((trade) => trade.profit_or_loss < 0 && !trade.cancelled);
+  const winningTrades = trades.filter((trade) => trade.profit_or_loss && trade.profit_or_loss > 0 && !trade.cancelled);
+  const losingTrades = trades.filter((trade) => trade.profit_or_loss && trade.profit_or_loss < 0 && !trade.cancelled);
   const cancelledTrades = trades.filter((trade) => trade.cancelled);
 
   const performanceMetrics: PerformanceMetrics = {
@@ -204,7 +204,9 @@ export function OverviewAnalyticsView() {
           <TradingPairsDistribution
             title="Pairs Distribution"
             data={trades.reduce((acc: Record<string, number>, trade) => {
-              acc[trade.pair] = (acc[trade.pair] || 0) + 1;
+              if(trade.pair) {
+                acc[trade.pair] = (acc[trade.pair] || 0) + 1;
+              }
               return acc;
             }, {})}
           />
@@ -222,13 +224,17 @@ export function OverviewAnalyticsView() {
                 >,
                 trade
               ) => {
-                if (!acc[trade.system]) {
+                if (trade.system && !acc[trade.system]) {
                   acc[trade.system] = { wins: 0, losses: 0, total: 0, profit: 0 };
                 }
-                if (trade.profit_or_loss > 0) acc[trade.system].wins++;
-                if (trade.profit_or_loss < 0) acc[trade.system].losses++;
-                acc[trade.system].total++;
-                acc[trade.system].profit += trade.profit_or_loss;
+                if (trade.system && trade.profit_or_loss && trade.profit_or_loss > 0) acc[trade.system].wins++;
+                if (trade.system && trade.profit_or_loss && trade.profit_or_loss < 0) acc[trade.system].losses++;
+                if(trade.system) {
+                  acc[trade.system].total++;
+                  if(trade.profit_or_loss) {
+                    acc[trade.system].profit += trade.profit_or_loss;
+                  }
+                }
                 return acc;
               },
               {}
