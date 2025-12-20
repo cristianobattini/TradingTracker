@@ -42,36 +42,79 @@ class TokenSchema(BaseModel):
 
 # --- Trades ---
 class TradeCreate(BaseModel):
+    # --- Trading system ---
     date: Optional[date]
-    pair: Optional[str]
-    system: Optional[str]
-    action: Optional[str]
-    risk: Optional[str]
-    risk_percent: Optional[float]
-    lots: Optional[float]
-    entry: Optional[float]
-    sl1_pips: Optional[float]
-    tp1_pips: Optional[float]
-    sl2_pips: Optional[float]
-    tp2_pips: Optional[float]
-    cancelled: Optional[bool]
-    profit_or_loss: Optional[float]
-    comments: Optional[str]
+    pair: Optional[str] = None
+    system: Optional[str] = None
+    action: Optional[str] = None
+    risk: Optional[str] = None
+    risk_percent: Optional[float] = None
+    lots: Optional[float] = None
+    entry: Optional[float] = None
+    sl1_pips: Optional[float] = None
+    tp1_pips: Optional[float] = None
+    sl2_pips: Optional[float] = None
+    tp2_pips: Optional[float] = None
+    cancelled: Optional[bool] = False
+    profit_or_loss: Optional[float] = None
+    comments: Optional[str] = None
+
+    # --- Campi bancari ---
+    instrument_name: Optional[str] = None
+    isin: Optional[str] = None
+    currency: Optional[str] = None
+    operation_type: Optional[str] = None
+    sign: Optional[str] = None
+    quantity: Optional[float] = None
+    exchange_rate: Optional[float] = None
+    gross_amount: Optional[float] = None
+
+    # --- Commissioni ---
+    commission_fund: Optional[float] = None
+    commission_bank: Optional[float] = None
+    commission_sgr: Optional[float] = None
+    commission_admin: Optional[float] = None
+
 
 class TradeResponse(TradeCreate):
     id: int
     owner_id: int
+
     class Config:
         from_attributes = True
+
         
 class TradeUpdate(BaseModel):
-    symbol: Optional[str] = None
-    entry_price: Optional[float] = None
-    exit_price: Optional[float] = None
-    quantity: Optional[float] = None
-    position_type: Optional[str] = None
-    profit_or_loss: Optional[float] = None
+    date: Optional[date]
+    pair: Optional[str] = None
+    system: Optional[str] = None
+    action: Optional[str] = None
+    risk: Optional[str] = None
+    risk_percent: Optional[float] = None
+    lots: Optional[float] = None
+    entry: Optional[float] = None
+    sl1_pips: Optional[float] = None
+    tp1_pips: Optional[float] = None
+    sl2_pips: Optional[float] = None
+    tp2_pips: Optional[float] = None
     cancelled: Optional[bool] = None
+    profit_or_loss: Optional[float] = None
+    comments: Optional[str] = None
+
+    instrument_name: Optional[str] = None
+    isin: Optional[str] = None
+    currency: Optional[str] = None
+    operation_type: Optional[str] = None
+    sign: Optional[str] = None
+    quantity: Optional[float] = None
+    exchange_rate: Optional[float] = None
+    gross_amount: Optional[float] = None
+
+    commission_fund: Optional[float] = None
+    commission_bank: Optional[float] = None
+    commission_sgr: Optional[float] = None
+    commission_admin: Optional[float] = None
+
 
 # --- Reports ---
 class ReportResponse(BaseModel):
