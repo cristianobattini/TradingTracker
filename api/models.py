@@ -23,8 +23,10 @@ class User(Base):
 
 class Trade(Base):
     __tablename__ = "trades"
-    
+
     id = Column(Integer, primary_key=True, index=True)
+
+    # === Trading system (già esistenti)
     date = Column(Date)
     pair = Column(String)
     system = Column(String)
@@ -40,6 +42,23 @@ class Trade(Base):
     cancelled = Column(Boolean, default=False)
     profit_or_loss = Column(Float)
     comments = Column(String)
-    
+
+    # === Nuovi campi "bancari"
+    instrument_name = Column(String)      
+    isin = Column(String)
+    currency = Column(String)             
+    operation_type = Column(String)       
+    sign = Column(String)                 
+    quantity = Column(Float)              
+    exchange_rate = Column(Float)         
+    gross_amount = Column(Float)          
+
+    # === Commissioni
+    commission_fund = Column(Float)
+    commission_bank = Column(Float)
+    commission_sgr = Column(Float)
+    commission_admin = Column(Float)
+
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="trades")
+

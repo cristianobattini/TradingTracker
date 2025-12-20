@@ -90,7 +90,13 @@ TRADE_FIELDS = {
     "date", "pair", "system", "action", "risk", "risk_percent",
     "lots", "entry",
     "sl1_pips", "tp1_pips", "sl2_pips", "tp2_pips",
-    "cancelled", "profit_or_loss", "comments"
+    "cancelled", "profit_or_loss", "comments",
+    "instrument_name", "isin", "currency",
+    "operation_type", "sign",
+    "quantity",
+    "exchange_rate", "gross_amount",
+    "commission_fund", "commission_bank",
+    "commission_sgr", "commission_admin"
 }
 
 
