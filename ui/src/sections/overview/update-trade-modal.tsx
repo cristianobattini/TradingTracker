@@ -8,7 +8,6 @@ import {
   Stack,
   MenuItem,
   CircularProgress,
-  Alert,
   FormControl,
   InputLabel,
   Select,
@@ -44,24 +43,13 @@ const modalStyle = {
 };
 
 const currencyPairs = [
-  'EUR/USD',
-  'GBP/USD',
-  'USD/JPY',
-  'USD/CHF',
-  'AUD/USD',
-  'USD/CAD',
-  'NZD/USD',
-  'EUR/GBP',
-  'EUR/JPY',
-  'GBP/JPY',
-  'AUD/JPY',
-  'EUR/CAD',
-  'GBP/CAD',
+  'EUR/USD','GBP/USD','USD/JPY','USD/CHF','AUD/USD','USD/CAD','NZD/USD',
+  'EUR/GBP','EUR/JPY','GBP/JPY','AUD/JPY','EUR/CAD','GBP/CAD',
 ];
 
-const tradingSystems = ['30min', '1hr', '4hr', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
+const tradingSystems = ['30min','1hr','4hr','Daily','Weekly','Monthly','Yearly'];
 
-const riskLevels = ['0.25%', '0.5%', '1%', '1.5%', '2%', '3%', '5%'];
+const riskLevels = ['0.25%','0.5%','1%','1.5%','2%','3%','5%'];
 
 export function UpdateTradeModal({
   open,
@@ -70,9 +58,9 @@ export function UpdateTradeModal({
   onTradeUpdated,
   loading = false,
 }: UpdateTradeModalProps) {
-  const [formData, setFormData] = useState(() => ({
+  const [formData, setFormData] = useState({
     id: undefined as number | undefined,
-    date: new Date().toISOString().split('T')[0], // Today's date as default
+    date: new Date().toISOString().split('T')[0],
     pair: '',
     system: '',
     action: 'BUY',
@@ -87,7 +75,9 @@ export function UpdateTradeModal({
     cancelled: false,
     profit_or_loss: 0,
     comments: '',
-  }));
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (trade) {
@@ -112,45 +102,26 @@ export function UpdateTradeModal({
     }
   }, [trade]);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSelectChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
+      ...(name === 'risk' ? { risk_percent: parseFloat(value.replace('%','')) } : {})
     }));
-
-    // Auto-calculate risk_percent when risk changes
-    if (name === 'risk') {
-      const riskPercent = parseFloat(value.replace('%', ''));
-      setFormData((prev) => ({
-        ...prev,
-        risk_percent: riskPercent,
-      }));
-    }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
+  const validateForm = () => {
+    const newErrors: Record<string,string> = {};
     if (!formData.date) newErrors.date = 'Date is required';
     if (!formData.pair) newErrors.pair = 'Currency pair is required';
     if (!formData.system) newErrors.system = 'Trading system is required';
@@ -158,41 +129,39 @@ export function UpdateTradeModal({
     if (formData.lots <= 0) newErrors.lots = 'Valid lot size is required';
     if (formData.sl1_pips <= 0) newErrors.sl1_pips = 'Stop loss pips must be positive';
     if (formData.tp1_pips <= 0) newErrors.tp1_pips = 'Take profit pips must be positive';
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-    // Map form fields to the API's TradeUpdate shape
+    if (!formData.id) return setErrors({ submit: 'Trade id missing. Cannot update.' });
+
     const updateBody: TradeUpdate = {
-      symbol: formData.pair || undefined,
-      entry_price: formData.entry || undefined,
-      quantity: formData.lots || undefined,
-      position_type: formData.action || undefined,
-      profit_or_loss: formData.cancelled ? 0 : formData.profit_or_loss || undefined,
-      cancelled: formData.cancelled || undefined,
+      symbol: formData.pair,
+      system: formData.system,
+      entry_price: formData.entry,
+      quantity: formData.lots,
+      position_type: formData.action,
+      sl1_pips: formData.sl1_pips,
+      tp1_pips: formData.tp1_pips,
+      sl2_pips: formData.sl2_pips,
+      tp2_pips: formData.tp2_pips,
+      risk: formData.risk,
+      risk_percent: formData.risk_percent,
+      cancelled: formData.cancelled,
+      profit_or_loss: formData.cancelled ? 0 : formData.profit_or_loss,
+      comments: formData.comments,
+      date: formData.date,
     };
 
-    if (!formData.id) {
-      setErrors({ submit: 'Trade id missing. Cannot update.' });
-      return;
-    }
-
     updateTradeApiTradesTradeIdPut({ path: { trade_id: formData.id }, body: updateBody })
-      .then((response) => {
-        if (response.data) {
-          onTradeUpdated(response.data);
-        }
+      .then(res => {
+        if (res.data) onTradeUpdated(res.data);
         handleClose();
       })
-      .catch((error) => {
-        console.error('Error updating trade:', error);
-        setErrors({ submit: 'Failed to update trade. Please try again.' });
-      });
+      .catch(err => setErrors({ submit: 'Failed to update trade. Please try again.' }));
   };
 
   const handleClose = () => {
@@ -218,12 +187,7 @@ export function UpdateTradeModal({
     onClose();
   };
 
-  const calculatePipValue = () => {
-    // Simplified pip value calculation
-    // In real trading, this would be more complex based on the pair and lot size
-    const pipValue = formData.lots * 10; // $10 per lot for most pairs
-    return pipValue.toFixed(2);
-  };
+  const calculatePipValue = () => (formData.lots * 10).toFixed(2);
 
   return (
     <Modal open={open} onClose={handleClose} aria-labelledby="update-trade-modal-title">
@@ -236,262 +200,81 @@ export function UpdateTradeModal({
 
         <form onSubmit={handleSubmit}>
           <Grid2 container spacing={3}>
-            {/* Basic Trade Information */}
-            <Grid2 size={{ xs: 12, md: 6 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Basic Information
-              </Typography>
-
+            {/* Basic Info */}
+            <Grid2 size={{ xs: 12, md:6 }}>
+              <Typography variant="h6" gutterBottom color="primary">Basic Information</Typography>
               <Stack spacing={2}>
-                <TextField
-                  required
-                  label="Trade Date"
-                  name="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.date}
-                  helperText={errors.date}
-                  InputLabelProps={{ shrink: true }}
-                />
-
-                <FormControl fullWidth required error={!!errors.pair} disabled={loading}>
+                <TextField type="date" label="Trade Date" name="date" value={formData.date} onChange={handleChange} fullWidth InputLabelProps={{shrink:true}} disabled={loading} error={!!errors.date} helperText={errors.date} />
+                <FormControl fullWidth error={!!errors.pair} disabled={loading}>
                   <InputLabel>Currency Pair</InputLabel>
-                  <Select
-                    name="pair"
-                    value={formData.pair}
-                    label="Currency Pair"
-                    onChange={handleSelectChange}
-                  >
-                    {currencyPairs.map((pair) => (
-                      <MenuItem key={pair} value={pair}>
-                        {pair}
-                      </MenuItem>
-                    ))}
+                  <Select name="pair" value={formData.pair} onChange={handleSelectChange} label="Currency Pair">
+                    {currencyPairs.map(p => <MenuItem key={p} value={p}>{p}</MenuItem>)}
                   </Select>
-                  {errors.pair && (
-                    <Typography variant="caption" color="error">
-                      {errors.pair}
-                    </Typography>
-                  )}
+                  {errors.pair && <Typography variant="caption" color="error">{errors.pair}</Typography>}
                 </FormControl>
-
-                <FormControl fullWidth required error={!!errors.system} disabled={loading}>
+                <FormControl fullWidth error={!!errors.system} disabled={loading}>
                   <InputLabel>Trading System</InputLabel>
-                  <Select
-                    name="system"
-                    value={formData.system}
-                    label="Trading System"
-                    onChange={handleSelectChange}
-                  >
-                    {tradingSystems.map((system) => (
-                      <MenuItem key={system} value={system}>
-                        {system}
-                      </MenuItem>
-                    ))}
+                  <Select name="system" value={formData.system} onChange={handleSelectChange} label="Trading System">
+                    {tradingSystems.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                   </Select>
-                  {errors.system && (
-                    <Typography variant="caption" color="error">
-                      {errors.system}
-                    </Typography>
-                  )}
+                  {errors.system && <Typography variant="caption" color="error">{errors.system}</Typography>}
                 </FormControl>
-
-                <FormControl fullWidth required disabled={loading}>
+                <FormControl fullWidth disabled={loading}>
                   <InputLabel>Action</InputLabel>
-                  <Select
-                    name="action"
-                    value={formData.action}
-                    label="Action"
-                    onChange={handleSelectChange}
-                  >
-                    <MenuItem value="BUY">
-                      <Chip label="BUY" color="success" size="small" />
-                    </MenuItem>
-                    <MenuItem value="SELL">
-                      <Chip label="SELL" color="error" size="small" />
-                    </MenuItem>
+                  <Select name="action" value={formData.action} onChange={handleSelectChange} label="Action">
+                    <MenuItem value="BUY"><Chip label="BUY" color="success" size="small"/></MenuItem>
+                    <MenuItem value="SELL"><Chip label="SELL" color="error" size="small"/></MenuItem>
                   </Select>
                 </FormControl>
               </Stack>
             </Grid2>
 
-            {/* Risk Management */}
+            {/* Risk */}
             <Grid2 size={{ xs: 12, md: 6 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Risk Management
-              </Typography>
-
+              <Typography variant="h6" gutterBottom color="primary">Risk Management</Typography>
               <Stack spacing={2}>
-                <FormControl fullWidth required disabled={loading}>
+                <FormControl fullWidth disabled={loading}>
                   <InputLabel>Risk Level</InputLabel>
-                  <Select
-                    name="risk"
-                    value={formData.risk}
-                    label="Risk Level"
-                    onChange={handleSelectChange}
-                  >
-                    {riskLevels.map((risk) => (
-                      <MenuItem key={risk} value={risk}>
-                        {risk}
-                      </MenuItem>
-                    ))}
+                  <Select name="risk" value={formData.risk} onChange={handleSelectChange} label="Risk Level">
+                    {riskLevels.map(r => <MenuItem key={r} value={r}>{r}</MenuItem>)}
                   </Select>
                 </FormControl>
-
-                <TextField
-                  required
-                  label="Lot Size"
-                  name="lots"
-                  type="number"
-                  value={formData.lots}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.lots}
-                  helperText={errors.lots || `Pip value: $${calculatePipValue()}`}
-                  inputProps={{ min: 0.01, step: 0.01 }}
-                />
-
-                <TextField
-                  required
-                  label="Entry Price"
-                  name="entry"
-                  type="number"
-                  value={formData.entry}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.entry}
-                  helperText={errors.entry}
-                  inputProps={{ step: 0.0001 }}
-                />
+                <TextField label="Lot Size" type="number" name="lots" value={formData.lots} onChange={handleChange} fullWidth disabled={loading} inputProps={{min:0.01, step:0.01}} helperText={`Pip value: $${calculatePipValue()}`} error={!!errors.lots}/>
+                <TextField label="Entry Price" type="number" name="entry" value={formData.entry} onChange={handleChange} fullWidth disabled={loading} inputProps={{step:0.0001}} error={!!errors.entry} helperText={errors.entry}/>
               </Stack>
             </Grid2>
 
-            {/* Stop Loss & Take Profit */}
+            {/* SL & TP */}
             <Grid2 size={{ xs: 12, md: 6 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Stop Loss & Take Profit
-              </Typography>
-
+              <Typography variant="h6" gutterBottom color="primary">Stop Loss & Take Profit</Typography>
               <Stack spacing={2}>
-                <TextField
-                  required
-                  label="SL1 (Pips)"
-                  name="sl1_pips"
-                  type="number"
-                  value={formData.sl1_pips}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.sl1_pips}
-                  helperText={errors.sl1_pips}
-                  inputProps={{ min: 0 }}
-                />
-
-                <TextField
-                  required
-                  label="TP1 (Pips)"
-                  name="tp1_pips"
-                  type="number"
-                  value={formData.tp1_pips}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  error={!!errors.tp1_pips}
-                  helperText={errors.tp1_pips}
-                  inputProps={{ min: 0 }}
-                />
-
-                <TextField
-                  label="SL2 (Pips)"
-                  name="sl2_pips"
-                  type="number"
-                  value={formData.sl2_pips}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  inputProps={{ min: 0 }}
-                />
-
-                <TextField
-                  label="TP2 (Pips)"
-                  name="tp2_pips"
-                  type="number"
-                  value={formData.tp2_pips}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={loading}
-                  inputProps={{ min: 0 }}
-                />
+                <TextField label="SL1 (Pips)" type="number" name="sl1_pips" value={formData.sl1_pips} onChange={handleChange} fullWidth inputProps={{min:0}} disabled={loading} error={!!errors.sl1_pips} helperText={errors.sl1_pips}/>
+                <TextField label="TP1 (Pips)" type="number" name="tp1_pips" value={formData.tp1_pips} onChange={handleChange} fullWidth inputProps={{min:0}} disabled={loading} error={!!errors.tp1_pips} helperText={errors.tp1_pips}/>
+                <TextField label="SL2 (Pips)" type="number" name="sl2_pips" value={formData.sl2_pips} onChange={handleChange} fullWidth inputProps={{min:0}} disabled={loading}/>
+                <TextField label="TP2 (Pips)" type="number" name="tp2_pips" value={formData.tp2_pips} onChange={handleChange} fullWidth inputProps={{min:0}} disabled={loading}/>
               </Stack>
             </Grid2>
 
-            {/* Trade Results & Comments */}
+            {/* Results & Comments */}
             <Grid2 size={{ xs: 12, md: 6 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Trade Results
-              </Typography>
-
+              <Typography variant="h6" gutterBottom color="primary">Trade Results</Typography>
               <Stack spacing={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="cancelled"
-                      checked={formData.cancelled}
-                      onChange={handleChange}
-                      disabled={loading}
-                    />
-                  }
-                  label="Trade Cancelled"
-                />
-
-                {!formData.cancelled && (
-                  <TextField
-                    label="Profit/Loss ($)"
-                    name="profit_or_loss"
-                    type="number"
-                    value={formData.profit_or_loss}
-                    onChange={handleChange}
-                    fullWidth
-                    disabled={loading}
-                    inputProps={{ step: 0.01 }}
-                  />
-                )}
-
-                <TextField
-                  label="Comments"
-                  name="comments"
-                  value={formData.comments}
-                  onChange={handleChange}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  disabled={loading}
-                  placeholder="Enter trade notes, observations, or lessons learned..."
-                />
+                <FormControlLabel control={<Checkbox name="cancelled" checked={formData.cancelled} onChange={handleChange} disabled={loading}/>} label="Trade Cancelled"/>
+                {!formData.cancelled && <TextField label="Profit/Loss ($)" name="profit_or_loss" type="number" value={formData.profit_or_loss} onChange={handleChange} fullWidth disabled={loading} inputProps={{step:0.01}} />}
+                <TextField label="Comments" name="comments" value={formData.comments} onChange={handleChange} fullWidth multiline rows={3} disabled={loading} placeholder="Enter trade notes or lessons learned..."/>
               </Stack>
             </Grid2>
 
-            {/* Action Buttons */}
+            {/* Actions */}
             <Grid2 size={{ xs: 12 }}>
-              <Divider sx={{ my: 2 }} />
+              <Divider sx={{ my: 2 }}/>
               <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <Button onClick={handleClose} disabled={loading} variant="outlined" color="inherit">
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  startIcon={loading && <CircularProgress size={20} />}
-                >
+                <Button onClick={handleClose} disabled={loading} variant="outlined">Cancel</Button>
+                <Button type="submit" variant="contained" disabled={loading} startIcon={loading && <CircularProgress size={20}/>}>
                   {loading ? 'Updating Trade...' : 'Update Trade'}
                 </Button>
               </Stack>
+              {errors.submit && <Typography color="error" mt={2}>{errors.submit}</Typography>}
             </Grid2>
           </Grid2>
         </form>

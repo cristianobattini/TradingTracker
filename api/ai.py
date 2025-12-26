@@ -103,6 +103,20 @@ TRADE_FIELDS = {
 def import_excel_ai(file_path: str, owner_id: int):
     df = pd.read_excel(file_path)
     df.columns = df.columns.astype(str)
+    
+    df = df.apply(
+    lambda col: pd.to_datetime(col, errors="coerce")
+    if "date" in col.name.lower()
+    else col
+    )
+
+    df = df.apply(
+        lambda col: col.dt.strftime("%Y-%m-%d")
+        if pd.api.types.is_datetime64_any_dtype(col)
+        else col
+    )
+
+    df = df.where(pd.notna(df), None)
 
     sample_rows = df.head(3).to_dict(orient="records")
     column_mapping = ai_map_columns(df.columns.tolist(), sample_rows)
