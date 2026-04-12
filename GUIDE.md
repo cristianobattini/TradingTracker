@@ -36,6 +36,12 @@ cd /opt/tradingtracker
 git clone <repo-url> .
 ```
 
+```bash
+sudo chown -R www-data:www-data /opt/tradingtracker/api/uploads
+sudo find /opt/tradingtracker/api/uploads -type d -exec chmod 775 {} \;
+sudo find /opt/tradingtracker/api/uploads -type f -exec chmod 664 {} \;
+```
+
 Creare il file delle variabili ambiente per il backend `api/.env` (non committare):
 
 ```bash
@@ -213,6 +219,11 @@ git fetch
 git stash && git pull --rebase
 cd api && source venv/bin/activate && pip install -r requirements.txt && deactivate && cd ..
 cd ui && sudo rm -rf dist && npm ci --legacy-peer && npm run build && cd ..
+```
+```bash
+sudo chown -R www-data:www-data /opt/tradingtracker/api/uploads
+sudo find /opt/tradingtracker/api/uploads -type d -exec chmod 775 {} \;
+sudo find /opt/tradingtracker/api/uploads -type f -exec chmod 664 {} \;
 ```
 ``` bash
 sudo systemctl restart fastapi
