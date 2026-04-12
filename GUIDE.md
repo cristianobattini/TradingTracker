@@ -54,6 +54,7 @@ SECRET_KEY=[your secret key]
 ACCESS_TOKEN_EXPIRE_MINUTES=120
 ALGORITHM=HS256
 GITHUB_TOKEN=[your github token]
+EOF
 ```
 
 Creare il file delle variabili ambiente per il frontend `ui/.env` (non committare):
