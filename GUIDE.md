@@ -117,31 +117,70 @@ Esempio di blocco server nginx (`/etc/nginx/sites-available/tradingtracker`) :
 ```nginx
 server {
     listen 80;
-    server_name example.com; # sostituisci con il tuo dominio
+    [your url];
 
-    # Serve i file statici del frontend
+    # Redirect all HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    [your url];
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    
+    # Cipher supportate e sicure
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    
+    # SSL optimizations
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Root directory
     root /opt/tradingtracker/ui/dist;
-    index index.html;
+    index index.html index.htm;
 
-    location /uploads/ {
-        alias /opt/tradingtracker/api/uploads/;
-        try_files $uri =404;
+    # Serve frontend
+    location / {
+        try_files $uri /index.html;
     }
 
-    # API reverse proxy
+    # Proxy /api to backend
     location /api/ {
-        proxy_pass http://127.0.0.1:8000/;
+        proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_redirect off;
     }
 
-    # Fallback per SPA (history mode)
-    location / {
-        try_files $uri $uri/ /index.html;
+    # Serve avatars folder as static files
+    location /uploads/avatars/ {
+        proxy_pass http://127.0.0.1:8000/avatars/; 
+        autoindex off;
     }
+
+    # Serve analysis images folder as static files
+    location /uploads/analysis-images/ {
+        proxy_pass http://127.0.0.1:8000/analysis-images/;
+        autoindex off;
+    }
+
+    # Optional security headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
 }
 ```
 
