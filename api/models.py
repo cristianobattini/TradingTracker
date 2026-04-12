@@ -22,6 +22,8 @@ class User(Base):
 
     trades = relationship("Trade", back_populates="owner")
     analyses = relationship("Analysis", back_populates="owner")
+    favorite_bookmarks = relationship("FavoriteBookmark", back_populates="owner")
+    read_later_bookmarks = relationship("ReadLaterBookmark", back_populates="owner")
 
 class Trade(Base):
     __tablename__ = "trades"
@@ -63,6 +65,43 @@ class Trade(Base):
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="trades")
+
+
+class FavoriteBookmark(Base):
+    __tablename__ = "favorite_bookmarks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    description = Column(Text, default="")
+    color = Column(String, default="#2196F3")
+    emoji = Column(String, default="🔖")
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="favorite_bookmarks")
+
+
+class ReadLaterBookmark(Base):
+    __tablename__ = "read_later_bookmarks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    summary = Column(Text, default="")
+    url = Column(String, nullable=False)
+    published_at = Column(String, nullable=True)
+    source = Column(String, default="")
+    source_id = Column(String, default="")
+    source_color = Column(String, default="")
+    site_url = Column(String, default="")
+    saved_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)  # None = never expire
+    pinned = Column(Boolean, default=False)
+    pin_order = Column(Integer, default=0)
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="read_later_bookmarks")
 
 
 class Analysis(Base):

@@ -145,6 +145,77 @@ class AnalysisUpdate(BaseModel):
     content: Optional[str] = None
 
 
+# --- Favorite Bookmarks ---
+class FavoriteBookmarkCreate(BaseModel):
+    title: str
+    url: str
+    description: str = ""
+    color: str = "#2196F3"
+    emoji: str = "🔖"
+
+class FavoriteBookmarkUpdate(BaseModel):
+    title: Optional[str] = None
+    url: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+    emoji: Optional[str] = None
+
+class FavoriteBookmarkResponse(BaseModel):
+    id: int
+    title: str
+    url: str
+    description: str
+    color: str
+    emoji: str
+    sort_order: int
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+class ReorderRequest(BaseModel):
+    order: list[int]  # list of bookmark IDs in the new order
+
+
+# --- Read Later Bookmarks ---
+class ReadLaterBookmarkCreate(BaseModel):
+    title: str
+    summary: str = ""
+    url: str
+    published_at: Optional[str] = None
+    source: str = ""
+    source_id: str = ""
+    source_color: str = ""
+    site_url: str = ""
+    expires_days: Optional[int] = 14  # None = never expire
+
+class ReadLaterExpiryUpdate(BaseModel):
+    expires_days: Optional[int] = None  # None = never expire
+
+class ReadLaterBookmarkResponse(BaseModel):
+    id: int
+    title: str
+    summary: str
+    url: str
+    published_at: Optional[str]
+    source: str
+    source_id: str
+    source_color: str
+    site_url: str
+    saved_at: datetime
+    expires_at: Optional[datetime]
+    pinned: bool
+    pin_order: int
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+class ReadLaterReorderRequest(BaseModel):
+    order: list[int]  # IDs of pinned bookmarks in new order
+
+
 # --- Reports ---
 class ReportResponse(BaseModel):
     total_profit: float

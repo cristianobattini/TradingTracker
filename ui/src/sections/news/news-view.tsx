@@ -23,17 +23,32 @@ import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Skeleton from '@mui/material/Skeleton';
+import InputAdornment from '@mui/material/InputAdornment';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SendIcon from '@mui/icons-material/Send';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
+import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getAuthHeaders } from 'src/lib/client-config';
+
+// Read-later saved URL set — kept in state, loaded from API on mount
+async function fetchSavedUrls(apiBase: string): Promise<Set<string>> {
+  try {
+    const res = await fetch(`${apiBase}/api/bookmarks/read-later/`, { headers: getAuthHeaders() });
+    if (!res.ok) return new Set();
+    const data: { url: string }[] = await res.json();
+    return new Set(data.map((a) => a.url));
+  } catch { return new Set(); }
+}
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -95,7 +110,52 @@ export function NewsView() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState('');
   const [snackbar, setSnackbar] = useState('');
+  const [search, setSearch] = useState('');
+  const [savedUrls, setSavedUrls] = useState<Set<string>>(new Set());
   const chatRef = useRef<HTMLDivElement>(null);
+
+  // Load already-saved URLs on mount
+  useEffect(() => {
+    fetchSavedUrls(API_BASE).then(setSavedUrls);
+  }, []);
+
+  const handleToggleSave = useCallback(async (article: NewsArticle) => {
+    if (savedUrls.has(article.url)) {
+      // Delete: fetch list to find id, then delete
+      try {
+        const res = await fetch(`${API_BASE}/api/bookmarks/read-later/`, { headers: getAuthHeaders() });
+        const list: { id: number; url: string }[] = await res.json();
+        const found = list.find((a) => a.url === article.url);
+        if (found) {
+          await fetch(`${API_BASE}/api/bookmarks/read-later/${found.id}`, {
+            method: 'DELETE', headers: getAuthHeaders(),
+          });
+        }
+        setSavedUrls((prev) => { const s = new Set(prev); s.delete(article.url); return s; });
+        setSnackbar('Article removed from Read Later');
+      } catch { setSnackbar('Failed to remove article'); }
+    } else {
+      try {
+        await fetch(`${API_BASE}/api/bookmarks/read-later/`, {
+          method: 'POST',
+          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: article.title,
+            summary: article.summary,
+            url: article.url,
+            published_at: article.published_at,
+            source: article.source,
+            source_id: article.source_id,
+            source_color: article.source_color,
+            site_url: article.site_url,
+            expires_days: 14,
+          }),
+        });
+        setSavedUrls((prev) => new Set([...prev, article.url]));
+        setSnackbar('Saved to Read Later — expires in 2 weeks');
+      } catch { setSnackbar('Failed to save article'); }
+    }
+  }, [savedUrls]);
 
   // ---- fetch news ----
   const loadNews = useCallback(async (forceRefresh = false) => {
@@ -260,9 +320,25 @@ export function NewsView() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  const filteredArticles = activeSource === 'all'
-    ? articles
-    : articles.filter((a) => a.source_id === activeSource);
+  const q = search.trim().toLowerCase();
+  const filteredArticles = articles
+    .filter((a) => activeSource === 'all' || a.source_id === activeSource)
+    .filter((a) => !q || a.title.toLowerCase().includes(q) || a.summary?.toLowerCase().includes(q));
+
+  function highlightText(text: string): React.ReactNode {
+    if (!q || !text) return text;
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <mark style={{ background: '#FFD60044', color: 'inherit', borderRadius: 2, padding: '0 1px' }}>
+          {text.slice(idx, idx + q.length)}
+        </mark>
+        {text.slice(idx + q.length)}
+      </>
+    );
+  }
 
   return (
     <DashboardContent>
@@ -315,6 +391,31 @@ export function NewsView() {
               {SOURCES.map((s) => <Tab key={s.id} value={s.id} label={s.label} />)}
             </Tabs>
 
+            {/* Search bar */}
+            <Box sx={{ px: 1.5, py: 1, borderBottom: 1, borderColor: 'divider' }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Search articles by title or content…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: search ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setSearch('')} edge="end">
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                }}
+              />
+            </Box>
+
             <Box sx={{ maxHeight: '70vh', overflow: 'auto', p: 1 }}>
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
@@ -327,7 +428,9 @@ export function NewsView() {
                 ))
               ) : filteredArticles.length === 0 ? (
                 <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography color="text.secondary">No articles available. Try refreshing.</Typography>
+                  <Typography color="text.secondary">
+                    {q ? `No articles matching "${search}".` : 'No articles available. Try refreshing.'}
+                  </Typography>
                 </Box>
               ) : (
                 filteredArticles.map((article, idx) => (
@@ -355,15 +458,15 @@ export function NewsView() {
                         )}
                       </Box>
                       <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                        {article.title}
+                        {highlightText(article.title)}
                       </Typography>
                       {article.summary && (
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                          {article.summary}
+                          {highlightText(article.summary)}
                         </Typography>
                       )}
                     </CardContent>
-                    <CardActions sx={{ pt: 0 }}>
+                    <CardActions sx={{ pt: 0, justifyContent: 'space-between' }}>
                       <Button
                         size="small"
                         endIcon={<OpenInNewIcon fontSize="small" />}
@@ -373,6 +476,17 @@ export function NewsView() {
                       >
                         Read full article
                       </Button>
+                      <Tooltip title={savedUrls.has(article.url) ? 'Remove from Read Later' : 'Save for later'}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleToggleSave(article)}
+                          color={savedUrls.has(article.url) ? 'primary' : 'default'}
+                        >
+                          {savedUrls.has(article.url)
+                            ? <BookmarkAddedIcon fontSize="small" />
+                            : <BookmarkAddIcon fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
                     </CardActions>
                   </Card>
                 ))

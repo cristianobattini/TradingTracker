@@ -51,6 +51,12 @@ export const navData = [
     icon: icon('ic-calendar'),
   },
   {
+    title: 'Bookmarks',
+    enabled: true,
+    path: '/bookmarks',
+    icon: icon('ic-bookmark'),
+  },
+  {
     title: 'Profile',
     enabled: true,
     path: '/profile',

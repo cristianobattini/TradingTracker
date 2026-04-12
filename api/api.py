@@ -5,12 +5,12 @@ from fastapi import FastAPI, Depends, File, HTTPException, UploadFile, status, A
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 from database import Base, SessionLocal, engine, seed_sqlite_defaults
-from models import User, Trade, Analysis
+from models import User, Trade, Analysis, FavoriteBookmark, ReadLaterBookmark
 from ai import ask_ai, import_excel_ai
 from news_service import fetch_all_news, fetch_calendar
-from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate
+from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate, FavoriteBookmarkCreate, FavoriteBookmarkUpdate, FavoriteBookmarkResponse, ReorderRequest, ReadLaterBookmarkCreate, ReadLaterExpiryUpdate, ReadLaterBookmarkResponse, ReadLaterReorderRequest
 from auth import AuthService, oauth2_scheme 
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -796,6 +796,222 @@ def get_calendar(
         events = [e for e in events if e.get("country", "").upper() == country.upper()]
 
     return {"events": events, "total": len(events)}
+
+
+# === FAVORITE BOOKMARKS ===
+
+@router.get("/bookmarks/favorites/", response_model=list[FavoriteBookmarkResponse])
+def list_favorites(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(FavoriteBookmark)
+        .filter(FavoriteBookmark.owner_id == current_user.id)
+        .order_by(FavoriteBookmark.sort_order)
+        .all()
+    )
+
+
+@router.post("/bookmarks/favorites/", response_model=FavoriteBookmarkResponse)
+def create_favorite(
+    payload: FavoriteBookmarkCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    max_order = (
+        db.query(FavoriteBookmark)
+        .filter(FavoriteBookmark.owner_id == current_user.id)
+        .count()
+    )
+    bm = FavoriteBookmark(**payload.model_dump(), owner_id=current_user.id, sort_order=max_order)
+    db.add(bm)
+    db.commit()
+    db.refresh(bm)
+    return bm
+
+
+@router.put("/bookmarks/favorites/{bm_id}", response_model=FavoriteBookmarkResponse)
+def update_favorite(
+    bm_id: int,
+    payload: FavoriteBookmarkUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    bm = db.query(FavoriteBookmark).filter(
+        FavoriteBookmark.id == bm_id, FavoriteBookmark.owner_id == current_user.id
+    ).first()
+    if not bm:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    for field, value in payload.model_dump(exclude_none=True).items():
+        setattr(bm, field, value)
+    db.commit()
+    db.refresh(bm)
+    return bm
+
+
+@router.delete("/bookmarks/favorites/{bm_id}")
+def delete_favorite(
+    bm_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    bm = db.query(FavoriteBookmark).filter(
+        FavoriteBookmark.id == bm_id, FavoriteBookmark.owner_id == current_user.id
+    ).first()
+    if not bm:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    db.delete(bm)
+    db.commit()
+    return {"ok": True}
+
+
+@router.put("/bookmarks/favorites/reorder/")
+def reorder_favorites(
+    payload: ReorderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    for idx, bm_id in enumerate(payload.order):
+        db.query(FavoriteBookmark).filter(
+            FavoriteBookmark.id == bm_id, FavoriteBookmark.owner_id == current_user.id
+        ).update({"sort_order": idx})
+    db.commit()
+    return {"ok": True}
+
+
+# === READ LATER BOOKMARKS ===
+
+def _purge_expired(db: Session, user_id: int):
+    """Delete expired read-later bookmarks for a user."""
+    db.query(ReadLaterBookmark).filter(
+        ReadLaterBookmark.owner_id == user_id,
+        ReadLaterBookmark.expires_at != None,
+        ReadLaterBookmark.expires_at <= datetime.utcnow(),
+    ).delete()
+    db.commit()
+
+
+@router.get("/bookmarks/read-later/", response_model=list[ReadLaterBookmarkResponse])
+def list_read_later(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _purge_expired(db, current_user.id)
+    return (
+        db.query(ReadLaterBookmark)
+        .filter(ReadLaterBookmark.owner_id == current_user.id)
+        .order_by(ReadLaterBookmark.saved_at.desc())
+        .all()
+    )
+
+
+@router.post("/bookmarks/read-later/", response_model=ReadLaterBookmarkResponse)
+def create_read_later(
+    payload: ReadLaterBookmarkCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Avoid duplicates by URL
+    existing = db.query(ReadLaterBookmark).filter(
+        ReadLaterBookmark.owner_id == current_user.id,
+        ReadLaterBookmark.url == payload.url,
+    ).first()
+    if existing:
+        return existing
+
+    expires_at = None
+    if payload.expires_days is not None:
+        expires_at = datetime.utcnow() + timedelta(days=payload.expires_days)
+
+    data = payload.model_dump(exclude={"expires_days"})
+    bm = ReadLaterBookmark(**data, owner_id=current_user.id, expires_at=expires_at)
+    db.add(bm)
+    db.commit()
+    db.refresh(bm)
+    return bm
+
+
+@router.patch("/bookmarks/read-later/{bm_id}/expiry", response_model=ReadLaterBookmarkResponse)
+def update_read_later_expiry(
+    bm_id: int,
+    payload: ReadLaterExpiryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    bm = db.query(ReadLaterBookmark).filter(
+        ReadLaterBookmark.id == bm_id, ReadLaterBookmark.owner_id == current_user.id
+    ).first()
+    if not bm:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+
+    if payload.expires_days is None:
+        bm.expires_at = None  # never expire
+    else:
+        bm.expires_at = datetime.utcnow() + timedelta(days=payload.expires_days)
+
+    db.commit()
+    db.refresh(bm)
+    return bm
+
+
+@router.delete("/bookmarks/read-later/{bm_id}")
+def delete_read_later(
+    bm_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    bm = db.query(ReadLaterBookmark).filter(
+        ReadLaterBookmark.id == bm_id, ReadLaterBookmark.owner_id == current_user.id
+    ).first()
+    if not bm:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    db.delete(bm)
+    db.commit()
+    return {"ok": True}
+
+
+@router.patch("/bookmarks/read-later/{bm_id}/pin", response_model=ReadLaterBookmarkResponse)
+def toggle_pin_read_later(
+    bm_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    bm = db.query(ReadLaterBookmark).filter(
+        ReadLaterBookmark.id == bm_id, ReadLaterBookmark.owner_id == current_user.id
+    ).first()
+    if not bm:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+
+    bm.pinned = not bm.pinned
+    if bm.pinned:
+        max_pin = db.query(ReadLaterBookmark).filter(
+            ReadLaterBookmark.owner_id == current_user.id,
+            ReadLaterBookmark.pinned == True,
+        ).count()
+        bm.pin_order = max_pin
+    else:
+        bm.pin_order = 0
+
+    db.commit()
+    db.refresh(bm)
+    return bm
+
+
+@router.put("/bookmarks/read-later/reorder/")
+def reorder_pinned_read_later(
+    payload: ReadLaterReorderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    for idx, bm_id in enumerate(payload.order):
+        db.query(ReadLaterBookmark).filter(
+            ReadLaterBookmark.id == bm_id,
+            ReadLaterBookmark.owner_id == current_user.id,
+            ReadLaterBookmark.pinned == True,
+        ).update({"pin_order": idx})
+    db.commit()
+    return {"ok": True}
 
 
 # === INCLUDE ROUTER ===

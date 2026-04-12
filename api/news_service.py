@@ -62,7 +62,7 @@ NEWS_SOURCES = [
 ]
 
 # ForexFactory public calendar JSON (published weekly)
-CALENDAR_URL = "https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json"
+CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 
 _HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; TradingTracker/1.0; +https://github.com)"}
 
@@ -314,20 +314,30 @@ def fetch_calendar(force: bool = False) -> list[dict]:
         resp = httpx.get(CALENDAR_URL, headers=_HEADERS, timeout=15, follow_redirects=True)
         raw: list[dict] = resp.json()
 
-        events = [
-            {
-                "title": ev.get("name", ""),
+        events = []
+        for ev in raw:
+            dt_str = ev.get("date", "")
+            date_part = ""
+            time_part = ""
+            try:
+                dt = datetime.fromisoformat(dt_str)
+                date_part = dt.strftime("%Y-%m-%d")
+                time_part = dt.strftime("%H:%M")
+            except Exception:
+                date_part = dt_str[:10] if dt_str else ""
+                time_part = dt_str[11:16] if len(dt_str) > 10 else ""
+
+            events.append({
+                "title": ev.get("title", ev.get("name", "")),
                 "country": ev.get("country", ""),
-                "date": ev.get("date", ""),
-                "time": ev.get("time", ""),
+                "date": date_part,
+                "time": time_part,
                 "impact": ev.get("impact", ""),
                 "forecast": ev.get("forecast", ""),
                 "previous": ev.get("previous", ""),
                 "actual": ev.get("actual", ""),
                 "source": "ForexFactory",
-            }
-            for ev in raw
-        ]
+            })
 
         _cache[key] = {"data": events, "ts": time.time()}
         return events

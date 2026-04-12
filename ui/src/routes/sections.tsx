@@ -23,6 +23,7 @@ export const AnalysisEditPage = lazy(() => import('src/pages/analysis-edit'));
 export const AnalysisViewPage = lazy(() => import('src/pages/analysis-view'));
 export const NewsPage = lazy(() => import('src/pages/news'));
 export const CalendarPage = lazy(() => import('src/pages/calendar'));
+export const BookmarksPage = lazy(() => import('src/pages/bookmarks'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
@@ -66,6 +67,7 @@ export const routesSection: RouteObject[] = [
       { path: 'analysis/:id/edit', element: <AnalysisEditPage /> },
       { path: 'news', element: <NewsPage /> },
       { path: 'calendar', element: <CalendarPage /> },
+      { path: 'bookmarks', element: <BookmarksPage /> },
     ],
   },
   {
