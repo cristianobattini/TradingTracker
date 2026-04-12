@@ -212,7 +212,7 @@ export function ProfileView() {
                         handleSaveAvatar(e.target.files ? e.target.files[0] : undefined);
                       }}
                     />
-                    <AccountAvatar size={200} avatarFile={avatarFile} />
+                    <AccountAvatar size={200} />
                   </label>
                 </Box>
 

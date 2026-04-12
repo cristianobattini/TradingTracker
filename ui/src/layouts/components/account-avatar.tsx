@@ -5,7 +5,7 @@ import { getAvatarApiUsersUserIdAvatarGet } from "src/client";
 
 const API_BASE_URL = import.meta.env.VITE_PROJECT_ENV == 'dev' ? import.meta.env.VITE_DEV_URL : import.meta.env.VITE_PROD_URL;
 
-export const AccountAvatar = ({ handleOpenPopover, size, avatarFile, ...other }: any) => {
+export const AccountAvatar = ({ handleOpenPopover, size, ...other }: any) => {
     const [avatarFileName, setAvatarFileName] = useState<string | null>();
 
     useEffect(() => {
@@ -17,9 +17,9 @@ export const AccountAvatar = ({ handleOpenPopover, size, avatarFile, ...other }:
     return (
         <Avatar
             src={
-                avatarFile
-                    ? URL.createObjectURL(avatarFile)
-                    : `${API_BASE_URL}/uploads/avatars/${avatarFileName}`
+                avatarFileName
+                    ? `${API_BASE_URL}/uploads/avatars/${avatarFileName}`
+                    : undefined
             }
             sx={{ width: size ?? 58, height: size ?? 58 }}
         />
