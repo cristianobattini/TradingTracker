@@ -123,9 +123,9 @@ server {
     root /opt/tradingtracker/ui/dist;
     index index.html;
 
-    location /static/ {
-        # se il tuo dist mette risorse in /assets o /static
-        try_files $uri $uri/ =404;
+    location /uploads/ {
+        alias /opt/tradingtracker/api/uploads/;
+        try_files $uri =404;
     }
 
     # API reverse proxy
