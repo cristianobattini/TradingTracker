@@ -32,6 +32,7 @@ import TodayIcon from '@mui/icons-material/Today';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FilterListOffIcon from '@mui/icons-material/FilterListOff';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getAuthHeaders } from 'src/lib/client-config';
@@ -51,6 +52,7 @@ interface CalendarEvent {
   previous: string;
   actual: string;
   source: string;
+  detail_url: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -508,7 +510,6 @@ export function CalendarEventsView() {
                     <TableCell sx={{ fontWeight: 700 }}>Event</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Forecast</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Previous</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Actual</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -542,22 +543,29 @@ export function CalendarEventsView() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2" fontWeight={500}>{ev.title}</Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography variant="body2" fontWeight={500}>{ev.title}</Typography>
+                            {ev.detail_url && (
+                              <Tooltip title="View event details on ForexFactory" placement="top">
+                                <IconButton
+                                  size="small"
+                                  component="a"
+                                  href={ev.detail_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  sx={{ opacity: 0.35, '&:hover': { opacity: 1 }, p: 0.3 }}
+                                >
+                                  <InfoOutlinedIcon sx={{ fontSize: 14 }} />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" color="text.secondary">{ev.forecast || '—'}</Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" color="text.secondary">{ev.previous || '—'}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography
-                            variant="caption"
-                            fontWeight={ev.actual ? 700 : 400}
-                            color={ev.actual ? 'text.primary' : 'text.disabled'}
-                          >
-                            {ev.actual || '—'}
-                          </Typography>
                         </TableCell>
                       </TableRow>
                     );
