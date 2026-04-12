@@ -37,8 +37,8 @@ def ask_ai(question: str) -> str:
     client = _get_client()
     response = client.complete(
         messages=[
-            SystemMessage("You are a professional trader evaluating other traders work and giving alerts."),
-            UserMessage(question),
+            SystemMessage(content="You are a professional trader evaluating other traders work and giving alerts."),
+            UserMessage(content=question),
         ],
         temperature=1.0,
         top_p=1.0,
