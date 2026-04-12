@@ -219,24 +219,6 @@ sudo systemctl restart fastapi
 sudo systemctl reload nginx
 ```
 
-Esempio di script di deploy rapido:
-
-```bash
-#!/bin/bash
-set -e
-cd /opt/tradingtracker
-git pull origin main
-cd api
-source venv/bin/activate
-pip install -r requirements.txt
-deactivate
-cd ../ui
-npm ci
-npm run build
-sudo systemctl restart fastapi
-sudo systemctl reload nginx
-```
-
 Debug e log
 - Vedere log del servizio FastAPI con: `sudo journalctl -u fastapi -f`
 - Verificare log nginx con: `sudo tail -f /var/log/nginx/error.log`
