@@ -61,7 +61,7 @@ Passo 4 — Build del frontend
 
 ```bash
 cd /opt/tradingtracker/ui
-npm ci
+npm ci --legacy-peer
 npm run build
 # Il build Vite genera la cartella `dist/`
 ```
