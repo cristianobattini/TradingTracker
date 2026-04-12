@@ -170,8 +170,8 @@ Passo 8 — Aggiornamenti e deploy continui
 ```bash
 cd /opt/tradingtracker
 git pull origin main
-cd api && source venv/bin/activate && pip install -r requirements.txt && deactivate
-cd ui && npm ci && npm run build
+cd api && source venv/bin/activate && pip install -r requirements.txt && deactivate && cd ..
+cd ui && npm ci --legacy-peer && npm run build && cd ..
 sudo systemctl restart fastapi
 sudo systemctl reload nginx
 ```
