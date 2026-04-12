@@ -46,9 +46,21 @@ Creare il file delle variabili ambiente per il backend `api/.env` (non committar
 
 ```bash
 cat > api/.env <<'EOF'
-DATABASE_URL=postgresql://trading_user:strongpassword@db-host:5432/trading_db
-SECRET_KEY=una_super_secret_key
-OTHER_ENV=...
+PROJECT_ENV=["dev" or "prod"]
+DEBUG=["true" or "false"]
+DATABASE_URL=[postgres database url]
+CORS_ORIGINS=[your cross origins]
+SECRET_KEY=[your secret key]
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+ALGORITHM=HS256
+GITHUB_TOKEN=[your github token]
+```
+
+Creare il file delle variabili ambiente per il frontend `ui/.env` (non committare):
+
+```bash
+cat > ui/.env <<'EOF'
+VITE_API_BASE_URL=[your domain url]
 EOF
 ```
 
