@@ -17,6 +17,10 @@ export const UserPage = lazy(() => import('src/pages/user'));
 export const TradesPage = lazy(() => import('src/pages/trades'));
 export const AIPage = lazy(() => import('src/pages/ai'));
 export const ProfilePage = lazy(() => import('src/pages/profile'));
+export const AnalysisPage = lazy(() => import('src/pages/analysis'));
+export const AnalysisCreatePage = lazy(() => import('src/pages/analysis-create'));
+export const AnalysisEditPage = lazy(() => import('src/pages/analysis-edit'));
+export const AnalysisViewPage = lazy(() => import('src/pages/analysis-view'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
@@ -55,6 +59,9 @@ export const routesSection: RouteObject[] = [
       { path: 'trades', element: <TradesPage /> },
       { path: 'ai', element: <AIPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'analysis', element: <AnalysisPage /> },
+      { path: 'analysis/create', element: <AnalysisCreatePage /> },
+      { path: 'analysis/:id/edit', element: <AnalysisEditPage /> },
     ],
   },
   {
@@ -63,6 +70,14 @@ export const routesSection: RouteObject[] = [
       <AuthLayout>
         <SignInPage />
       </AuthLayout>
+    ),
+  },
+  {
+    path: 'analysis/:id',
+    element: (
+      <Suspense fallback={renderFallback()}>
+        <AnalysisViewPage />
+      </Suspense>
     ),
   },
   {

@@ -1,32 +1,51 @@
 import os
-from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage
-from azure.core.credentials import AzureKeyCredential
 
-endpoint = "https://models.github.ai/inference"
-model = "deepseek/DeepSeek-V3-0324"
-token = os.environ["GITHUB_TOKEN"]
-if not token:
-    raise ValueError("GITHUB_TOKEN environment variable is not set.")
+try:
+    from azure.ai.inference import ChatCompletionsClient
+    from azure.ai.inference.models import SystemMessage, UserMessage
+    from azure.core.credentials import AzureKeyCredential
+    _azure_available = True
+except ImportError:
+    _azure_available = False
 
-client = ChatCompletionsClient(
-    endpoint=endpoint,
-    credential=AzureKeyCredential(token),
-)
+_client = None
 
-def ask_ai(question: str):
+def _get_client():
+    global _client
+    if _client is not None:
+        return _client
+
+    if not _azure_available:
+        raise RuntimeError(
+            "azure-ai-inference is not installed. "
+            "Run: pip install azure-ai-inference"
+        )
+
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise RuntimeError("GITHUB_TOKEN environment variable is not set.")
+
+    _client = ChatCompletionsClient(
+        endpoint="https://models.github.ai/inference",
+        credential=AzureKeyCredential(token),
+    )
+    return _client
+
+_MODEL = "deepseek/DeepSeek-V3-0324"
+
+def ask_ai(question: str) -> str:
+    client = _get_client()
     response = client.complete(
         messages=[
-            SystemMessage("You are a professional trader evaluating other traders work and givig alerts."),
+            SystemMessage("You are a professional trader evaluating other traders work and giving alerts."),
             UserMessage(question),
         ],
         temperature=1.0,
         top_p=1.0,
         max_tokens=1000,
-        model=model
+        model=_MODEL,
     )
-
-    return response.choices[0].message.content 
+    return response.choices[0].message.content
 
 # === EXCEL ===
 import json

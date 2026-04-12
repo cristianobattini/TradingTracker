@@ -6,10 +6,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from database import Base, SessionLocal, engine
-from models import User, Trade
+from database import Base, SessionLocal, engine, seed_sqlite_defaults
+from models import User, Trade, Analysis
 from ai import ask_ai, import_excel_ai
-from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate
+from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate
 from auth import AuthService, oauth2_scheme 
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +18,7 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
 Base.metadata.create_all(bind=engine)
+seed_sqlite_defaults()
 
 # Configurazione CORS basata sull'ambiente
 def get_cors_origins():
@@ -33,6 +34,7 @@ def get_cors_origins():
         ]
 
 os.makedirs("uploads/avatars", exist_ok=True)
+os.makedirs("uploads/analysis-images", exist_ok=True)
 
 app = FastAPI(
     title="Trading API",
@@ -112,6 +114,7 @@ def require_admin(
 router = APIRouter(prefix="/api")
 
 app.mount("/avatars", StaticFiles(directory="uploads/avatars"), name="avatars")
+app.mount("/analysis-images", StaticFiles(directory="uploads/analysis-images"), name="analysis-images")
 
 # === EXCEL ===
 EXCEL_UPLOAD_FOLDER = "uploads/excel/"
@@ -587,6 +590,99 @@ async def root():
         "environment": os.getenv("PROJECT_ENV", "development"),
         "version": "1.0.0"
     }
+
+# === ANALYSIS ===
+
+ANALYSIS_IMAGES_FOLDER = "uploads/analysis-images/"
+
+@router.post("/analyses/images/upload")
+async def upload_analysis_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    allowed_types = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"{uuid.uuid4()}.{ext}"
+    filepath = os.path.join(ANALYSIS_IMAGES_FOLDER, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"url": f"/analysis-images/{filename}"}
+
+
+@router.post("/analyses/", response_model=AnalysisResponse)
+def create_analysis(
+    analysis: AnalysisCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_analysis = Analysis(**analysis.dict(), owner_id=current_user.id)
+    db.add(db_analysis)
+    db.commit()
+    db.refresh(db_analysis)
+    return db_analysis
+
+
+@router.get("/analyses/", response_model=List[AnalysisResponse])
+def list_analyses(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return db.query(Analysis).filter(Analysis.owner_id == current_user.id).order_by(Analysis.created_at.desc()).all()
+
+
+@router.get("/analyses/{analysis_id}", response_model=AnalysisResponse)
+def get_analysis(
+    analysis_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return analysis
+
+
+@router.put("/analyses/{analysis_id}", response_model=AnalysisResponse)
+def update_analysis(
+    analysis_id: int,
+    analysis_update: AnalysisUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    update_data = analysis_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(analysis, field, value)
+
+    from datetime import datetime
+    analysis.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(analysis)
+    return analysis
+
+
+@router.delete("/analyses/{analysis_id}")
+def delete_analysis(
+    analysis_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    db.delete(analysis)
+    db.commit()
+    return {"message": "Analysis deleted successfully"}
+
 
 # === INCLUDE ROUTER ===
 app.include_router(router)

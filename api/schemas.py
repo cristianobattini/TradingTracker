@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
 from models import RoleEnum
 
 # --- Users ---
@@ -114,6 +114,35 @@ class TradeUpdate(BaseModel):
     commission_bank: Optional[float] = None
     commission_sgr: Optional[float] = None
     commission_admin: Optional[float] = None
+
+
+# --- Analysis ---
+class AnalysisCreate(BaseModel):
+    title: str
+    pair: Optional[str] = None
+    timeframe: Optional[str] = None
+    content: str = ""
+
+
+class AnalysisResponse(BaseModel):
+    id: int
+    title: str
+    pair: Optional[str] = None
+    timeframe: Optional[str] = None
+    content: str
+    created_at: datetime
+    updated_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisUpdate(BaseModel):
+    title: Optional[str] = None
+    pair: Optional[str] = None
+    timeframe: Optional[str] = None
+    content: Optional[str] = None
 
 
 # --- Reports ---

@@ -38,21 +38,28 @@ class AuthService:
 
     def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
         load_dotenv()
-        
+
+        secret = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+        algorithm = os.getenv("ALGORITHM", "HS256")
+
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))))
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+        encoded_jwt = jwt.encode(to_encode, secret, algorithm=algorithm)
         return encoded_jwt
 
-    def get_current_user(self, token: str):  
+    def get_current_user(self, token: str):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+        secret = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+        algorithm = os.getenv("ALGORITHM", "HS256")
+
         try:
-            payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+            payload = jwt.decode(token, secret, algorithms=[algorithm])
             username: str = payload.get("sub")
             if username is None:
                 raise HTTPException(

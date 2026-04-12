@@ -172,11 +172,11 @@ export function OverviewAnalyticsView() {
                 });
 
                 return sorted.reduce<{ date: string; capital: number }[]>((acc, trade) => {
-                  const prevCapital = acc.length > 0 ? acc[acc.length - 1].capital : initialCapital;
+                  const prevCapital = acc[acc.length - 1].capital;
                   const newCapital = prevCapital + (trade.profit_or_loss ?? 0);
                   acc.push({ date: trade.date ?? '', capital: newCapital });
                   return acc;
-                }, []);
+                }, [{ date: 'Start', capital: initialCapital }]);
               })()
             }
           />

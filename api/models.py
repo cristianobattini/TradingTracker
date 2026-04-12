@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, Enum, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from api.database import Base
+from database import Base
+from datetime import datetime
 import enum
 
 class RoleEnum(str, enum.Enum):
@@ -20,6 +21,7 @@ class User(Base):
     avatar = Column(String, default="default_avatar.png")
 
     trades = relationship("Trade", back_populates="owner")
+    analyses = relationship("Analysis", back_populates="owner")
 
 class Trade(Base):
     __tablename__ = "trades"
@@ -61,4 +63,19 @@ class Trade(Base):
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="trades")
+
+
+class Analysis(Base):
+    __tablename__ = "analyses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    pair = Column(String, nullable=True)
+    timeframe = Column(String, nullable=True)
+    content = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="analyses")
 

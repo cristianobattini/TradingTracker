@@ -79,7 +79,8 @@ export function AddTradeModal({ open, onClose, onTradeAdded, loading = false }: 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -158,7 +159,7 @@ export function AddTradeModal({ open, onClose, onTradeAdded, loading = false }: 
     onClose();
   };
 
-  const calculatePipValue = () => (formData.lots * 10).toFixed(2);
+  const calculatePipValue = () => ((formData.lots ?? 0) * 10).toFixed(2);
 
   return (
     <Modal open={open} onClose={handleClose} aria-labelledby="add-trade-modal-title">

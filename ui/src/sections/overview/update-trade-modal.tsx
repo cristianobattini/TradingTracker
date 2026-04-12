@@ -139,11 +139,11 @@ export function UpdateTradeModal({
     if (!formData.id) return setErrors({ submit: 'Trade id missing. Cannot update.' });
 
     const updateBody: TradeUpdate = {
-      symbol: formData.pair,
+      pair: formData.pair,
       system: formData.system,
-      entry_price: formData.entry,
-      quantity: formData.lots,
-      position_type: formData.action,
+      entry: formData.entry,
+      lots: formData.lots,
+      action: formData.action,
       sl1_pips: formData.sl1_pips,
       tp1_pips: formData.tp1_pips,
       sl2_pips: formData.sl2_pips,

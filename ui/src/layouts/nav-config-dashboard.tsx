@@ -1,5 +1,3 @@
-import { enableCompileCache } from 'module';
-import { Label } from 'src/components/label';
 import { SvgColor } from 'src/components/svg-color';
 import { getLocalStorageItem } from 'src/services/local-storage-service';
 
@@ -35,13 +33,19 @@ export const navData = [
     icon: icon('ic-star'),
   },
   {
+    title: 'Analysis',
+    enabled: true,
+    path: '/analysis',
+    icon: icon('ic-blog'),
+  },
+  {
     title: 'Profile',
     enabled: true,
     path: '/profile',
     icon: icon('ic-profile'),
   },
   {
-    title: 'Users',
+    title: 'Accounts',
     enabled: getLocalStorageItem('role') == 'admin',
     path: '/user',
     icon: icon('ic-users'),
