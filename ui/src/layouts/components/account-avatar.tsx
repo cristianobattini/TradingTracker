@@ -10,7 +10,7 @@ export const AccountAvatar = ({ handleOpenPopover, size, ...other }: any) => {
 
     useEffect(() => {
         getAvatarApiUsersUserIdAvatarGet().then((response: any) => {
-            setAvatarFileName(response.data);
+            setAvatarFileName(response);
         })
     }, []);
 
