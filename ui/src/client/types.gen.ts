@@ -1373,3 +1373,113 @@ export type UpdateAnalysisApiAnalysesAnalysisIdPutResponses = {
 };
 
 export type UpdateAnalysisApiAnalysesAnalysisIdPutResponse = UpdateAnalysisApiAnalysesAnalysisIdPutResponses[keyof UpdateAnalysisApiAnalysesAnalysisIdPutResponses];
+
+export type GetNewsApiNewsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Source
+         */
+        source?: string | null;
+        /**
+         * Force Refresh
+         */
+        force_refresh?: boolean;
+    };
+    url: '/api/news/';
+};
+
+export type GetNewsApiNewsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetNewsApiNewsGetError = GetNewsApiNewsGetErrors[keyof GetNewsApiNewsGetErrors];
+
+export type GetNewsApiNewsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type NewsAiSummaryApiNewsAiSummaryPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/news/ai-summary';
+};
+
+export type NewsAiSummaryApiNewsAiSummaryPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type NewsAiReportApiNewsAiReportPostData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Question
+         */
+        question?: string;
+    };
+    url: '/api/news/ai-report';
+};
+
+export type NewsAiReportApiNewsAiReportPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type NewsAiReportApiNewsAiReportPostError = NewsAiReportApiNewsAiReportPostErrors[keyof NewsAiReportApiNewsAiReportPostErrors];
+
+export type NewsAiReportApiNewsAiReportPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetCalendarApiCalendarGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Force Refresh
+         */
+        force_refresh?: boolean;
+        /**
+         * Impact
+         */
+        impact?: string | null;
+        /**
+         * Country
+         */
+        country?: string | null;
+    };
+    url: '/api/calendar/';
+};
+
+export type GetCalendarApiCalendarGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetCalendarApiCalendarGetError = GetCalendarApiCalendarGetErrors[keyof GetCalendarApiCalendarGetErrors];
+
+export type GetCalendarApiCalendarGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};

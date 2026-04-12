@@ -23,8 +23,7 @@ type AppProps = {
 };
 
 client.setConfig({
-  baseUrl: 'https://vmtrbc01b.northeurope.cloudapp.azure.com',
-  //baseUrl: 'http://localhost:8000',
+  baseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000',
   auth: (auth) => {
     const token = getLocalStorageItem('accessToken');
     return token ? `${token}` : undefined;

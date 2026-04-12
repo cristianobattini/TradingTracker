@@ -9,6 +9,7 @@ from datetime import timedelta
 from database import Base, SessionLocal, engine, seed_sqlite_defaults
 from models import User, Trade, Analysis
 from ai import ask_ai, import_excel_ai
+from news_service import fetch_all_news, fetch_calendar
 from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate
 from auth import AuthService, oauth2_scheme 
 import os
@@ -682,6 +683,119 @@ def delete_analysis(
     db.delete(analysis)
     db.commit()
     return {"message": "Analysis deleted successfully"}
+
+
+# === NEWS ===
+
+@router.get("/news/")
+def get_news(
+    source: Optional[str] = None,
+    force_refresh: bool = False,
+    current_user: User = Depends(get_current_user),
+):
+    """Return forex news articles from all RSS sources, optionally filtered by source_id."""
+    articles = fetch_all_news(force=force_refresh)
+    if source:
+        articles = [a for a in articles if a["source_id"] == source]
+    return {"articles": articles, "total": len(articles)}
+
+
+@router.post("/news/ai-summary")
+def news_ai_summary(
+    current_user: User = Depends(get_current_user),
+):
+    """Ask the AI to summarise today's top forex news headlines."""
+    articles = fetch_all_news()
+    if not articles:
+        raise HTTPException(status_code=503, detail="No news articles available at the moment.")
+
+    headlines = "\n".join(
+        f"- [{a['source']}] {a['title']}: {a['summary'][:150]}"
+        for a in articles[:20]
+    )
+
+    prompt = (
+        "You are a professional forex analyst. "
+        "Below are the latest forex news headlines collected from multiple sources.\n\n"
+        f"{headlines}\n\n"
+        "Please provide:\n"
+        "1. A concise executive summary of the main market themes (3-5 sentences).\n"
+        "2. Key currency pairs potentially impacted and why.\n"
+        "3. Any notable risk events traders should watch.\n\n"
+        "Format your response in clear Markdown with sections."
+    )
+
+    try:
+        summary = ask_ai(prompt)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"summary": summary}
+
+
+@router.post("/news/ai-report")
+def news_ai_report(
+    question: str = "Generate a comprehensive forex market report",
+    current_user: User = Depends(get_current_user),
+):
+    """Generate a detailed AI forex report (Markdown) ready to be exported as PDF."""
+    articles = fetch_all_news()
+    calendar = fetch_calendar()
+
+    headlines = "\n".join(
+        f"- [{a['source']}] {a['title']}: {a['summary'][:200]}"
+        for a in articles[:25]
+    )
+
+    upcoming = "\n".join(
+        f"- {ev['date']} {ev['time']} [{ev['country']}] {ev['title']} | Impact: {ev['impact']} | Forecast: {ev['forecast']} | Previous: {ev['previous']}"
+        for ev in calendar[:20]
+        if ev.get("impact", "").lower() in ("high", "medium")
+    ) or "No high/medium-impact events found."
+
+    prompt = (
+        "You are a senior forex analyst writing a professional market report.\n\n"
+        f"USER REQUEST: {question}\n\n"
+        "## Latest News Headlines\n"
+        f"{headlines}\n\n"
+        "## Upcoming High/Medium-Impact Economic Events\n"
+        f"{upcoming}\n\n"
+        "Write a complete, professional **Forex Market Report** in Markdown including:\n"
+        "- Executive Summary\n"
+        "- Major Currency Pair Analysis (EUR/USD, GBP/USD, USD/JPY, etc.)\n"
+        "- Market Sentiment & Risk Appetite\n"
+        "- Key Economic Events to Watch\n"
+        "- Trading Opportunities & Risks\n"
+        "- Conclusion\n\n"
+        "Use clear headings, bullet points, and be specific with levels where possible."
+    )
+
+    try:
+        report = ask_ai(prompt)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"report": report, "generated_at": __import__("datetime").datetime.utcnow().isoformat()}
+
+
+# === ECONOMIC CALENDAR ===
+
+@router.get("/calendar/")
+def get_calendar(
+    force_refresh: bool = False,
+    impact: Optional[str] = None,
+    country: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):
+    """Return this week's economic calendar events (ForexFactory)."""
+    events = fetch_calendar(force=force_refresh)
+
+    if impact:
+        events = [e for e in events if e.get("impact", "").lower() == impact.lower()]
+    if country:
+        events = [e for e in events if e.get("country", "").upper() == country.upper()]
+
+    return {"events": events, "total": len(events)}
 
 
 # === INCLUDE ROUTER ===

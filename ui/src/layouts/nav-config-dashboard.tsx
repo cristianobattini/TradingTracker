@@ -39,6 +39,18 @@ export const navData = [
     icon: icon('ic-blog'),
   },
   {
+    title: 'Forex News',
+    enabled: true,
+    path: '/news',
+    icon: icon('ic-newspaper'),
+  },
+  {
+    title: 'Calendar',
+    enabled: true,
+    path: '/calendar',
+    icon: icon('ic-calendar'),
+  },
+  {
     title: 'Profile',
     enabled: true,
     path: '/profile',

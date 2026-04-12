@@ -30,5 +30,11 @@ openai==2.11.0
 pandas==2.3.3
 azure-ai-inference==1.0.0b3
 
+# News & Calendar
+feedparser==6.0.12
+beautifulsoup4==4.14.3
+lxml==6.0.4
+cloudscraper==1.2.71
+
 # Database - includi entrambi per flessibilità
 psycopg2-binary==2.9.10

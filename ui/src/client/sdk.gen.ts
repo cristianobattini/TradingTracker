@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateAnalysisApiAnalysesPostData, CreateAnalysisApiAnalysesPostErrors, CreateAnalysisApiAnalysesPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteData, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAnalysisApiAnalysesAnalysisIdGetData, GetAnalysisApiAnalysesAnalysisIdGetErrors, GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListAnalysesApiAnalysesGetData, ListAnalysesApiAnalysesGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateAnalysisApiAnalysesAnalysisIdPutData, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAnalysisImageApiAnalysesImagesUploadPostData, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
+import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateAnalysisApiAnalysesPostData, CreateAnalysisApiAnalysesPostErrors, CreateAnalysisApiAnalysesPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteData, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAnalysisApiAnalysesAnalysisIdGetData, GetAnalysisApiAnalysesAnalysisIdGetErrors, GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetCalendarApiCalendarGetData, GetCalendarApiCalendarGetErrors, GetCalendarApiCalendarGetResponses, GetNewsApiNewsGetData, GetNewsApiNewsGetErrors, GetNewsApiNewsGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListAnalysesApiAnalysesGetData, ListAnalysesApiAnalysesGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, NewsAiReportApiNewsAiReportPostData, NewsAiReportApiNewsAiReportPostErrors, NewsAiReportApiNewsAiReportPostResponses, NewsAiSummaryApiNewsAiSummaryPostData, NewsAiSummaryApiNewsAiSummaryPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateAnalysisApiAnalysesAnalysisIdPutData, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAnalysisImageApiAnalysesImagesUploadPostData, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -328,4 +328,48 @@ export const updateAnalysisApiAnalysesAnalysisIdPut = <ThrowOnError extends bool
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Get News
+ *
+ * Return forex news articles from all RSS sources, optionally filtered by source_id.
+ */
+export const getNewsApiNewsGet = <ThrowOnError extends boolean = false>(options?: Options<GetNewsApiNewsGetData, ThrowOnError>) => (options?.client ?? client).get<GetNewsApiNewsGetResponses, GetNewsApiNewsGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/news/',
+    ...options
+});
+
+/**
+ * News Ai Summary
+ *
+ * Ask the AI to summarise today's top forex news headlines.
+ */
+export const newsAiSummaryApiNewsAiSummaryPost = <ThrowOnError extends boolean = false>(options?: Options<NewsAiSummaryApiNewsAiSummaryPostData, ThrowOnError>) => (options?.client ?? client).post<NewsAiSummaryApiNewsAiSummaryPostResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/news/ai-summary',
+    ...options
+});
+
+/**
+ * News Ai Report
+ *
+ * Generate a detailed AI forex report (Markdown) ready to be exported as PDF.
+ */
+export const newsAiReportApiNewsAiReportPost = <ThrowOnError extends boolean = false>(options?: Options<NewsAiReportApiNewsAiReportPostData, ThrowOnError>) => (options?.client ?? client).post<NewsAiReportApiNewsAiReportPostResponses, NewsAiReportApiNewsAiReportPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/news/ai-report',
+    ...options
+});
+
+/**
+ * Get Calendar
+ *
+ * Return this week's economic calendar events (ForexFactory).
+ */
+export const getCalendarApiCalendarGet = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarApiCalendarGetData, ThrowOnError>) => (options?.client ?? client).get<GetCalendarApiCalendarGetResponses, GetCalendarApiCalendarGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/calendar/',
+    ...options
 });
