@@ -51,7 +51,7 @@ DEBUG=["true" or "false"]
 DATABASE_URL=[postgres database url]
 CORS_ORIGINS=[your cross origins]
 SECRET_KEY=[your secret key]
-ACCESS_TOKEN_EXPIRE_MINUTES=60
+ACCESS_TOKEN_EXPIRE_MINUTES=120
 ALGORITHM=HS256
 GITHUB_TOKEN=[your github token]
 ```
