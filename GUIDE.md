@@ -207,11 +207,14 @@ Passo 8 — Aggiornamenti e deploy continui
 - Per aggiornare il codice:
 
 ```bash
+sudo chown -R $USER:$USER /opt/tradingtracker
 cd /opt/tradingtracker
 git fetch
-git pull --rebase
+git stash && git pull --rebase
 cd api && source venv/bin/activate && pip install -r requirements.txt && deactivate && cd ..
-cd ui && npm ci --legacy-peer && npm run build && cd ..
+cd ui && sudo rm -rf dist && npm ci --legacy-peer && npm run build && cd ..
+```
+``` bash
 sudo systemctl restart fastapi
 sudo systemctl reload nginx
 ```
