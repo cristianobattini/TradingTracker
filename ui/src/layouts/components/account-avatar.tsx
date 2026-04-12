@@ -19,7 +19,7 @@ export const AccountAvatar = ({ handleOpenPopover, size, avatarFile, ...other }:
             src={
                 avatarFile
                     ? URL.createObjectURL(avatarFile)
-                    : `${API_BASE_URL}/avatars/${avatarFileName}`
+                    : `${API_BASE_URL}/uploads/avatars/${avatarFileName}`
             }
             sx={{ width: size ?? 58, height: size ?? 58 }}
         />

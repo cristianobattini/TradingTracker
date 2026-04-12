@@ -611,7 +611,7 @@ async def upload_analysis_image(
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {"url": f"/analysis-images/{filename}"}
+    return {"url": f"/{ANALYSIS_IMAGES_FOLDER}/{filename}"}
 
 
 @router.post("/analyses/", response_model=AnalysisResponse)
