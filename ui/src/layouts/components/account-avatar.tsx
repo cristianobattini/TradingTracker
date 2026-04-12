@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getAvatarApiUsersUserIdAvatarGet } from "src/client";
 
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 export const AccountAvatar = ({ handleOpenPopover, size, ...other }: any) => {
     const [avatarFileName, setAvatarFileName] = useState<string | null>();
