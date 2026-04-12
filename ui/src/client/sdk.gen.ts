@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
+import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateAnalysisApiAnalysesPostData, CreateAnalysisApiAnalysesPostErrors, CreateAnalysisApiAnalysesPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteData, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAnalysisApiAnalysesAnalysisIdGetData, GetAnalysisApiAnalysesAnalysisIdGetErrors, GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListAnalysesApiAnalysesGetData, ListAnalysesApiAnalysesGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateAnalysisApiAnalysesAnalysisIdPutData, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAnalysisImageApiAnalysesImagesUploadPostData, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -262,3 +262,70 @@ export const healthCheckApiHealthGet = <ThrowOnError extends boolean = false>(op
  * Root
  */
 export const rootApiGet = <ThrowOnError extends boolean = false>(options?: Options<RootApiGetData, ThrowOnError>) => (options?.client ?? client).get<RootApiGetResponses, unknown, ThrowOnError>({ url: '/api/', ...options });
+
+/**
+ * Upload Analysis Image
+ */
+export const uploadAnalysisImageApiAnalysesImagesUploadPost = <ThrowOnError extends boolean = false>(options: Options<UploadAnalysisImageApiAnalysesImagesUploadPostData, ThrowOnError>) => (options.client ?? client).post<UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, ThrowOnError>({
+    ...formDataBodySerializer,
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/images/upload',
+    ...options,
+    headers: {
+        'Content-Type': null,
+        ...options.headers
+    }
+});
+
+/**
+ * List Analyses
+ */
+export const listAnalysesApiAnalysesGet = <ThrowOnError extends boolean = false>(options?: Options<ListAnalysesApiAnalysesGetData, ThrowOnError>) => (options?.client ?? client).get<ListAnalysesApiAnalysesGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/',
+    ...options
+});
+
+/**
+ * Create Analysis
+ */
+export const createAnalysisApiAnalysesPost = <ThrowOnError extends boolean = false>(options: Options<CreateAnalysisApiAnalysesPostData, ThrowOnError>) => (options.client ?? client).post<CreateAnalysisApiAnalysesPostResponses, CreateAnalysisApiAnalysesPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Analysis
+ */
+export const deleteAnalysisApiAnalysesAnalysisIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteAnalysisApiAnalysesAnalysisIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}',
+    ...options
+});
+
+/**
+ * Get Analysis
+ */
+export const getAnalysisApiAnalysesAnalysisIdGet = <ThrowOnError extends boolean = false>(options: Options<GetAnalysisApiAnalysesAnalysisIdGetData, ThrowOnError>) => (options.client ?? client).get<GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAnalysisApiAnalysesAnalysisIdGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}',
+    ...options
+});
+
+/**
+ * Update Analysis
+ */
+export const updateAnalysisApiAnalysesAnalysisIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateAnalysisApiAnalysesAnalysisIdPutData, ThrowOnError>) => (options.client ?? client).put<UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

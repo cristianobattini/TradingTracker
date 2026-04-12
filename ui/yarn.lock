@@ -189,15 +189,15 @@
   resolved "https://registry.npmjs.org/@emotion/weak-memoize/-/weak-memoize-0.4.0.tgz"
   integrity sha512-snKqtPW01tN0ui7yu9rGv69aJXr/a/Ywvl11sUjNtEcRc+ng/mQriFL0wLXMef74iHa/EkftbDzU9F8iFbH+zg==
 
-"@esbuild/linux-x64@0.25.2":
+"@esbuild/darwin-x64@0.25.2":
   version "0.25.2"
-  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.25.2.tgz"
-  integrity sha512-QInHERlqpTTZ4FRB0fROQWXcYRD64lAoiegezDunLpalZMjcUcld3YzZmVJ2H/Cp0wJRZ8Xtjtj0cEHhYc/uUg==
+  resolved "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.25.2.tgz"
+  integrity sha512-5eRPrTX7wFyuWe8FqEFPG2cU0+butQQVNcT4sVipqjLYQjjh8a8+vUTfgBKM88ObB85ahsnTwF7PSIt6PG+QkA==
 
-"@esbuild/linux-x64@0.27.1":
+"@esbuild/darwin-x64@0.27.1":
   version "0.27.1"
-  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.27.1.tgz"
-  integrity sha512-z3H/HYI9MM0HTv3hQZ81f+AKb+yEoCRlUby1F80vbQ5XdzEMyY/9iNlAmhqiBKw4MJXwfgsh7ERGEOhrM1niMA==
+  resolved "https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.27.1.tgz"
+  integrity sha512-+3ELd+nTzhfWb07Vol7EZ+5PTbJ/u74nC6iv4/lwIU99Ip5uuY6QoIf0Hn4m2HoV0qcnRivN3KSqc+FyCHjoVQ==
 
 "@eslint-community/eslint-utils@^4.7.0", "@eslint-community/eslint-utils@^4.8.0":
   version "4.8.0"
@@ -575,15 +575,10 @@
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
 
-"@rollup/rollup-linux-x64-gnu@4.39.0":
+"@rollup/rollup-darwin-x64@4.39.0":
   version "4.39.0"
-  resolved "https://registry.npmjs.org/@rollup/rollup-linux-x64-gnu/-/rollup-linux-x64-gnu-4.39.0.tgz"
-  integrity sha512-t9jqYw27R6Lx0XKfEFe5vUeEJ5pF3SGIM6gTfONSMb7DuG6z6wfj2yjcoZxHg129veTqU7+wOhY6GX8wmf90dA==
-
-"@rollup/rollup-linux-x64-musl@4.39.0":
-  version "4.39.0"
-  resolved "https://registry.npmjs.org/@rollup/rollup-linux-x64-musl/-/rollup-linux-x64-musl-4.39.0.tgz"
-  integrity sha512-ThFdkrFDP55AIsIZDKSBWEt/JcWlCzydbZHinZ0F/r1h83qbGeenCt/G/wG2O0reuENDD2tawfAj2s8VK7Bugg==
+  resolved "https://registry.npmjs.org/@rollup/rollup-darwin-x64/-/rollup-darwin-x64-4.39.0.tgz"
+  integrity sha512-mKXpNZLvtEbgu6WCkNij7CGycdw9cJi2k9v0noMb++Vab12GZjFgUXD69ilAbBh034Zwn95c2PNSz9xM7KYEAQ==
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
@@ -627,15 +622,10 @@
   resolved "https://registry.npmjs.org/@svgdotjs/svg.select.js/-/svg.select.js-4.0.2.tgz"
   integrity sha512-5gWdrvoQX3keo03SCmgaBbD+kFftq0F/f2bzCbNnpkkvW6tk4rl4MakORzFuNjvXPWwB4az9GwuvVxQVnjaK2g==
 
-"@swc/core-linux-x64-gnu@1.11.16":
+"@swc/core-darwin-x64@1.11.16":
   version "1.11.16"
-  resolved "https://registry.npmjs.org/@swc/core-linux-x64-gnu/-/core-linux-x64-gnu-1.11.16.tgz"
-  integrity sha512-xr182YQrF47n7Awxj+/ruI21bYw+xO/B26KFVnb+i3ezF9NOhqoqTX+33RL1ZLA/uFTq8ksPZO/y+ZVS/odtQA==
-
-"@swc/core-linux-x64-musl@1.11.16":
-  version "1.11.16"
-  resolved "https://registry.npmjs.org/@swc/core-linux-x64-musl/-/core-linux-x64-musl-1.11.16.tgz"
-  integrity sha512-k2JBfiwWfXCIKrBRjFO9/vEdLSYq0QLJ+iNSLdfrejZ/aENNkbEg8O7O2GKUSb30RBacn6k8HMfJrcPLFiEyCQ==
+  resolved "https://registry.npmjs.org/@swc/core-darwin-x64/-/core-darwin-x64-1.11.16.tgz"
+  integrity sha512-TH0IW8Ao1WZ4ARFHIh29dAQHYBEl4YnP74n++rjppmlCjY+8v3s5nXMA7IqxO3b5LVHyggWtU4+46DXTyMJM7g==
 
 "@swc/core@^1.11.11":
   version "1.11.16"
@@ -924,15 +914,10 @@
   resolved "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.3.0.tgz"
   integrity sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==
 
-"@unrs/resolver-binding-linux-x64-gnu@1.3.3":
+"@unrs/resolver-binding-darwin-x64@1.3.3":
   version "1.3.3"
-  resolved "https://registry.npmjs.org/@unrs/resolver-binding-linux-x64-gnu/-/resolver-binding-linux-x64-gnu-1.3.3.tgz"
-  integrity sha512-OrVo5ZsG29kBF0Ug95a2KidS16PqAMmQNozM6InbquOfW/udouk063e25JVLqIBhHLB2WyBnixOQ19tmeC/hIg==
-
-"@unrs/resolver-binding-linux-x64-musl@1.3.3":
-  version "1.3.3"
-  resolved "https://registry.npmjs.org/@unrs/resolver-binding-linux-x64-musl/-/resolver-binding-linux-x64-musl-1.3.3.tgz"
-  integrity sha512-PYnmrwZ4HMp9SkrOhqPghY/aoL+Rtd4CQbr93GlrRTjK6kDzfMfgz3UH3jt6elrQAfupa1qyr1uXzeVmoEAxUA==
+  resolved "https://registry.npmjs.org/@unrs/resolver-binding-darwin-x64/-/resolver-binding-darwin-x64-1.3.3.tgz"
+  integrity sha512-ntj/g7lPyqwinMJWZ+DKHBse8HhVxswGTmNgFKJtdgGub3M3zp5BSZ3bvMP+kBT6dnYJLSVlDqdwOq1P8i0+/g==
 
 "@vitejs/plugin-react-swc@^3.8.1":
   version "3.8.1"
@@ -2052,6 +2037,11 @@ for-each@^0.3.3, for-each@^0.3.5:
   integrity sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==
   dependencies:
     is-callable "^1.2.7"
+
+fsevents@~2.3.2, fsevents@~2.3.3:
+  version "2.3.3"
+  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
+  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
 function-bind@^1.1.2:
   version "1.1.2"

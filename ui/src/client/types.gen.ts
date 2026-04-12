@@ -5,6 +5,88 @@ export type ClientOptions = {
 };
 
 /**
+ * AnalysisCreate
+ */
+export type AnalysisCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Pair
+     */
+    pair?: string | null;
+    /**
+     * Timeframe
+     */
+    timeframe?: string | null;
+    /**
+     * Content
+     */
+    content?: string;
+};
+
+/**
+ * AnalysisResponse
+ */
+export type AnalysisResponse = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Pair
+     */
+    pair?: string | null;
+    /**
+     * Timeframe
+     */
+    timeframe?: string | null;
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Owner Id
+     */
+    owner_id: number;
+};
+
+/**
+ * AnalysisUpdate
+ */
+export type AnalysisUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Pair
+     */
+    pair?: string | null;
+    /**
+     * Timeframe
+     */
+    timeframe?: string | null;
+    /**
+     * Content
+     */
+    content?: string | null;
+};
+
+/**
  * Body_import_trades_api_trades_import_post
  */
 export type BodyImportTradesApiTradesImportPost = {
@@ -42,6 +124,16 @@ export type BodyLoginApiLoginPost = {
      * Client Secret
      */
     client_secret?: string | null;
+};
+
+/**
+ * Body_upload_analysis_image_api_analyses_images_upload_post
+ */
+export type BodyUploadAnalysisImageApiAnalysesImagesUploadPost = {
+    /**
+     * File
+     */
+    file: Blob | File;
 };
 
 /**
@@ -147,59 +239,107 @@ export type TradeCreate = {
     /**
      * Pair
      */
-    pair: string | null;
+    pair?: string | null;
     /**
      * System
      */
-    system: string | null;
+    system?: string | null;
     /**
      * Action
      */
-    action: string | null;
+    action?: string | null;
     /**
      * Risk
      */
-    risk: string | null;
+    risk?: string | null;
     /**
      * Risk Percent
      */
-    risk_percent: number | null;
+    risk_percent?: number | null;
     /**
      * Lots
      */
-    lots: number | null;
+    lots?: number | null;
     /**
      * Entry
      */
-    entry: number | null;
+    entry?: number | null;
     /**
      * Sl1 Pips
      */
-    sl1_pips: number | null;
+    sl1_pips?: number | null;
     /**
      * Tp1 Pips
      */
-    tp1_pips: number | null;
+    tp1_pips?: number | null;
     /**
      * Sl2 Pips
      */
-    sl2_pips: number | null;
+    sl2_pips?: number | null;
     /**
      * Tp2 Pips
      */
-    tp2_pips: number | null;
+    tp2_pips?: number | null;
     /**
      * Cancelled
      */
-    cancelled: boolean | null;
+    cancelled?: boolean | null;
     /**
      * Profit Or Loss
      */
-    profit_or_loss: number | null;
+    profit_or_loss?: number | null;
     /**
      * Comments
      */
-    comments: string | null;
+    comments?: string | null;
+    /**
+     * Instrument Name
+     */
+    instrument_name?: string | null;
+    /**
+     * Isin
+     */
+    isin?: string | null;
+    /**
+     * Currency
+     */
+    currency?: string | null;
+    /**
+     * Operation Type
+     */
+    operation_type?: string | null;
+    /**
+     * Sign
+     */
+    sign?: string | null;
+    /**
+     * Quantity
+     */
+    quantity?: number | null;
+    /**
+     * Exchange Rate
+     */
+    exchange_rate?: number | null;
+    /**
+     * Gross Amount
+     */
+    gross_amount?: number | null;
+    /**
+     * Commission Fund
+     */
+    commission_fund?: number | null;
+    /**
+     * Commission Bank
+     */
+    commission_bank?: number | null;
+    /**
+     * Commission Sgr
+     */
+    commission_sgr?: number | null;
+    /**
+     * Commission Admin
+     */
+    commission_admin?: number | null;
 };
 
 /**
@@ -213,59 +353,107 @@ export type TradeResponse = {
     /**
      * Pair
      */
-    pair: string | null;
+    pair?: string | null;
     /**
      * System
      */
-    system: string | null;
+    system?: string | null;
     /**
      * Action
      */
-    action: string | null;
+    action?: string | null;
     /**
      * Risk
      */
-    risk: string | null;
+    risk?: string | null;
     /**
      * Risk Percent
      */
-    risk_percent: number | null;
+    risk_percent?: number | null;
     /**
      * Lots
      */
-    lots: number | null;
+    lots?: number | null;
     /**
      * Entry
      */
-    entry: number | null;
+    entry?: number | null;
     /**
      * Sl1 Pips
      */
-    sl1_pips: number | null;
+    sl1_pips?: number | null;
     /**
      * Tp1 Pips
      */
-    tp1_pips: number | null;
+    tp1_pips?: number | null;
     /**
      * Sl2 Pips
      */
-    sl2_pips: number | null;
+    sl2_pips?: number | null;
     /**
      * Tp2 Pips
      */
-    tp2_pips: number | null;
+    tp2_pips?: number | null;
     /**
      * Cancelled
      */
-    cancelled: boolean | null;
+    cancelled?: boolean | null;
     /**
      * Profit Or Loss
      */
-    profit_or_loss: number | null;
+    profit_or_loss?: number | null;
     /**
      * Comments
      */
-    comments: string | null;
+    comments?: string | null;
+    /**
+     * Instrument Name
+     */
+    instrument_name?: string | null;
+    /**
+     * Isin
+     */
+    isin?: string | null;
+    /**
+     * Currency
+     */
+    currency?: string | null;
+    /**
+     * Operation Type
+     */
+    operation_type?: string | null;
+    /**
+     * Sign
+     */
+    sign?: string | null;
+    /**
+     * Quantity
+     */
+    quantity?: number | null;
+    /**
+     * Exchange Rate
+     */
+    exchange_rate?: number | null;
+    /**
+     * Gross Amount
+     */
+    gross_amount?: number | null;
+    /**
+     * Commission Fund
+     */
+    commission_fund?: number | null;
+    /**
+     * Commission Bank
+     */
+    commission_bank?: number | null;
+    /**
+     * Commission Sgr
+     */
+    commission_sgr?: number | null;
+    /**
+     * Commission Admin
+     */
+    commission_admin?: number | null;
     /**
      * Id
      */
@@ -281,33 +469,113 @@ export type TradeResponse = {
  */
 export type TradeUpdate = {
     /**
-     * Symbol
+     * Date
      */
-    symbol?: string | null;
+    date: string | null;
     /**
-     * Entry Price
+     * Pair
      */
-    entry_price?: number | null;
+    pair?: string | null;
     /**
-     * Exit Price
+     * System
      */
-    exit_price?: number | null;
+    system?: string | null;
     /**
-     * Quantity
+     * Action
      */
-    quantity?: number | null;
+    action?: string | null;
     /**
-     * Position Type
+     * Risk
      */
-    position_type?: string | null;
+    risk?: string | null;
+    /**
+     * Risk Percent
+     */
+    risk_percent?: number | null;
+    /**
+     * Lots
+     */
+    lots?: number | null;
+    /**
+     * Entry
+     */
+    entry?: number | null;
+    /**
+     * Sl1 Pips
+     */
+    sl1_pips?: number | null;
+    /**
+     * Tp1 Pips
+     */
+    tp1_pips?: number | null;
+    /**
+     * Sl2 Pips
+     */
+    sl2_pips?: number | null;
+    /**
+     * Tp2 Pips
+     */
+    tp2_pips?: number | null;
+    /**
+     * Cancelled
+     */
+    cancelled?: boolean | null;
     /**
      * Profit Or Loss
      */
     profit_or_loss?: number | null;
     /**
-     * Cancelled
+     * Comments
      */
-    cancelled?: boolean | null;
+    comments?: string | null;
+    /**
+     * Instrument Name
+     */
+    instrument_name?: string | null;
+    /**
+     * Isin
+     */
+    isin?: string | null;
+    /**
+     * Currency
+     */
+    currency?: string | null;
+    /**
+     * Operation Type
+     */
+    operation_type?: string | null;
+    /**
+     * Sign
+     */
+    sign?: string | null;
+    /**
+     * Quantity
+     */
+    quantity?: number | null;
+    /**
+     * Exchange Rate
+     */
+    exchange_rate?: number | null;
+    /**
+     * Gross Amount
+     */
+    gross_amount?: number | null;
+    /**
+     * Commission Fund
+     */
+    commission_fund?: number | null;
+    /**
+     * Commission Bank
+     */
+    commission_bank?: number | null;
+    /**
+     * Commission Sgr
+     */
+    commission_sgr?: number | null;
+    /**
+     * Commission Admin
+     */
+    commission_admin?: number | null;
 };
 
 /**
@@ -951,3 +1219,157 @@ export type RootApiGetResponses = {
      */
     200: unknown;
 };
+
+export type UploadAnalysisImageApiAnalysesImagesUploadPostData = {
+    body: BodyUploadAnalysisImageApiAnalysesImagesUploadPost;
+    path?: never;
+    query?: never;
+    url: '/api/analyses/images/upload';
+};
+
+export type UploadAnalysisImageApiAnalysesImagesUploadPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UploadAnalysisImageApiAnalysesImagesUploadPostError = UploadAnalysisImageApiAnalysesImagesUploadPostErrors[keyof UploadAnalysisImageApiAnalysesImagesUploadPostErrors];
+
+export type UploadAnalysisImageApiAnalysesImagesUploadPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ListAnalysesApiAnalysesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/analyses/';
+};
+
+export type ListAnalysesApiAnalysesGetResponses = {
+    /**
+     * Response List Analyses Api Analyses  Get
+     *
+     * Successful Response
+     */
+    200: Array<AnalysisResponse>;
+};
+
+export type ListAnalysesApiAnalysesGetResponse = ListAnalysesApiAnalysesGetResponses[keyof ListAnalysesApiAnalysesGetResponses];
+
+export type CreateAnalysisApiAnalysesPostData = {
+    body: AnalysisCreate;
+    path?: never;
+    query?: never;
+    url: '/api/analyses/';
+};
+
+export type CreateAnalysisApiAnalysesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateAnalysisApiAnalysesPostError = CreateAnalysisApiAnalysesPostErrors[keyof CreateAnalysisApiAnalysesPostErrors];
+
+export type CreateAnalysisApiAnalysesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: AnalysisResponse;
+};
+
+export type CreateAnalysisApiAnalysesPostResponse = CreateAnalysisApiAnalysesPostResponses[keyof CreateAnalysisApiAnalysesPostResponses];
+
+export type DeleteAnalysisApiAnalysesAnalysisIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}';
+};
+
+export type DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteAnalysisApiAnalysesAnalysisIdDeleteError = DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors[keyof DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors];
+
+export type DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetAnalysisApiAnalysesAnalysisIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}';
+};
+
+export type GetAnalysisApiAnalysesAnalysisIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetAnalysisApiAnalysesAnalysisIdGetError = GetAnalysisApiAnalysesAnalysisIdGetErrors[keyof GetAnalysisApiAnalysesAnalysisIdGetErrors];
+
+export type GetAnalysisApiAnalysesAnalysisIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: AnalysisResponse;
+};
+
+export type GetAnalysisApiAnalysesAnalysisIdGetResponse = GetAnalysisApiAnalysesAnalysisIdGetResponses[keyof GetAnalysisApiAnalysesAnalysisIdGetResponses];
+
+export type UpdateAnalysisApiAnalysesAnalysisIdPutData = {
+    body: AnalysisUpdate;
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}';
+};
+
+export type UpdateAnalysisApiAnalysesAnalysisIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateAnalysisApiAnalysesAnalysisIdPutError = UpdateAnalysisApiAnalysesAnalysisIdPutErrors[keyof UpdateAnalysisApiAnalysesAnalysisIdPutErrors];
+
+export type UpdateAnalysisApiAnalysesAnalysisIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: AnalysisResponse;
+};
+
+export type UpdateAnalysisApiAnalysesAnalysisIdPutResponse = UpdateAnalysisApiAnalysesAnalysisIdPutResponses[keyof UpdateAnalysisApiAnalysesAnalysisIdPutResponses];
