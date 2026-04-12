@@ -83,7 +83,11 @@ pip install -r requirements.txt
 ### 3. Run development server
 
 ``` bash
-  uvicorn api:app --reload --host 0.0.0.0 --port 8000
+python3 main.py
+```
+or
+``` bash
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ------------------------------------------------------------------------
