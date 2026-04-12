@@ -11,6 +11,7 @@ export const AccountAvatar = ({ handleOpenPopover, size, ...other }: any) => {
     useEffect(() => {
         getAvatarApiUsersUserIdAvatarGet().then((response: any) => {
             setAvatarFileName(response.data);
+            console.log(`${API_BASE_URL}/uploads/avatars/${response.data}`);
         })
     }, []);
 
