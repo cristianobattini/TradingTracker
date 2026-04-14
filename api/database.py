@@ -29,7 +29,7 @@ def seed_sqlite_defaults():
         return
 
     import bcrypt
-    from api.models import User, RoleEnum
+    from models import User, RoleEnum
 
     db = SessionLocal()
     try:
