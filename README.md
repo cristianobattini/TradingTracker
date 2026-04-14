@@ -98,7 +98,7 @@ uvicorn api:app --reload --host 0.0.0.0 --port 8000
 
 ``` bash
 cd frontend
-npm install
+npm install --legacy-peer
 ```
 
 ### 2. Start development server
@@ -353,6 +353,7 @@ Visit:
 
 -   **Frontend** → `http://your-domain.com`
 -   **API** → `http://your-domain.com/api/...`
+Look at GUIDE_PROD.md
 
 ------------------------------------------------------------------------
 
