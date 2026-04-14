@@ -262,11 +262,14 @@ VITE_API_BASE_URL=https://api.tradingtracker.com
 
 ### Backend (.env or environment variables)
 ```env
-PROJECT_ENV=production
-DEBUG=false
-DATABASE_URL=sqlite:///./trading.db
-SECRET_KEY=your-secret-key-here
-ALLOWED_ORIGINS=https://tradingtracker.com,https://www.tradingtracker.com
+PROJECT_ENV=["dev" or "prod"]
+DEBUG=["true" or "false"]
+DATABASE_URL=[postgres database url]
+CORS_ORIGINS=[your cross origins]
+SECRET_KEY=[your secret key]
+ACCESS_TOKEN_EXPIRE_MINUTES=120
+ALGORITHM=HS256
+GITHUB_TOKEN=[your github token]
 ```
 
 ### Frontend (.env)
