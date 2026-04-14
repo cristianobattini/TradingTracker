@@ -48,7 +48,7 @@ export function UserView() {
   const handleUserCreated = (newUser: UserResponse) => {
     setNotification({
       open: true,
-      message: `User "${newUser.username}" created successfully!`,
+      message: `Utente "${newUser.username}" creato con successo!`,
     });
     refreshUsers();
   };
@@ -124,7 +124,7 @@ export function UserView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Users
+          Utenti
         </Typography>
         <Button
           variant="contained"
@@ -132,7 +132,7 @@ export function UserView() {
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={() => setModalOpen(true)}
         >
-          New user
+          Nuovo utente
         </Button>
       </Box>
 
@@ -178,10 +178,10 @@ export function UserView() {
                   )
                 }
                 headLabel={[
-                  { id: 'username', label: 'Username' },
+                  { id: 'username', label: 'Nome utente' },
                   { id: 'email', label: 'Email' },
-                  { id: 'role', label: 'Role' },
-                  { id: 'inital_capital', label: 'Initial Capital', align: 'center' },
+                  { id: 'role', label: 'Ruolo' },
+                  { id: 'inital_capital', label: 'Capitale Iniziale', align: 'center' },
                   { id: '' },
                 ]}
               />
@@ -189,7 +189,7 @@ export function UserView() {
                 {loading ? (
                   <tr>
                     <td colSpan={6}>
-                      <Typography align="center">Loading...</Typography>
+                      <Typography align="center">Caricamento…</Typography>
                     </td>
                   </tr>
                 ) : (

@@ -1,4 +1,5 @@
 # Core FastAPI e dipendenze essenziali
+alembic==1.13.1
 annotated-types==0.7.0
 anyio==4.10.0
 bcrypt==5.0.0

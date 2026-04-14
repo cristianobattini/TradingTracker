@@ -15,6 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
@@ -22,10 +23,16 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import TuneIcon from '@mui/icons-material/Tune';
+import ShareIcon from '@mui/icons-material/Share';
+import { ShareDialog } from './share-dialog';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import dayjs from 'dayjs';
+import { getAuthHeaders } from 'src/lib/client-config';
+import { client } from 'src/client/client.gen';
+import { readUsersMeApiUsersMeGet } from 'src/client/sdk.gen';
 
 import { analysisApi, type Analysis } from 'src/services/analysis-api';
 
@@ -49,6 +56,60 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
   const [editDetailsOpen, setEditDetailsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [shareSnackbar, setShareSnackbar] = useState<string>('');
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+
+  const handleShareToClipboard = async () => {
+    if (!analysis) return;
+    const meta = [analysis.pair, analysis.timeframe, dayjs(analysis.created_at).format('DD MMM YYYY')]
+      .filter(Boolean)
+      .join(' · ');
+    const shareText = `# ${analysis.title}\n${meta}\n\n${analysis.content}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: analysis.title, text: shareText });
+        return;
+      } catch {
+        // user cancelled or not supported, fall through to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShareSnackbar('Analisi copiata negli appunti!');
+    } catch {
+      setShareSnackbar('Impossibile copiare — prova a esportare in PDF.');
+    }
+  };
+
+  const handleShareWithUsers = () => {
+    setShareDialogOpen(true);
+  };
+
+  const handleShareSuccess = async () => {
+    // Reload the analysis to get updated shares
+    try {
+      const updated = await analysisApi.get(analysis!.id);
+      onUpdated(updated);
+    } catch {
+      // Handle error silently
+    }
+  };
+
+  const handleRemoveShared = async () => {
+    if (!analysis) return;
+    
+    try {
+      // Get current user ID
+      const userResponse = await readUsersMeApiUsersMeGet();
+      if (!userResponse.data) return;
+      await analysisApi.unshare(analysis.id, userResponse.data.id);
+      onClose(); // Close modal since analysis is no longer accessible
+    } catch {
+      // Handle error silently
+    }
+  };
 
   if (!analysis) return null;
 
@@ -208,9 +269,14 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
                   <PictureAsPdfIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Delete">
-                <IconButton size="small" color="error" onClick={() => setDeleteDialogOpen(true)}>
-                  <DeleteIcon fontSize="small" />
+              <Tooltip title={analysis.is_shared ? "Condividi negli appunti" : "Condividi con utenti"}>
+                <IconButton size="small" onClick={analysis.is_shared ? handleShareToClipboard : handleShareWithUsers}>
+                  <ShareIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={analysis.is_shared ? "Rimuovi dalla mia dashboard" : "Delete"}>
+                <IconButton size="small" color="error" onClick={analysis.is_shared ? handleRemoveShared : () => setDeleteDialogOpen(true)}>
+                  {analysis.is_shared ? <RemoveCircleIcon fontSize="small" /> : <DeleteIcon fontSize="small" />}
                 </IconButton>
               </Tooltip>
               <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
@@ -307,6 +373,23 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
           }}
         />
       )}
+
+      {/* Share feedback */}
+      <Snackbar
+        open={!!shareSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setShareSnackbar('')}
+        message={shareSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+
+      {/* Share dialog */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        analysisId={analysis.id}
+        onShared={handleShareSuccess}
+      />
     </>
   );
 }

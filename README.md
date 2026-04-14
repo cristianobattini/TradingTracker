@@ -150,6 +150,80 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
+### 4. Run Database Migrations
+
+``` bash
+cd /var/www/tradingtracker/api
+alembic upgrade head
+```
+
+This applies all pending migrations to the database.
+
+------------------------------------------------------------------------
+
+# 🗄️ Database Migrations (Alembic)
+
+The project uses **Alembic** for database schema management.
+
+## Migration Files Location
+
+    api/alembic/versions/
+
+## Running Migrations
+
+### Apply all pending migrations
+
+``` bash
+cd api
+alembic upgrade head
+```
+
+### Check current migration status
+
+``` bash
+alembic current
+```
+
+### View migration history
+
+``` bash
+alembic history
+```
+
+### Rollback to previous version
+
+``` bash
+# Downgrade by 1 version
+alembic downgrade -1
+
+# Downgrade to specific version
+alembic downgrade <revision>
+```
+
+### Create a new migration (Development)
+
+``` bash
+# Auto-generate migration from model changes
+alembic revision --autogenerate -m "Description of changes"
+
+# Or create empty migration
+alembic revision -m "Description of changes"
+```
+
+## Quick Migration Scripts
+
+Convenient scripts are included:
+
+- **Windows**: `migrate_win.sh`
+- **macOS**: `migrate_mac.sh`
+- **Linux/Production**: `migrate_prod.sh`
+
+Run any of these to apply all pending migrations:
+
+``` bash
+./migrate_prod.sh
+```
+
 ------------------------------------------------------------------------
 
 # 🏗 Frontend Setup (Production)
@@ -157,14 +231,20 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ### 1. Build the frontend
 
 ``` bash
-cd /var/www/tradingtracker/frontend
+cd /var/www/tradingtracker/ui
 npm install
 npm run build
 ```
 
 Build output is stored in:
 
-    /var/www/tradingtracker/frontend/dist
+    /var/www/tradingtracker/ui/dist
+
+### 2. (Optional) Start development server locally
+
+``` bash
+npm run dev
+```
 
 ------------------------------------------------------------------------
 

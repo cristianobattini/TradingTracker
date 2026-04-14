@@ -61,14 +61,14 @@ export function TradesView() {
   const fetchTrades = async () => {
     listTradesApiTradesGet().then(response => {
       if (response.error) {
-        setError('Failed to fetch trades');
+        setError('Impossibile caricare i trade.');
         console.error('Error fetching trades:', response.error);
       } else {
         setTrades(response.data || []);
       }
       setLoading(false);
     }).catch(err => {
-      setError('Failed to fetch trades');
+      setError('Impossibile caricare i trade.');
       console.error('Error fetching trades:', err);
       setLoading(false);
     });
@@ -162,10 +162,10 @@ export function TradesView() {
   };
 
   const getStatusText = (trade: TradeResponse) => {
-    if (trade.cancelled) return 'Cancelled';
-    if (trade.profit_or_loss && trade.profit_or_loss > 0) return 'Win';
-    if (trade.profit_or_loss && trade.profit_or_loss < 0) return 'Loss';
-    return 'Breakeven';
+    if (trade.cancelled) return 'Annullato';
+    if (trade.profit_or_loss && trade.profit_or_loss > 0) return 'Vittoria';
+    if (trade.profit_or_loss && trade.profit_or_loss < 0) return 'Perdita';
+    return 'Pareggio';
   };
 
   const formatCurrency = (amount: number) => {
@@ -177,11 +177,11 @@ export function TradesView() {
   };
 
   const handleDeleteTrade = async (tradeId: number) => {
-    if (confirm('Are you sure you want to delete this trade?')) {
+    if (confirm('Sei sicuro di voler eliminare questo trade?')) {
       deleteTradeApiTradesTradeIdDelete({ path: { trade_id: tradeId } }).then(() => {
         setTrades(prev => prev.filter(trade => trade.id !== tradeId));
-      }).catch(err => {
-        setError('Failed to delete trade');
+      }).catch(() => {
+        setError('Impossibile eliminare il trade.');
       });
     };
   }
@@ -201,14 +201,14 @@ export function TradesView() {
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h4">
-            Trade Journal
+            Diario dei Trade
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setAddModalOpen(true)}
           >
-            Add Trade
+            Aggiungi Trade
           </Button>
         </Stack>
 
@@ -222,7 +222,7 @@ export function TradesView() {
         <Card sx={{ p: 2, mb: 3 }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <TextField
-              placeholder="Search trades..."
+              placeholder="Cerca trade..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
@@ -235,7 +235,7 @@ export function TradesView() {
               sx={{ minWidth: 300 }}
             />
 
-            <Tooltip title="Filter trades">
+            <Tooltip title="Filtra trade">
               <IconButton
                 onClick={(e) => setFilterAnchorEl(e.currentTarget)}
                 color={statusFilter !== 'all' || pairFilter !== 'all' ? 'primary' : 'default'}
@@ -249,7 +249,7 @@ export function TradesView() {
                 color="error"
                 variant="outlined"
                 onClick={async () => {
-                  if (!confirm(`Delete ${selectedTrades.length} trades?`)) return;
+                  if (!confirm(`Eliminare ${selectedTrades.length} trade?`)) return;
 
                   deleteTradesApiTradesDelete({ body: selectedTrades }).then(() => {
                     setTrades(prev => prev.filter(t => !selectedTrades.includes(t.id)));
@@ -258,7 +258,7 @@ export function TradesView() {
                 }
               }
               >
-                Delete Selected ({selectedTrades.length})
+                Elimina selezionati ({selectedTrades.length})
               </Button>
             )}
 
@@ -268,13 +268,13 @@ export function TradesView() {
               onClick={fetchTrades}
               disabled={loading}
             >
-              Refresh
+              Aggiorna
             </Button>
 
             <Box sx={{ flexGrow: 1 }} />
 
             <Typography variant="body2" color="text.secondary">
-              {filteredTrades.length} trades found
+              {filteredTrades.length} trade trovati
             </Typography>
           </Stack>
 
@@ -285,28 +285,28 @@ export function TradesView() {
             onClose={() => setFilterAnchorEl(null)}
           >
             <MenuItem>
-              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Status:</Typography>
+              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Stato:</Typography>
               <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 size="small"
                 sx={{ ml: 1, minWidth: 120 }}
               >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="win">Winning</MenuItem>
-                <MenuItem value="loss">Losing</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
+                <MenuItem value="all">Tutti</MenuItem>
+                <MenuItem value="win">Vincenti</MenuItem>
+                <MenuItem value="loss">Perdenti</MenuItem>
+                <MenuItem value="cancelled">Annullati</MenuItem>
               </Select>
             </MenuItem>
             <MenuItem>
-              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Pair:</Typography>
+              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Coppia:</Typography>
               <Select
                 value={pairFilter}
                 onChange={(e) => setPairFilter(e.target.value)}
                 size="small"
                 sx={{ ml: 1, minWidth: 120 }}
               >
-                <MenuItem value="all">All Pairs</MenuItem>
+                <MenuItem value="all">Tutte le coppie</MenuItem>
                 {uniquePairs.map(pair => (
                   <MenuItem key={pair} value={pair}>{pair}</MenuItem>
                 ))}
@@ -334,17 +334,17 @@ export function TradesView() {
                       onChange={(e) => toggleSelectAll(e.target.checked)}
                     />
                   </TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Pair</TableCell>
-                  <TableCell>Action</TableCell>
-                  <TableCell>System</TableCell>
-                  <TableCell>Risk</TableCell>
-                  <TableCell>Lots</TableCell>
-                  <TableCell>Entry</TableCell>
+                  <TableCell>Data</TableCell>
+                  <TableCell>Coppia</TableCell>
+                  <TableCell>Azione</TableCell>
+                  <TableCell>Sistema</TableCell>
+                  <TableCell>Rischio</TableCell>
+                  <TableCell>Lotti</TableCell>
+                  <TableCell>Entrata</TableCell>
                   <TableCell>SL/TP</TableCell>
                   <TableCell>P&L</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell>Stato</TableCell>
+                  <TableCell>Azioni</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -430,12 +430,12 @@ export function TradesView() {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                        <Tooltip title="Edit Trade">
+                        <Tooltip title="Modifica trade">
                           <IconButton size="small" onClick={() => { setSelectedTrade(trade); setEditModalOpen(true); }}>
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete Trade">
+                        <Tooltip title="Elimina trade">
                           <IconButton
                             size="small"
                             color="error"
@@ -455,12 +455,12 @@ export function TradesView() {
           {paginatedTrades.length === 0 && !loading && (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="h6" color="text.secondary">
-                No trades found
+                Nessun trade trovato
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {searchTerm || statusFilter !== 'all' || pairFilter !== 'all'
-                  ? 'Try adjusting your search or filters'
-                  : 'Get started by adding your first trade'
+                  ? 'Prova a modificare la ricerca o i filtri'
+                  : 'Inizia aggiungendo il tuo primo trade'
                 }
               </Typography>
               {(searchTerm || statusFilter !== 'all' || pairFilter !== 'all') && (
@@ -473,7 +473,7 @@ export function TradesView() {
                     setPairFilter('all');
                   }}
                 >
-                  Clear Filters
+                  Rimuovi filtri
                 </Button>
               )}
             </Box>

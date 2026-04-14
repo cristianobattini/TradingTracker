@@ -33,6 +33,11 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FilterListOffIcon from '@mui/icons-material/FilterListOff';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+
+const CALENDAR_PREF_KEY = 'calendar_preferred_source';
+type CalendarSource = 'ForexFactory' | 'Investing';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getAuthHeaders } from 'src/lib/client-config';
@@ -156,6 +161,15 @@ export function CalendarEventsView() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [preferredSource, setPreferredSource] = useState<CalendarSource>(
+    () => (localStorage.getItem(CALENDAR_PREF_KEY) as CalendarSource) || 'ForexFactory'
+  );
+
+  const togglePreferred = (source: CalendarSource) => {
+    const next = preferredSource === source ? 'ForexFactory' : source;
+    setPreferredSource(next);
+    localStorage.setItem(CALENDAR_PREF_KEY, next);
+  };
 
   // Filters
   const [impactFilter, setImpactFilter] = useState<string[]>(['High', 'Medium', 'Low']);
@@ -276,19 +290,59 @@ export function CalendarEventsView() {
       {/* ── Header ── */}
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box>
-          <Typography variant="h4" fontWeight={700}>Economic Calendar</Typography>
+          <Typography variant="h4" fontWeight={700}>Calendario Economico</Typography>
           <Typography variant="body2" color="text.secondary">
-            This week's events · source: ForexFactory
+            Eventi di questa settimana · fonte: ForexFactory
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Chip label="Investing.com" component="a" href="https://www.investing.com/economic-calendar/"
-            target="_blank" rel="noopener noreferrer" clickable
-            icon={<OpenInNewIcon fontSize="small" />} variant="outlined" size="small" />
-          <Chip label="ForexFactory" component="a" href="https://www.forexfactory.com/calendar"
-            target="_blank" rel="noopener noreferrer" clickable
-            icon={<OpenInNewIcon fontSize="small" />} variant="outlined" size="small" />
-          <Tooltip title="Refresh">
+          {/* Investing.com chip with star */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+            <Chip
+              label="Investing.com"
+              component="a"
+              href="https://www.investing.com/economic-calendar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              clickable
+              icon={<OpenInNewIcon fontSize="small" />}
+              variant={preferredSource === 'Investing' ? 'filled' : 'outlined'}
+              color={preferredSource === 'Investing' ? 'primary' : 'default'}
+              size="small"
+            />
+            <Tooltip title={preferredSource === 'Investing' ? 'Rimuovi preferito' : 'Imposta come preferito'}>
+              <IconButton size="small" onClick={() => togglePreferred('Investing')} sx={{ p: 0.25 }}>
+                {preferredSource === 'Investing'
+                  ? <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                  : <StarBorderIcon sx={{ fontSize: 16 }} />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* ForexFactory chip with star */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+            <Chip
+              label="ForexFactory"
+              component="a"
+              href="https://www.forexfactory.com/calendar"
+              target="_blank"
+              rel="noopener noreferrer"
+              clickable
+              icon={<OpenInNewIcon fontSize="small" />}
+              variant={preferredSource === 'ForexFactory' ? 'filled' : 'outlined'}
+              color={preferredSource === 'ForexFactory' ? 'primary' : 'default'}
+              size="small"
+            />
+            <Tooltip title={preferredSource === 'ForexFactory' ? 'Rimuovi preferito' : 'Imposta come preferito'}>
+              <IconButton size="small" onClick={() => togglePreferred('ForexFactory')} sx={{ p: 0.25 }}>
+                {preferredSource === 'ForexFactory'
+                  ? <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                  : <StarBorderIcon sx={{ fontSize: 16 }} />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          <Tooltip title="Aggiorna">
             <IconButton onClick={() => loadCalendar(true)} disabled={loading} size="small">
               {loading ? <CircularProgress size={18} /> : <RefreshIcon />}
             </IconButton>
@@ -303,7 +357,7 @@ export function CalendarEventsView() {
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
           <TextField
             size="small"
-            placeholder="Search events or currency…"
+            placeholder="Cerca eventi o valuta…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{ minWidth: 220, flex: '1 1 220px' }}
@@ -320,25 +374,25 @@ export function CalendarEventsView() {
           <Divider orientation="vertical" flexItem />
 
           {/* Quick filters */}
-          <Tooltip title="Jump to today">
+          <Tooltip title="Vai a oggi">
             <Button
               size="small" variant="outlined" startIcon={<TodayIcon />}
               onClick={applyToday}
               color={dayTab === todayStr() ? 'primary' : 'inherit'}
             >
-              Today
+              Oggi
             </Button>
           </Tooltip>
-          <Tooltip title="High impact events only">
+          <Tooltip title="Solo eventi ad alto impatto">
             <Button
               size="small" variant="outlined" startIcon={<WhatshotIcon />}
               onClick={applyHighOnly}
               color={impactFilter.length === 1 && impactFilter[0] === 'High' ? 'error' : 'inherit'}
             >
-              High only
+              Solo alti
             </Button>
           </Tooltip>
-          <Tooltip title="Show only events with actual results">
+          <Tooltip title="Mostra solo eventi con risultati effettivi">
             <Button
               size="small"
               variant={onlyActual ? 'contained' : 'outlined'}
@@ -346,15 +400,15 @@ export function CalendarEventsView() {
               onClick={() => setOnlyActual((v) => !v)}
               color={onlyActual ? 'success' : 'inherit'}
             >
-              Has result
+              Ha risultato
             </Button>
           </Tooltip>
 
           {hasActiveFilters && (
-            <Tooltip title="Reset all filters">
+            <Tooltip title="Azzera tutti i filtri">
               <Button size="small" variant="text" startIcon={<FilterListOffIcon />}
                 onClick={resetAll} color="warning">
-                Reset
+                Azzera
               </Button>
             </Tooltip>
           )}
@@ -389,7 +443,7 @@ export function CalendarEventsView() {
 
           {/* Currency chips */}
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>Currency:</Typography>
+            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>Valuta:</Typography>
             {presentCurrencies.map((ccy) => {
               const active = currencyFilter.includes(ccy);
               return (
@@ -405,7 +459,7 @@ export function CalendarEventsView() {
               );
             })}
             {currencyFilter.length > 0 && (
-              <Chip label="Clear" size="small" variant="outlined" color="warning"
+              <Chip label="Azzera" size="small" variant="outlined" color="warning"
                 onClick={() => setCurrencyFilter([])} sx={{ fontSize: '0.72rem' }} />
             )}
           </Box>
@@ -425,7 +479,7 @@ export function CalendarEventsView() {
             value="all"
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                All days
+                Tutti i giorni
                 <Chip label={events.length} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
               </Box>
             }
@@ -468,8 +522,8 @@ export function CalendarEventsView() {
         </Paper>
       ) : sortedDates.length === 0 ? (
         <Alert severity="info"
-          action={hasActiveFilters ? <Button color="inherit" size="small" onClick={resetAll}>Reset filters</Button> : undefined}>
-          No events match the selected filters.
+          action={hasActiveFilters ? <Button color="inherit" size="small" onClick={resetAll}>Azzera filtri</Button> : undefined}>
+          Nessun evento corrisponde ai filtri selezionati.
         </Alert>
       ) : (
         sortedDates.map((dateKey) => (
@@ -480,7 +534,7 @@ export function CalendarEventsView() {
                 📅 {formatDayHeader(dateKey)}
               </Typography>
               <Chip
-                label={`${grouped[dateKey].length} event${grouped[dateKey].length !== 1 ? 's' : ''}`}
+                label={`${grouped[dateKey].length} event${grouped[dateKey].length !== 1 ? 'i' : 'o'}`}
                 size="small" variant="outlined"
               />
               {/* Mini impact breakdown per day */}
@@ -504,12 +558,12 @@ export function CalendarEventsView() {
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'background.neutral' }}>
-                    <TableCell sx={{ fontWeight: 700, width: 60 }}>Time</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 70 }}>Currency</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 80 }}>Impact</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Event</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Forecast</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Previous</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 60 }}>Ora</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 70 }}>Valuta</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 80 }}>Impatto</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Previsione</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Precedente</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -546,7 +600,7 @@ export function CalendarEventsView() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Typography variant="body2" fontWeight={500}>{ev.title}</Typography>
                             {ev.detail_url && (
-                              <Tooltip title="View event details on ForexFactory" placement="top">
+                              <Tooltip title="Dettagli evento su ForexFactory" placement="top">
                                 <IconButton
                                   size="small"
                                   component="a"

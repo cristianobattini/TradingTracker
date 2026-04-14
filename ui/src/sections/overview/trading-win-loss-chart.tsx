@@ -14,9 +14,9 @@ const COLORS = ['#00C49F', '#FF8042', '#FFBB28'];
 
 export function TradingWinLossChart({ title, data }: TradingWinLossChartProps) {
   const chartData = [
-    { name: 'Winning Trades', value: data.win },
-    { name: 'Losing Trades', value: data.loss },
-    { name: 'Cancelled Trades', value: data.cancelled },
+    { name: 'Trade Vincenti', value: data.win },
+    { name: 'Trade Perdenti', value: data.loss },
+    { name: 'Trade Annullati', value: data.cancelled },
   ];
 
   return (

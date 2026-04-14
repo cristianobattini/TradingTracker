@@ -34,9 +34,9 @@ export function TradingCapitalGrowth({ title, data }: TradingCapitalGrowthProps)
             tickFormatter={formatCurrency}
             tick={{ fontSize: 12 }}
           />
-          <Tooltip 
-            formatter={(value: number) => [formatCurrency(value), 'Capital']}
-            labelFormatter={(label) => `Date: ${label}`}
+          <Tooltip
+            formatter={(value: number) => [formatCurrency(value), 'Capitale']}
+            labelFormatter={(label) => `Data: ${label}`}
           />
           <Legend />
           <Line
@@ -46,7 +46,7 @@ export function TradingCapitalGrowth({ title, data }: TradingCapitalGrowthProps)
             strokeWidth={3}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
-            name="Capital"
+            name="Capitale"
           />
         </LineChart>
       </ResponsiveContainer>

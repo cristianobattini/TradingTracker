@@ -70,11 +70,11 @@ const CreateUserModal = ({
 
     try {
       if (!formData.username || !formData.email || !formData.password) {
-        throw new Error('Please fill in all required fields');
+        throw new Error('Compila tutti i campi obbligatori');
       }
 
       if (formData.password.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
+        throw new Error('La password deve contenere almeno 6 caratteri');
       }
 
       const response = await createUserApiUsersPost({
@@ -127,7 +127,7 @@ const CreateUserModal = ({
     >
       <Box sx={{ ...modalStyle, width }}>
         <Typography id="create-user-modal-title" variant="h6" component="h2" gutterBottom>
-          Create New User
+          Crea Nuovo Utente
         </Typography>
 
         {error && (
@@ -140,7 +140,7 @@ const CreateUserModal = ({
           <Stack spacing={3}>
             <TextField
               required
-              label="Username"
+              label="Nome utente"
               name="username"
               value={formData.username}
               onChange={handleChange}
@@ -168,19 +168,19 @@ const CreateUserModal = ({
               onChange={handleChange}
               fullWidth
               disabled={loading}
-              helperText="Password must be at least 6 characters long"
+              helperText="La password deve contenere almeno 6 caratteri"
             />
 
             <FormControl fullWidth disabled={loading}>
-              <InputLabel>Role</InputLabel>
-              <Select name="role" value={formData.role} label="Role" onChange={handleChange}>
-                <MenuItem value="user">User</MenuItem>
+              <InputLabel>Ruolo</InputLabel>
+              <Select name="role" value={formData.role} label="Ruolo" onChange={handleChange}>
+                <MenuItem value="user">Utente</MenuItem>
                 {/* <MenuItem value="admin">Admin</MenuItem> */}
               </Select>
             </FormControl>
 
             <TextField
-              label="Initial Capital"
+              label="Capitale Iniziale"
               name="initial_capital"
               type="number"
               value={formData.initial_capital}
@@ -192,7 +192,7 @@ const CreateUserModal = ({
 
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button onClick={handleClose} disabled={loading} variant="outlined">
-                Cancel
+                Annulla
               </Button>
               <Button
                 type="submit"
@@ -200,7 +200,7 @@ const CreateUserModal = ({
                 disabled={loading}
                 startIcon={loading && <CircularProgress size={20} />}
               >
-                {loading ? 'Creating...' : 'Create User'}
+                {loading ? 'Creazione…' : 'Crea Utente'}
               </Button>
             </Stack>
           </Stack>

@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     role: RoleEnum
     valid: bool
     initial_capital: float
+    account_currency: str = "USD"
     avatar: str
 
     class Config:
@@ -28,6 +29,7 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     role: Optional[str] = None
     initial_capital: Optional[float] = None
+    account_currency: Optional[str] = None
     valid: Optional[bool] = None
     
 class PasswordChange(BaseModel):
@@ -75,6 +77,10 @@ class TradeCreate(BaseModel):
     commission_sgr: Optional[float] = None
     commission_admin: Optional[float] = None
 
+    # --- Leverage / Margin ---
+    leverage: Optional[float] = None
+    percentage_margin: Optional[float] = None
+
 
 class TradeResponse(TradeCreate):
     id: int
@@ -115,6 +121,9 @@ class TradeUpdate(BaseModel):
     commission_sgr: Optional[float] = None
     commission_admin: Optional[float] = None
 
+    leverage: Optional[float] = None
+    percentage_margin: Optional[float] = None
+
 
 # --- Analysis ---
 class AnalysisCreate(BaseModel):
@@ -143,6 +152,57 @@ class AnalysisUpdate(BaseModel):
     pair: Optional[str] = None
     timeframe: Optional[str] = None
     content: Optional[str] = None
+    pinned: Optional[bool] = None
+    pin_order: Optional[int] = None
+
+
+class UserBasicResponse(BaseModel):
+    id: int
+    username: str
+    avatar: str
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisShareResponse(BaseModel):
+    id: int
+    analysis_id: int
+    shared_with_user_id: int
+    shared_by_user_id: int
+    created_at: datetime
+    shared_by_user: UserBasicResponse
+    shared_with_user: UserBasicResponse
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisResponseWithShares(BaseModel):
+    id: int
+    title: str
+    pair: Optional[str] = None
+    timeframe: Optional[str] = None
+    content: str
+    pinned: bool
+    pin_order: int
+    created_at: datetime
+    updated_at: datetime
+    owner_id: int
+    is_shared: bool = False  # True if this analysis is shared with the current user
+    shared_by_user: Optional[UserBasicResponse] = None  # Who shared it with you
+    shares: list[AnalysisShareResponse] = []  # List of shares (only for owner)
+
+    class Config:
+        from_attributes = True
+
+
+class ShareAnalysisRequest(BaseModel):
+    user_ids: list[int]  # IDs of users to share with
+
+
+class ShareRemoveRequest(BaseModel):
+    user_id: int  # ID of user to revoke access from
 
 
 # --- Favorite Bookmarks ---
@@ -226,3 +286,6 @@ class ReportResponse(BaseModel):
     avg_loss: float
     expectancy: float
     capital: float
+    account_currency: str = "USD"
+    total_pnl: float = 0.0
+    num_trades: int = 0

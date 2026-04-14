@@ -5,6 +5,7 @@ import { Outlet, RouterProvider, createBrowserRouter } from 'react-router';
 import App from './app';
 import { routesSection } from './routes/sections';
 import { ErrorBoundary } from './routes/components';
+import './i18n';
 
 // ----------------------------------------------------------------------
 

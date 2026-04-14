@@ -23,12 +23,16 @@ import EditIcon from '@mui/icons-material/Edit';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import TuneIcon from '@mui/icons-material/Tune';
+import ShareIcon from '@mui/icons-material/Share';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import dayjs from 'dayjs';
 
 import { analysisApi, type Analysis } from 'src/services/analysis-api';
+import { ShareDialog } from './share-dialog';
+import { readUsersMeApiUsersMeGet } from 'src/client/sdk.gen';
 
 const PAIRS = [
   'EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD',
@@ -46,6 +50,7 @@ export function AnalysisFullscreenView() {
   const [error, setError] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDetailsOpen, setEditDetailsOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [zoomedSrc, setZoomedSrc] = useState<string | null>(null);
@@ -163,6 +168,20 @@ export function AnalysisFullscreenView() {
     }
   };
 
+  const handleRemoveShared = async () => {
+    if (!analysis) return;
+    
+    try {
+      // Get current user ID
+      const userResponse = await readUsersMeApiUsersMeGet();
+      if (!userResponse.data) return;
+      await analysisApi.unshare(analysis.id, userResponse.data.id);
+      navigate('/dashboard/analysis'); // Navigate back since analysis is no longer accessible
+    } catch {
+      // Handle error silently
+    }
+  };
+
   const handleDelete = async () => {
     if (!analysis) return;
     setDeleting(true);
@@ -226,6 +245,11 @@ export function AnalysisFullscreenView() {
                 <TuneIcon fontSize="small" />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Share with other users">
+              <IconButton onClick={() => setShareDialogOpen(true)}>
+                <ShareIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Export .md (images embedded)">
               <IconButton onClick={() => analysisApi.exportMarkdown(analysis)}>
                 <DownloadIcon fontSize="small" />
@@ -237,9 +261,9 @@ export function AnalysisFullscreenView() {
               </IconButton>
             </Tooltip>
             <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-            <Tooltip title="Delete">
-              <IconButton color="error" onClick={() => setDeleteDialogOpen(true)}>
-                <DeleteIcon fontSize="small" />
+            <Tooltip title={analysis?.is_shared ? "Remove from my dashboard" : "Delete"}>
+              <IconButton color="error" onClick={analysis?.is_shared ? handleRemoveShared : () => setDeleteDialogOpen(true)}>
+                {analysis?.is_shared ? <RemoveCircleIcon fontSize="small" /> : <DeleteIcon fontSize="small" />}
               </IconButton>
             </Tooltip>
           </Box>
@@ -382,6 +406,19 @@ export function AnalysisFullscreenView() {
           }}
         />
       )}
+
+      {/* Share dialog */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        analysisId={analysis.id}
+        onShared={() => {
+          // Optionally refresh the analysis to see the shares
+          if (id) {
+            analysisApi.get(Number(id)).then(setAnalysis);
+          }
+        }}
+      />
     </Box>
   );
 }

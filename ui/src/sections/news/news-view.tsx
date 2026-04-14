@@ -345,9 +345,9 @@ export function NewsView() {
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box>
-          <Typography variant="h4" fontWeight={700}>Forex News</Typography>
+          <Typography variant="h4" fontWeight={700}>Notizie Forex</Typography>
           <Typography variant="body2" color="text.secondary">
-            Live news from Investing.com · FXStreet · DailyForex · ForexFactory
+            Notizie in tempo reale da Investing.com · FXStreet · DailyForex · ForexFactory
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -357,7 +357,7 @@ export function NewsView() {
             onClick={handleSummary}
             disabled={summaryLoading || loading}
           >
-            AI Summary
+            Riassunto IA
           </Button>
           <Button
             variant="outlined"
@@ -366,9 +366,9 @@ export function NewsView() {
             disabled={pdfLoading}
             color="error"
           >
-            Export PDF
+            Esporta PDF
           </Button>
-          <Tooltip title="Refresh news">
+          <Tooltip title="Aggiorna notizie">
             <IconButton onClick={() => loadNews(true)} disabled={loading}>
               {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
             </IconButton>
@@ -396,7 +396,7 @@ export function NewsView() {
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Search articles by title or content…"
+                placeholder="Cerca articoli per titolo o contenuto…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 InputProps={{
@@ -429,7 +429,7 @@ export function NewsView() {
               ) : filteredArticles.length === 0 ? (
                 <Box sx={{ p: 4, textAlign: 'center' }}>
                   <Typography color="text.secondary">
-                    {q ? `No articles matching "${search}".` : 'No articles available. Try refreshing.'}
+                    {q ? `Nessun articolo corrispondente a "${search}".` : 'Nessun articolo disponibile. Prova ad aggiornare.'}
                   </Typography>
                 </Box>
               ) : (
@@ -474,9 +474,9 @@ export function NewsView() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Read full article
+                        Leggi articolo completo
                       </Button>
-                      <Tooltip title={savedUrls.has(article.url) ? 'Remove from Read Later' : 'Save for later'}>
+                      <Tooltip title={savedUrls.has(article.url) ? 'Rimuovi da Leggi più tardi' : 'Salva per dopo'}>
                         <IconButton
                           size="small"
                           onClick={() => handleToggleSave(article)}
@@ -500,9 +500,9 @@ export function NewsView() {
           <Paper elevation={1} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
               <AutoAwesomeIcon color="primary" fontSize="small" />
-              <Typography variant="subtitle1" fontWeight={700}>AI Analyst</Typography>
+              <Typography variant="subtitle1" fontWeight={700}>Analista IA</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                Ask anything about the market
+                Chiedi qualsiasi cosa sul mercato
               </Typography>
             </Box>
 
@@ -521,7 +521,7 @@ export function NewsView() {
                       primary={<Typography variant="caption" fontWeight={700}>Anakin AI</Typography>}
                       secondary={
                         <Typography variant="body2" color="text.secondary">
-                          Hi! Click <strong>AI Summary</strong> for an instant market overview, or ask me anything about forex — I'll use the latest headlines to answer.
+                          Ciao! Clicca <strong>Riassunto IA</strong> per una panoramica istantanea del mercato, oppure chiedimi qualsiasi cosa sul forex — userò le ultime notizie per risponderti.
                         </Typography>
                       }
                     />
@@ -539,14 +539,14 @@ export function NewsView() {
                           }}
                         >
                           {msg.role === 'user'
-                            ? <Typography fontSize={12} fontWeight={700} color="white">You</Typography>
+                            ? <Typography fontSize={12} fontWeight={700} color="white">Tu</Typography>
                             : <img height="90%" src="/assets/ai-logo.png" alt="ai" />}
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={
                           <Typography variant="caption" fontWeight={700}>
-                            {msg.role === 'user' ? 'You' : 'Anakin AI'}
+                            {msg.role === 'user' ? 'Tu' : 'Anakin AI'}
                           </Typography>
                         }
                         secondary={
@@ -596,7 +596,7 @@ export function NewsView() {
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Ask about market conditions, pairs, events…"
+                placeholder="Chiedi su condizioni di mercato, coppie, eventi…"
                 value={aiInput}
                 onChange={(e) => setAiInput(e.target.value)}
                 disabled={aiLoading}

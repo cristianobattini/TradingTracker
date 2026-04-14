@@ -26,14 +26,14 @@ export function TradingPairsDistribution({ title, data }: TradingPairsDistributi
             tick={{ fontSize: 12 }}
           />
           <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip 
-            formatter={(value: number) => [value, 'Number of Trades']}
+          <Tooltip
+            formatter={(value: number) => [value, 'N° Trade']}
           />
           <Legend />
-          <Bar 
-            dataKey="count" 
-            fill="#82ca9d" 
-            name="Trade Count"
+          <Bar
+            dataKey="count"
+            fill="#82ca9d"
+            name="Numero Trade"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>

@@ -73,7 +73,7 @@ const UpdateUserModal = ({
 
     try {
       if (!formData.username || !formData.email) {
-        throw new Error('Please fill in all required fields');
+        throw new Error('Compila tutti i campi obbligatori');
       }
 
       const response = await updateUserApiUsersUserIdPut({
@@ -125,7 +125,7 @@ const UpdateUserModal = ({
     >
       <Box sx={{ ...modalStyle, width }}>
         <Typography id="create-user-modal-title" variant="h6" component="h2" gutterBottom>
-          Update {user.username}
+          Modifica {user.username}
         </Typography>
 
         {error && (
@@ -138,7 +138,7 @@ const UpdateUserModal = ({
           <Stack spacing={3}>
             <TextField
               required
-              label="Username"
+              label="Nome utente"
               name="username"
               value={formData.username}
               onChange={handleChange}
@@ -158,15 +158,15 @@ const UpdateUserModal = ({
             />
 
             <FormControl fullWidth disabled={loading}>
-              <InputLabel>Role</InputLabel>
-              <Select name="role" value={formData.role} label="Role" onChange={handleChange}>
-                <MenuItem value="user">User</MenuItem>
+              <InputLabel>Ruolo</InputLabel>
+              <Select name="role" value={formData.role} label="Ruolo" onChange={handleChange}>
+                <MenuItem value="user">Utente</MenuItem>
                 {/* <MenuItem value="admin">Admin</MenuItem> */}
               </Select>
             </FormControl>
 
             <TextField
-              label="Initial Capital"
+              label="Capitale Iniziale"
               name="initial_capital"
               type="number"
               value={formData.initial_capital}
@@ -178,7 +178,7 @@ const UpdateUserModal = ({
 
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button onClick={handleClose} disabled={loading} variant="outlined">
-                Cancel
+                Annulla
               </Button>
               <Button
                 type="submit"
@@ -186,7 +186,7 @@ const UpdateUserModal = ({
                 disabled={loading}
                 startIcon={loading && <CircularProgress size={20} />}
               >
-                {loading ? 'Saving...' : 'Save User'}
+                {loading ? 'Salvataggio…' : 'Salva Utente'}
               </Button>
             </Stack>
           </Stack>

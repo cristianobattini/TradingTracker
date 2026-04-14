@@ -24,11 +24,21 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArticleIcon from '@mui/icons-material/Article';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FilterListOffIcon from '@mui/icons-material/FilterListOff';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import ShareIcon from '@mui/icons-material/Share';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import dayjs from 'dayjs';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { analysisApi, type Analysis } from 'src/services/analysis-api';
 import { AnalysisDetailModal } from './analysis-detail-modal';
+import { ShareDialog } from './share-dialog';
+import { getAuthHeaders } from 'src/lib/client-config';
+import { client } from 'src/client/client.gen';
+
+const getBaseUrl = (): string => (client.getConfig().baseUrl as string) || '';
 
 const PAIRS = [
   'EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD',
@@ -55,6 +65,7 @@ export function AnalysisDashboardView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<Analysis | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // ── Filter & sort state ───────────────────────────────────────────────────
   const [search, setSearch]       = useState('');
@@ -67,10 +78,32 @@ export function AnalysisDashboardView() {
     open: boolean; title: string; pair: string; timeframe: string; content: string; saving: boolean; error: string;
   }>({ open: false, title: '', pair: '', timeframe: '', content: '', saving: false, error: '' });
 
+  // Share dialog state
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareAnalysisId, setShareAnalysisId] = useState<number | null>(null);
+
+  // Delete confirmation state
+  const [deleteDialogId, setDeleteDialogId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Remove shared confirmation state
+  const [removeSharedDialogId, setRemoveSharedDialogId] = useState<number | null>(null);
+  const [removingShared, setRemovingShared] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
+      // Load current user
+      const userResponse = await fetch(`${getBaseUrl()}/api/users/me`, {
+        headers: getAuthHeaders(),
+      });
+      if (userResponse.ok) {
+        const user = await userResponse.json();
+        setCurrentUserId(user.id);
+      }
+      
+      // Load analyses
       setAnalyses(await analysisApi.list());
     } catch {
       setError('Caricamento fallito.');
@@ -80,6 +113,65 @@ export function AnalysisDashboardView() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handlePin = async (id: number, pinned: boolean) => {
+    // Optimistic update
+    setAnalyses((prev) => prev.map((a) => (a.id === id ? { ...a, pinned } : a)));
+
+    try {
+      const resultPinned = await analysisApi.pin(id, pinned);
+      setAnalyses((prev) => prev.map((a) => (a.id === id ? { ...a, pinned: resultPinned } : a)));
+    } catch {
+      // Revert on error
+      setAnalyses((prev) => prev.map((a) => (a.id === id ? { ...a, pinned: !pinned } : a)));
+    }
+  };
+
+  const handleShare = (analysisId: number) => {
+    setShareAnalysisId(analysisId);
+    setShareDialogOpen(true);
+  };
+
+  const handleShareSuccess = () => {
+    // Reload analyses to get updated share information
+    load();
+  };
+
+  const handleRemoveShared = (analysisId: number) => {
+    setRemoveSharedDialogId(analysisId);
+  };
+
+  const handleRemoveSharedConfirm = async () => {
+    if (removeSharedDialogId === null || !currentUserId) return;
+    setRemovingShared(true);
+    try {
+      await analysisApi.unshare(removeSharedDialogId, currentUserId);
+      setAnalyses((prev) => prev.filter((a) => a.id !== removeSharedDialogId));
+      setRemoveSharedDialogId(null);
+    } catch {
+      // Handle error silently
+    } finally {
+      setRemovingShared(false);
+    }
+  };
+
+  const handleDelete = (analysisId: number) => {
+    setDeleteDialogId(analysisId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteDialogId === null) return;
+    setDeleting(true);
+    try {
+      await analysisApi.delete(deleteDialogId);
+      setAnalyses((prev) => prev.filter((a) => a.id !== deleteDialogId));
+      setDeleteDialogId(null);
+    } catch {
+      // Handle error silently
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // ── Dynamic pair / timeframe lists (only values present in data) ──────────
   const availablePairs = useMemo(() => {
@@ -101,7 +193,7 @@ export function AnalysisDashboardView() {
   };
 
   // ── Filter + sort pipeline ────────────────────────────────────────────────
-  const result = useMemo(() => {
+  const { pinnedResult, unpinnedResult } = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = analyses.filter((a) => {
       if (filterPair && a.pair !== filterPair) return false;
@@ -112,7 +204,7 @@ export function AnalysisDashboardView() {
       return true;
     });
 
-    return [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortKey) {
         case 'date_asc':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -128,7 +220,14 @@ export function AnalysisDashboardView() {
           return 0;
       }
     });
+
+    return {
+      pinnedResult: sorted.filter((a) => (a as any).pinned),
+      unpinnedResult: sorted.filter((a) => !(a as any).pinned),
+    };
   }, [analyses, search, filterPair, filterTimeframe, sortKey]);
+
+  const result = [...pinnedResult, ...unpinnedResult];
 
   // ── Upload ────────────────────────────────────────────────────────────────
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,13 +394,45 @@ export function AnalysisDashboardView() {
           )}
         </Box>
       ) : (
-        <Grid container spacing={2}>
-          {result.map((analysis) => (
-            <Grid item key={analysis.id} xs={12} sm={6} md={4} lg={3}>
-              <AnalysisCard analysis={analysis} onClick={() => setSelected(analysis)} />
-            </Grid>
-          ))}
-        </Grid>
+        <>
+          {/* ── Bookmarks section ─────────────────────────────────────────── */}
+          {pinnedResult.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <BookmarkIcon fontSize="small" color="primary" />
+                <Typography variant="subtitle2" color="primary" fontWeight={700}>
+                  Segnalibri ({pinnedResult.length})
+                </Typography>
+              </Box>
+              <Grid container spacing={2}>
+                {pinnedResult.map((analysis) => (
+                  <Grid item key={analysis.id} xs={12} sm={6} md={4} lg={3}>
+                    <AnalysisCard analysis={analysis} onClick={() => setSelected(analysis)} onPin={handlePin} onShare={handleShare} onRemoveShared={handleRemoveShared} onDelete={handleDelete} currentUserId={currentUserId} />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+
+          {/* ── Main grid ─────────────────────────────────────────────────── */}
+          {unpinnedResult.length > 0 && (
+            <>
+              {pinnedResult.length > 0 && (
+                <Typography variant="subtitle2" color="text.secondary" fontWeight={600} sx={{ mb: 1.5 }}>
+                  Tutte le analisi
+                </Typography>
+              )}
+              <Grid container spacing={2}>
+                {unpinnedResult.map((analysis) => (
+                  <Grid item key={analysis.id} xs={12} sm={6} md={4} lg={3}>
+                    <AnalysisCard analysis={analysis} onClick={() => setSelected(analysis)} onPin={handlePin} onShare={handleShare} onRemoveShared={handleRemoveShared} onDelete={handleDelete} currentUserId={currentUserId} />
+                  </Grid>
+                ))}
+              </Grid>
+            </>
+          )}
+
+        </>
       )}
 
       {/* Detail modal */}
@@ -343,27 +474,171 @@ export function AnalysisDashboardView() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Share dialog */}
+      <ShareDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        analysisId={shareAnalysisId || 0}
+        onShared={handleShareSuccess}
+      />
+
+      {/* Remove shared confirmation dialog */}
+      <Dialog
+        open={removeSharedDialogId !== null}
+        onClose={() => !removingShared && setRemoveSharedDialogId(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Rimuovi analisi condivisa</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Vuoi rimuovere{' '}
+            <strong>
+              {analyses.find((a) => a.id === removeSharedDialogId)?.title ?? 'questa analisi'}
+            </strong>{' '}
+            dalla tua dashboard? Potrai recuperarla solo se l&apos;utente te la ricondivide.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRemoveSharedDialogId(null)} disabled={removingShared}>
+            Annulla
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleRemoveSharedConfirm}
+            disabled={removingShared}
+            startIcon={removingShared ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            Rimuovi
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteDialogId !== null}
+        onClose={() => !deleting && setDeleteDialogId(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Elimina analisi</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Sei sicuro di voler eliminare{' '}
+            <strong>
+              {analyses.find((a) => a.id === deleteDialogId)?.title ?? 'questa analisi'}
+            </strong>
+            ? L&apos;operazione non può essere annullata.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogId(null)} disabled={deleting}>
+            Annulla
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDeleteConfirm}
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            Elimina
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardContent>
   );
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
-function AnalysisCard({ analysis, onClick }: { analysis: Analysis; onClick: () => void }) {
+interface AnalysisCardProps {
+  analysis: Analysis & { is_shared?: boolean; shared_by_user?: { username: string };  };
+  onClick: () => void;
+  onPin?: (id: number, pinned: boolean) => void;
+  onShare?: (id: number) => void;
+  onRemoveShared?: (id: number) => void;
+  onDelete?: (id: number) => void;
+  currentUserId: number | null;
+}
+
+function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDelete, currentUserId }: AnalysisCardProps) {
   const preview = analysis.content
     .replace(/!\[.*?\]\(.*?\)/g, '')
     .replace(/[#*`>_~\[\]]/g, '')
     .trim()
     .slice(0, 120);
 
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPin?.(analysis.id, !(analysis as any).pinned);
+  };
+
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 6 } }}>
       <CardActionArea onClick={onClick} sx={{ flex: 1, alignItems: 'flex-start', display: 'flex' }}>
         <CardContent sx={{ flex: 1, width: '100%' }}>
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom
-            sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {analysis.title}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography variant="subtitle1" fontWeight={600}
+              sx={{ flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {analysis.title}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+              {!analysis.is_shared && onShare && (
+                <Tooltip title="Condividi analisi">
+                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); onShare(analysis.id); }}>
+                    <ShareIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title={(analysis as any).pinned ? 'Rimuovi segnalibro' : 'Aggiungi ai segnalibri'}>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={handlePinClick}
+                    color={(analysis as any).pinned ? 'primary' : 'default'}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    {(analysis as any).pinned ? <BookmarkIcon fontSize="small" /> : <BookmarkBorderIcon fontSize="small" />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+              {analysis.is_shared ? (
+                <Tooltip title="Rimuovi dalla mia dashboard">
+                  <IconButton 
+                    size="small" 
+                    onClick={(e) => { e.stopPropagation(); onRemoveShared?.(analysis.id); }}
+                    color="error"
+                  >
+                    <RemoveCircleIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Tooltip title="Elimina analisi">
+                  <IconButton 
+                    size="small" 
+                    onClick={(e) => { e.stopPropagation(); onDelete?.(analysis.id); }}
+                    color="error"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          </Box>
+
+          {(analysis as any).is_shared && (
+            <Box sx={{ mb: 1 }}>
+              <Chip
+                label={`Condivisa da ${(analysis as any).shared_by_user?.username || 'Utente'}`}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
+            </Box>
+          )}
 
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
             {dayjs(analysis.created_at).format('DD MMM YYYY')}

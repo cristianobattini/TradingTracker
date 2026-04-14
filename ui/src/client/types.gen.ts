@@ -65,6 +65,89 @@ export type AnalysisResponse = {
 };
 
 /**
+ * AnalysisResponseWithShares
+ */
+export type AnalysisResponseWithShares = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Pair
+     */
+    pair?: string | null;
+    /**
+     * Timeframe
+     */
+    timeframe?: string | null;
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Pinned
+     */
+    pinned: boolean;
+    /**
+     * Pin Order
+     */
+    pin_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Owner Id
+     */
+    owner_id: number;
+    /**
+     * Is Shared
+     */
+    is_shared?: boolean;
+    shared_by_user?: UserBasicResponse | null;
+    /**
+     * Shares
+     */
+    shares?: Array<AnalysisShareResponse>;
+};
+
+/**
+ * AnalysisShareResponse
+ */
+export type AnalysisShareResponse = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Analysis Id
+     */
+    analysis_id: number;
+    /**
+     * Shared With User Id
+     */
+    shared_with_user_id: number;
+    /**
+     * Shared By User Id
+     */
+    shared_by_user_id: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    shared_by_user: UserBasicResponse;
+    shared_with_user: UserBasicResponse;
+};
+
+/**
  * AnalysisUpdate
  */
 export type AnalysisUpdate = {
@@ -84,6 +167,14 @@ export type AnalysisUpdate = {
      * Content
      */
     content?: string | null;
+    /**
+     * Pinned
+     */
+    pinned?: boolean | null;
+    /**
+     * Pin Order
+     */
+    pin_order?: number | null;
 };
 
 /**
@@ -147,6 +238,100 @@ export type BodyUploadAvatarApiUsersUserIdAvatarPost = {
 };
 
 /**
+ * FavoriteBookmarkCreate
+ */
+export type FavoriteBookmarkCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Color
+     */
+    color?: string;
+    /**
+     * Emoji
+     */
+    emoji?: string;
+};
+
+/**
+ * FavoriteBookmarkResponse
+ */
+export type FavoriteBookmarkResponse = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Color
+     */
+    color: string;
+    /**
+     * Emoji
+     */
+    emoji: string;
+    /**
+     * Sort Order
+     */
+    sort_order: number;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Owner Id
+     */
+    owner_id: number;
+};
+
+/**
+ * FavoriteBookmarkUpdate
+ */
+export type FavoriteBookmarkUpdate = {
+    /**
+     * Title
+     */
+    title?: string | null;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Color
+     */
+    color?: string | null;
+    /**
+     * Emoji
+     */
+    emoji?: string | null;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -168,6 +353,140 @@ export type PasswordChange = {
      * New Password
      */
     new_password: string;
+};
+
+/**
+ * ReadLaterBookmarkCreate
+ */
+export type ReadLaterBookmarkCreate = {
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Summary
+     */
+    summary?: string;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Published At
+     */
+    published_at?: string | null;
+    /**
+     * Source
+     */
+    source?: string;
+    /**
+     * Source Id
+     */
+    source_id?: string;
+    /**
+     * Source Color
+     */
+    source_color?: string;
+    /**
+     * Site Url
+     */
+    site_url?: string;
+    /**
+     * Expires Days
+     */
+    expires_days?: number | null;
+};
+
+/**
+ * ReadLaterBookmarkResponse
+ */
+export type ReadLaterBookmarkResponse = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Summary
+     */
+    summary: string;
+    /**
+     * Url
+     */
+    url: string;
+    /**
+     * Published At
+     */
+    published_at: string | null;
+    /**
+     * Source
+     */
+    source: string;
+    /**
+     * Source Id
+     */
+    source_id: string;
+    /**
+     * Source Color
+     */
+    source_color: string;
+    /**
+     * Site Url
+     */
+    site_url: string;
+    /**
+     * Saved At
+     */
+    saved_at: string;
+    /**
+     * Expires At
+     */
+    expires_at: string | null;
+    /**
+     * Pinned
+     */
+    pinned: boolean;
+    /**
+     * Pin Order
+     */
+    pin_order: number;
+    /**
+     * Owner Id
+     */
+    owner_id: number;
+};
+
+/**
+ * ReadLaterExpiryUpdate
+ */
+export type ReadLaterExpiryUpdate = {
+    /**
+     * Expires Days
+     */
+    expires_days?: number | null;
+};
+
+/**
+ * ReadLaterReorderRequest
+ */
+export type ReadLaterReorderRequest = {
+    /**
+     * Order
+     */
+    order: Array<number>;
+};
+
+/**
+ * ReorderRequest
+ */
+export type ReorderRequest = {
+    /**
+     * Order
+     */
+    order: Array<number>;
 };
 
 /**
@@ -206,12 +525,34 @@ export type ReportResponse = {
      * Capital
      */
     capital: number;
+    /**
+     * Account Currency
+     */
+    account_currency?: string;
+    /**
+     * Total Pnl
+     */
+    total_pnl?: number;
+    /**
+     * Num Trades
+     */
+    num_trades?: number;
 };
 
 /**
  * RoleEnum
  */
 export type RoleEnum = 'admin' | 'user';
+
+/**
+ * ShareAnalysisRequest
+ */
+export type ShareAnalysisRequest = {
+    /**
+     * User Ids
+     */
+    user_ids: Array<number>;
+};
 
 /**
  * TokenSchema
@@ -340,6 +681,14 @@ export type TradeCreate = {
      * Commission Admin
      */
     commission_admin?: number | null;
+    /**
+     * Leverage
+     */
+    leverage?: number | null;
+    /**
+     * Percentage Margin
+     */
+    percentage_margin?: number | null;
 };
 
 /**
@@ -454,6 +803,14 @@ export type TradeResponse = {
      * Commission Admin
      */
     commission_admin?: number | null;
+    /**
+     * Leverage
+     */
+    leverage?: number | null;
+    /**
+     * Percentage Margin
+     */
+    percentage_margin?: number | null;
     /**
      * Id
      */
@@ -576,6 +933,32 @@ export type TradeUpdate = {
      * Commission Admin
      */
     commission_admin?: number | null;
+    /**
+     * Leverage
+     */
+    leverage?: number | null;
+    /**
+     * Percentage Margin
+     */
+    percentage_margin?: number | null;
+};
+
+/**
+ * UserBasicResponse
+ */
+export type UserBasicResponse = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Avatar
+     */
+    avatar: string;
 };
 
 /**
@@ -627,6 +1010,10 @@ export type UserResponse = {
      */
     initial_capital: number;
     /**
+     * Account Currency
+     */
+    account_currency?: string;
+    /**
      * Avatar
      */
     avatar: string;
@@ -652,6 +1039,10 @@ export type UserUpdate = {
      * Initial Capital
      */
     initial_capital?: number | null;
+    /**
+     * Account Currency
+     */
+    account_currency?: string | null;
     /**
      * Valid
      */
@@ -826,6 +1217,31 @@ export type ReadUsersMeApiUsersMeGetResponses = {
 };
 
 export type ReadUsersMeApiUsersMeGetResponse = ReadUsersMeApiUsersMeGetResponses[keyof ReadUsersMeApiUsersMeGetResponses];
+
+export type UpdateCurrentUserApiUsersMePutData = {
+    body: UserUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/users/me';
+};
+
+export type UpdateCurrentUserApiUsersMePutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateCurrentUserApiUsersMePutError = UpdateCurrentUserApiUsersMePutErrors[keyof UpdateCurrentUserApiUsersMePutErrors];
+
+export type UpdateCurrentUserApiUsersMePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserResponse;
+};
+
+export type UpdateCurrentUserApiUsersMePutResponse = UpdateCurrentUserApiUsersMePutResponses[keyof UpdateCurrentUserApiUsersMePutResponses];
 
 export type DeleteUserApiUsersUserIdDeleteData = {
     body?: never;
@@ -1192,6 +1608,80 @@ export type GetReportApiReportGetResponses = {
 
 export type GetReportApiReportGetResponse = GetReportApiReportGetResponses[keyof GetReportApiReportGetResponses];
 
+export type GetPositionsByCurrencyApiReportPositionsByCurrencyGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/report/positions-by-currency';
+};
+
+export type GetPositionsByCurrencyApiReportPositionsByCurrencyGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetExchangeRatesApiExchangeRatesGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * From Currency
+         */
+        from_currency?: string;
+        /**
+         * To Currency
+         */
+        to_currency?: string;
+    };
+    url: '/api/exchange-rates';
+};
+
+export type GetExchangeRatesApiExchangeRatesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetExchangeRatesApiExchangeRatesGetError = GetExchangeRatesApiExchangeRatesGetErrors[keyof GetExchangeRatesApiExchangeRatesGetErrors];
+
+export type GetExchangeRatesApiExchangeRatesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type GetAllExchangeRatesApiExchangeRatesAllGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Base Currency
+         */
+        base_currency?: string;
+    };
+    url: '/api/exchange-rates/all';
+};
+
+export type GetAllExchangeRatesApiExchangeRatesAllGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetAllExchangeRatesApiExchangeRatesAllGetError = GetAllExchangeRatesApiExchangeRatesAllGetErrors[keyof GetAllExchangeRatesApiExchangeRatesAllGetErrors];
+
+export type GetAllExchangeRatesApiExchangeRatesAllGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type HealthCheckApiHealthGetData = {
     body?: never;
     path?: never;
@@ -1256,7 +1746,7 @@ export type ListAnalysesApiAnalysesGetResponses = {
      *
      * Successful Response
      */
-    200: Array<AnalysisResponse>;
+    200: Array<AnalysisResponseWithShares>;
 };
 
 export type ListAnalysesApiAnalysesGetResponse = ListAnalysesApiAnalysesGetResponses[keyof ListAnalysesApiAnalysesGetResponses];
@@ -1339,7 +1829,7 @@ export type GetAnalysisApiAnalysesAnalysisIdGetResponses = {
     /**
      * Successful Response
      */
-    200: AnalysisResponse;
+    200: AnalysisResponseWithShares;
 };
 
 export type GetAnalysisApiAnalysesAnalysisIdGetResponse = GetAnalysisApiAnalysesAnalysisIdGetResponses[keyof GetAnalysisApiAnalysesAnalysisIdGetResponses];
@@ -1373,6 +1863,99 @@ export type UpdateAnalysisApiAnalysesAnalysisIdPutResponses = {
 };
 
 export type UpdateAnalysisApiAnalysesAnalysisIdPutResponse = UpdateAnalysisApiAnalysesAnalysisIdPutResponses[keyof UpdateAnalysisApiAnalysesAnalysisIdPutResponses];
+
+export type PinAnalysisApiAnalysesAnalysisIdPinPatchData = {
+    /**
+     * Body
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}/pin';
+};
+
+export type PinAnalysisApiAnalysesAnalysisIdPinPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PinAnalysisApiAnalysesAnalysisIdPinPatchError = PinAnalysisApiAnalysesAnalysisIdPinPatchErrors[keyof PinAnalysisApiAnalysesAnalysisIdPinPatchErrors];
+
+export type PinAnalysisApiAnalysesAnalysisIdPinPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ShareAnalysisApiAnalysesAnalysisIdSharePostData = {
+    body: ShareAnalysisRequest;
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}/share';
+};
+
+export type ShareAnalysisApiAnalysesAnalysisIdSharePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ShareAnalysisApiAnalysesAnalysisIdSharePostError = ShareAnalysisApiAnalysesAnalysisIdSharePostErrors[keyof ShareAnalysisApiAnalysesAnalysisIdSharePostErrors];
+
+export type ShareAnalysisApiAnalysesAnalysisIdSharePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Analysis Id
+         */
+        analysis_id: number;
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/analyses/{analysis_id}/share/{user_id}';
+};
+
+export type UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteError = UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteErrors[keyof UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteErrors];
+
+export type UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type GetNewsApiNewsGetData = {
     body?: never;
@@ -1478,6 +2061,284 @@ export type GetCalendarApiCalendarGetErrors = {
 export type GetCalendarApiCalendarGetError = GetCalendarApiCalendarGetErrors[keyof GetCalendarApiCalendarGetErrors];
 
 export type GetCalendarApiCalendarGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ListFavoritesApiBookmarksFavoritesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/favorites/';
+};
+
+export type ListFavoritesApiBookmarksFavoritesGetResponses = {
+    /**
+     * Response List Favorites Api Bookmarks Favorites  Get
+     *
+     * Successful Response
+     */
+    200: Array<FavoriteBookmarkResponse>;
+};
+
+export type ListFavoritesApiBookmarksFavoritesGetResponse = ListFavoritesApiBookmarksFavoritesGetResponses[keyof ListFavoritesApiBookmarksFavoritesGetResponses];
+
+export type CreateFavoriteApiBookmarksFavoritesPostData = {
+    body: FavoriteBookmarkCreate;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/favorites/';
+};
+
+export type CreateFavoriteApiBookmarksFavoritesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateFavoriteApiBookmarksFavoritesPostError = CreateFavoriteApiBookmarksFavoritesPostErrors[keyof CreateFavoriteApiBookmarksFavoritesPostErrors];
+
+export type CreateFavoriteApiBookmarksFavoritesPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: FavoriteBookmarkResponse;
+};
+
+export type CreateFavoriteApiBookmarksFavoritesPostResponse = CreateFavoriteApiBookmarksFavoritesPostResponses[keyof CreateFavoriteApiBookmarksFavoritesPostResponses];
+
+export type DeleteFavoriteApiBookmarksFavoritesBmIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Bm Id
+         */
+        bm_id: number;
+    };
+    query?: never;
+    url: '/api/bookmarks/favorites/{bm_id}';
+};
+
+export type DeleteFavoriteApiBookmarksFavoritesBmIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteFavoriteApiBookmarksFavoritesBmIdDeleteError = DeleteFavoriteApiBookmarksFavoritesBmIdDeleteErrors[keyof DeleteFavoriteApiBookmarksFavoritesBmIdDeleteErrors];
+
+export type DeleteFavoriteApiBookmarksFavoritesBmIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type UpdateFavoriteApiBookmarksFavoritesBmIdPutData = {
+    body: FavoriteBookmarkUpdate;
+    path: {
+        /**
+         * Bm Id
+         */
+        bm_id: number;
+    };
+    query?: never;
+    url: '/api/bookmarks/favorites/{bm_id}';
+};
+
+export type UpdateFavoriteApiBookmarksFavoritesBmIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateFavoriteApiBookmarksFavoritesBmIdPutError = UpdateFavoriteApiBookmarksFavoritesBmIdPutErrors[keyof UpdateFavoriteApiBookmarksFavoritesBmIdPutErrors];
+
+export type UpdateFavoriteApiBookmarksFavoritesBmIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: FavoriteBookmarkResponse;
+};
+
+export type UpdateFavoriteApiBookmarksFavoritesBmIdPutResponse = UpdateFavoriteApiBookmarksFavoritesBmIdPutResponses[keyof UpdateFavoriteApiBookmarksFavoritesBmIdPutResponses];
+
+export type ReorderFavoritesApiBookmarksFavoritesReorderPutData = {
+    body: ReorderRequest;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/favorites/reorder/';
+};
+
+export type ReorderFavoritesApiBookmarksFavoritesReorderPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderFavoritesApiBookmarksFavoritesReorderPutError = ReorderFavoritesApiBookmarksFavoritesReorderPutErrors[keyof ReorderFavoritesApiBookmarksFavoritesReorderPutErrors];
+
+export type ReorderFavoritesApiBookmarksFavoritesReorderPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type ListReadLaterApiBookmarksReadLaterGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/read-later/';
+};
+
+export type ListReadLaterApiBookmarksReadLaterGetResponses = {
+    /**
+     * Response List Read Later Api Bookmarks Read Later  Get
+     *
+     * Successful Response
+     */
+    200: Array<ReadLaterBookmarkResponse>;
+};
+
+export type ListReadLaterApiBookmarksReadLaterGetResponse = ListReadLaterApiBookmarksReadLaterGetResponses[keyof ListReadLaterApiBookmarksReadLaterGetResponses];
+
+export type CreateReadLaterApiBookmarksReadLaterPostData = {
+    body: ReadLaterBookmarkCreate;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/read-later/';
+};
+
+export type CreateReadLaterApiBookmarksReadLaterPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateReadLaterApiBookmarksReadLaterPostError = CreateReadLaterApiBookmarksReadLaterPostErrors[keyof CreateReadLaterApiBookmarksReadLaterPostErrors];
+
+export type CreateReadLaterApiBookmarksReadLaterPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReadLaterBookmarkResponse;
+};
+
+export type CreateReadLaterApiBookmarksReadLaterPostResponse = CreateReadLaterApiBookmarksReadLaterPostResponses[keyof CreateReadLaterApiBookmarksReadLaterPostResponses];
+
+export type UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchData = {
+    body: ReadLaterExpiryUpdate;
+    path: {
+        /**
+         * Bm Id
+         */
+        bm_id: number;
+    };
+    query?: never;
+    url: '/api/bookmarks/read-later/{bm_id}/expiry';
+};
+
+export type UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchError = UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchErrors[keyof UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchErrors];
+
+export type UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReadLaterBookmarkResponse;
+};
+
+export type UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponse = UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponses[keyof UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponses];
+
+export type DeleteReadLaterApiBookmarksReadLaterBmIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Bm Id
+         */
+        bm_id: number;
+    };
+    query?: never;
+    url: '/api/bookmarks/read-later/{bm_id}';
+};
+
+export type DeleteReadLaterApiBookmarksReadLaterBmIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteReadLaterApiBookmarksReadLaterBmIdDeleteError = DeleteReadLaterApiBookmarksReadLaterBmIdDeleteErrors[keyof DeleteReadLaterApiBookmarksReadLaterBmIdDeleteErrors];
+
+export type DeleteReadLaterApiBookmarksReadLaterBmIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchData = {
+    body?: never;
+    path: {
+        /**
+         * Bm Id
+         */
+        bm_id: number;
+    };
+    query?: never;
+    url: '/api/bookmarks/read-later/{bm_id}/pin';
+};
+
+export type TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchError = TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchErrors[keyof TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchErrors];
+
+export type TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReadLaterBookmarkResponse;
+};
+
+export type TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponse = TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponses[keyof TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponses];
+
+export type ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutData = {
+    body: ReadLaterReorderRequest;
+    path?: never;
+    query?: never;
+    url: '/api/bookmarks/read-later/reorder/';
+};
+
+export type ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutError = ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutErrors[keyof ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutErrors];
+
+export type ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutResponses = {
     /**
      * Successful Response
      */

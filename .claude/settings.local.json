@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(python -m alembic heads)",
+      "Bash(python -m alembic current)",
+      "Bash(grep -h \"^down_revision\\\\|^revision\" \"C:/Users/crist/desktop/TradingTracker/alembic/versions/\"*.py)",
+      "Bash(python -m alembic upgrade add_share_pinned)"
+    ]
+  }
+}

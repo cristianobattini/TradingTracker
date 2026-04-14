@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
@@ -7,7 +7,6 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
@@ -31,6 +30,7 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [tab, setTab] = useState<'write' | 'preview'>('write');
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const insertAtCursor = useCallback(
     (before: string, after = '', placeholder = '') => {
@@ -46,7 +46,6 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
 
       setTimeout(() => {
         textarea.focus();
-        // If nothing was selected and no placeholder, place cursor between markers
         if (!selected && !placeholder) {
           const cursor = start + before.length;
           textarea.setSelectionRange(cursor, cursor);
@@ -100,6 +99,34 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
     e.target.value = '';
   };
 
+  // Drag & Drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingOver(false);
+      const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+      if (files.length > 0) {
+        handleImageUpload(files[0]);
+      }
+    },
+    [handleImageUpload]
+  );
+
   const toolbarButtons = [
     { title: 'Heading 1', icon: <Box component="span" sx={{ fontWeight: 700, fontSize: '0.75rem', lineHeight: 1 }}>H1</Box>, action: () => insertLinePrefix('# ') },
     { title: 'Heading 2', icon: <Box component="span" sx={{ fontWeight: 700, fontSize: '0.75rem', lineHeight: 1 }}>H2</Box>, action: () => insertLinePrefix('## ') },
@@ -129,7 +156,7 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
     }},
     null,
     {
-      title: uploadingImage ? 'Uploading…' : 'Insert image',
+      title: uploadingImage ? 'Caricamento…' : 'Inserisci immagine (o trascina)',
       icon: uploadingImage ? <CircularProgress size={16} /> : <ImageIcon fontSize="small" />,
       action: () => fileInputRef.current?.click(),
       disabled: uploadingImage,
@@ -200,14 +227,47 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
       {/* Editor / Preview */}
       <Paper
         variant="outlined"
+        onDragOver={tab === 'write' ? handleDragOver : undefined}
+        onDragLeave={tab === 'write' ? handleDragLeave : undefined}
+        onDrop={tab === 'write' ? handleDrop : undefined}
         sx={{
           flex: 1,
           overflow: 'hidden',
           borderRadius: '0 0 8px 8px',
           display: 'flex',
           flexDirection: 'column',
+          position: 'relative',
+          ...(isDraggingOver && {
+            outline: '2px dashed',
+            outlineColor: 'primary.main',
+            bgcolor: 'primary.50',
+          }),
         }}
       >
+        {/* Drag overlay */}
+        {isDraggingOver && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255,255,255,0.85)',
+              borderRadius: '0 0 8px 8px',
+              gap: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            <ImageIcon sx={{ fontSize: 48, color: 'primary.main', opacity: 0.7 }} />
+            <Typography variant="body1" color="primary" fontWeight={600}>
+              Rilascia l'immagine per inserirla
+            </Typography>
+          </Box>
+        )}
+
         {tab === 'write' ? (
           <TextField
             inputRef={textareaRef}
@@ -215,7 +275,7 @@ export function MarkdownEditor({ value, onChange, height = 480 }: MarkdownEditor
             fullWidth
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Write your analysis in Markdown…"
+            placeholder="Scrivi la tua analisi in Markdown… (o trascina un'immagine qui)"
             sx={{
               flex: 1,
               '& .MuiInputBase-root': {

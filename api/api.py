@@ -7,10 +7,11 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
 from database import Base, SessionLocal, engine, seed_sqlite_defaults
-from models import User, Trade, Analysis, FavoriteBookmark, ReadLaterBookmark
+from models import User, Trade, Analysis, FavoriteBookmark, ReadLaterBookmark, AnalysisShare
 from ai import ask_ai, import_excel_ai
 from news_service import fetch_all_news, fetch_calendar
-from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate, FavoriteBookmarkCreate, FavoriteBookmarkUpdate, FavoriteBookmarkResponse, ReorderRequest, ReadLaterBookmarkCreate, ReadLaterExpiryUpdate, ReadLaterBookmarkResponse, ReadLaterReorderRequest
+from position_calculator import PositionCalculator
+from schemas import UserCreate, UserResponse, TokenSchema, TradeCreate, TradeResponse, ReportResponse, UserUpdate, PasswordChange, TradeUpdate, AnalysisCreate, AnalysisResponse, AnalysisUpdate, FavoriteBookmarkCreate, FavoriteBookmarkUpdate, FavoriteBookmarkResponse, ReorderRequest, ReadLaterBookmarkCreate, ReadLaterExpiryUpdate, ReadLaterBookmarkResponse, ReadLaterReorderRequest, ShareAnalysisRequest, AnalysisResponseWithShares, UserBasicResponse, AnalysisShareResponse
 from auth import AuthService, oauth2_scheme 
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -310,6 +311,39 @@ def get_users(
 def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# --- Update current user (self-update, any authenticated user) ---
+@router.put("/users/me", response_model=UserResponse)
+def update_current_user(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_update.username and user_update.username != user.username:
+        if db.query(User).filter(User.username == user_update.username, User.id != user.id).first():
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+    if user_update.email and user_update.email != user.email:
+        if db.query(User).filter(User.email == user_update.email, User.id != user.id).first():
+            raise HTTPException(status_code=400, detail="Email already exists")
+
+    if user_update.username is not None:
+        user.username = user_update.username
+    if user_update.email is not None:
+        user.email = user_update.email
+    if user_update.initial_capital is not None:
+        user.initial_capital = user_update.initial_capital
+    if user_update.account_currency is not None:
+        user.account_currency = user_update.account_currency
+    # role and valid can only be changed by admin
+
+    db.commit()
+    db.refresh(user)
+    return user
+
 # --- Get user by ID (admin only) ---
 @router.get("/users/{user_id}", response_model=UserResponse)
 def get_user(
@@ -546,34 +580,109 @@ def cancel_trade(
 
 # === REPORTS ===
 
-# --- Report per user ---
+# --- Report per user with multi-currency support ---
 @router.get("/report/", response_model=ReportResponse)
 def get_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    trades = db.query(Trade).filter(Trade.owner_id == current_user.id, Trade.cancelled == False).all()
-    total_profit = sum(t.profit_or_loss for t in trades if t.profit_or_loss > 0)
-    total_loss = sum(t.profit_or_loss for t in trades if t.profit_or_loss < 0)
-    wins = [t.profit_or_loss for t in trades if t.profit_or_loss > 0]
-    losses = [t.profit_or_loss for t in trades if t.profit_or_loss < 0]
-    num_trades = len(trades)
-    win_probability = (len(wins)/num_trades*100) if num_trades else 0.0
-    loss_probability = (len(losses)/num_trades*100) if num_trades else 0.0
-    avg_win = (sum(wins)/len(wins)) if wins else 0.0
-    avg_loss = (sum(losses)/len(losses)) if losses else 0.0
-    expectancy = (avg_win * win_probability/100) + (avg_loss * loss_probability/100)
-    capital = current_user.initial_capital + sum(t.profit_or_loss for t in trades)
+    """
+    Get trading report with multi-currency support.
+    All P&L values are converted to the user's account currency.
+    """
+    report_data = PositionCalculator.calculate_report(db, current_user)
+    
     return ReportResponse(
-        total_profit=total_profit,
-        total_loss=total_loss,
-        win_probability=win_probability,
-        loss_probability=loss_probability,
-        avg_win=avg_win,
-        avg_loss=avg_loss,
-        expectancy=expectancy,
-        capital=capital
+        total_profit=report_data['total_profit'],
+        total_loss=report_data['total_loss'],
+        win_probability=report_data['win_probability'],
+        loss_probability=report_data['loss_probability'],
+        avg_win=report_data['avg_win'],
+        avg_loss=report_data['avg_loss'],
+        expectancy=report_data['expectancy'],
+        capital=report_data['capital'],
+        account_currency=report_data['account_currency'],
+        total_pnl=report_data['total_pnl'],
+        num_trades=report_data['num_trades'],
     )
+
+@router.get("/report/positions-by-currency")
+def get_positions_by_currency(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get position summary grouped by currency.
+    All values converted to account currency.
+    """
+    summary = PositionCalculator.get_position_summary(db, current_user)
+    return summary
+
+# --- Exchange Rates (Live) ---
+@router.get("/exchange-rates")
+def get_exchange_rates(
+    from_currency: str = "EUR",
+    to_currency: str = "USD",
+):
+    """
+    Get live exchange rate between two currencies.
+    
+    Query Parameters:
+    - from_currency: Source currency (default: EUR)
+    - to_currency: Target currency (default: USD)
+    
+    Returns:
+    {
+        "from": "EUR",
+        "to": "USD",
+        "rate": 1.10,
+        "timestamp": "2026-04-13T10:30:00Z"
+    }
+    """
+    from exchange_rate_service import ExchangeRateService
+    from datetime import datetime
+    
+    rate = ExchangeRateService.get_rate(from_currency.upper(), to_currency.upper())
+    
+    return {
+        "from": from_currency.upper(),
+        "to": to_currency.upper(),
+        "rate": round(rate, 6),
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+@router.get("/exchange-rates/all")
+def get_all_exchange_rates(base_currency: str = "USD"):
+    """
+    Get all supported currency rates relative to a base currency.
+    
+    Query Parameters:
+    - base_currency: Base currency (default: USD)
+    
+    Returns dictionary of all supported rates relative to base.
+    """
+    from exchange_rate_service import ExchangeRateService
+    from datetime import datetime
+    
+    # Get all rates (fetches from ECB)
+    all_rates = ExchangeRateService.get_all_rates_usd()
+    
+    # Convert to requested base currency if not USD
+    base = base_currency.upper()
+    if base != "USD":
+        base_rate = all_rates.get(base, 1.0)
+        converted_rates = {}
+        for curr, rate in all_rates.items():
+            converted_rates[curr] = round(rate / base_rate, 6)
+        all_rates = converted_rates
+    else:
+        all_rates = {k: round(v, 6) for k, v in all_rates.items()}
+    
+    return {
+        "base": base,
+        "rates": all_rates,
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
 
 # --- Health check ---
 @router.get("/health")
@@ -628,24 +737,148 @@ def create_analysis(
     return db_analysis
 
 
-@router.get("/analyses/", response_model=List[AnalysisResponse])
+@router.get("/analyses/", response_model=List[AnalysisResponseWithShares])
 def list_analyses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return db.query(Analysis).filter(Analysis.owner_id == current_user.id).order_by(Analysis.created_at.desc()).all()
+    """List all analyses owned by the user and analyses shared with the user."""
+    # Get owned analyses
+    owned_analyses = db.query(Analysis).filter(Analysis.owner_id == current_user.id).order_by(Analysis.created_at.desc()).all()
+    
+    # Convert to response objects
+    response_list = []
+    for analysis in owned_analyses:
+        shares_response = []
+        if hasattr(analysis, 'shares') and analysis.shares:
+            for share in analysis.shares:
+                shares_response.append(AnalysisShareResponse(
+                    id=share.id,
+                    analysis_id=share.analysis_id,
+                    shared_with_user_id=share.shared_with_user_id,
+                    shared_by_user_id=share.shared_by_user_id,
+                    created_at=share.created_at,
+                    shared_by_user=UserBasicResponse(
+                        id=share.shared_by_user.id,
+                        username=share.shared_by_user.username,
+                        avatar=share.shared_by_user.avatar
+                    ),
+                    shared_with_user=UserBasicResponse(
+                        id=share.shared_with_user.id,
+                        username=share.shared_with_user.username,
+                        avatar=share.shared_with_user.avatar
+                    )
+                ))
+        # Create a dict without the 'shares' key to avoid conflict
+        analysis_dict = {k: v for k, v in analysis.__dict__.items() if k != 'shares' and not k.startswith('_')}
+        response_list.append(AnalysisResponseWithShares(
+            **analysis_dict,
+            is_shared=False,
+            shared_by_user=None,
+            shares=shares_response
+        ))
+    
+    # Get shared analyses
+    shared_analyses = db.query(AnalysisShare).filter(AnalysisShare.shared_with_user_id == current_user.id).all()
+    for share in shared_analyses:
+        analysis = share.analysis
+        shared_by_user_data = UserBasicResponse(
+            id=share.shared_by_user.id,
+            username=share.shared_by_user.username,
+            avatar=share.shared_by_user.avatar
+        )
+        response_list.append(AnalysisResponseWithShares(
+            id=analysis.id,
+            title=analysis.title,
+            pair=analysis.pair,
+            timeframe=analysis.timeframe,
+            content=analysis.content,
+            pinned=share.pinned,
+            pin_order=analysis.pin_order,
+            created_at=analysis.created_at,
+            updated_at=analysis.updated_at,
+            owner_id=analysis.owner_id,
+            is_shared=True,
+            shared_by_user=shared_by_user_data,
+            shares=[]
+        ))
+    
+    # Sort by created_at descending
+    response_list.sort(key=lambda x: x.created_at, reverse=True)
+    return response_list
 
 
-@router.get("/analyses/{analysis_id}", response_model=AnalysisResponse)
+@router.get("/analyses/{analysis_id}", response_model=AnalysisResponseWithShares)
 def get_analysis(
     analysis_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    return analysis
+    
+    # Check if user is owner
+    if analysis.owner_id == current_user.id:
+        shares_response = []
+        if hasattr(analysis, 'shares') and analysis.shares:
+            for share in analysis.shares:
+                shares_response.append(AnalysisShareResponse(
+                    id=share.id,
+                    analysis_id=share.analysis_id,
+                    shared_with_user_id=share.shared_with_user_id,
+                    shared_by_user_id=share.shared_by_user_id,
+                    created_at=share.created_at,
+                    shared_by_user=UserBasicResponse(
+                        id=share.shared_by_user.id,
+                        username=share.shared_by_user.username,
+                        avatar=share.shared_by_user.avatar
+                    ),
+                    shared_with_user=UserBasicResponse(
+                        id=share.shared_with_user.id,
+                        username=share.shared_with_user.username,
+                        avatar=share.shared_with_user.avatar
+                    )
+                ))
+        # Create a dict without the 'shares' key to avoid conflict
+        analysis_dict = {k: v for k, v in analysis.__dict__.items() if k != 'shares' and not k.startswith('_')}
+        return AnalysisResponseWithShares(
+            **analysis_dict,
+            is_shared=False,
+            shared_by_user=None,
+            shares=shares_response
+        )
+    
+    # Check if shared with user
+    share = db.query(AnalysisShare).filter(
+        AnalysisShare.analysis_id == analysis_id,
+        AnalysisShare.shared_with_user_id == current_user.id
+    ).first()
+    
+    if not share:
+        raise HTTPException(status_code=403, detail="You don't have access to this analysis")
+    
+    shared_by_user_data = UserBasicResponse(
+        id=share.shared_by_user.id,
+        username=share.shared_by_user.username,
+        avatar=share.shared_by_user.avatar
+    )
+    
+    return AnalysisResponseWithShares(
+        id=analysis.id,
+        title=analysis.title,
+        pair=analysis.pair,
+        timeframe=analysis.timeframe,
+        content=analysis.content,
+        pinned=share.pinned,
+        pin_order=analysis.pin_order,
+        created_at=analysis.created_at,
+        updated_at=analysis.updated_at,
+        owner_id=analysis.owner_id,
+        is_shared=True,
+        shared_by_user=shared_by_user_data,
+        shares=[]
+    )
 
 
 @router.put("/analyses/{analysis_id}", response_model=AnalysisResponse)
@@ -670,6 +903,41 @@ def update_analysis(
     return analysis
 
 
+@router.patch("/analyses/{analysis_id}/pin")
+def pin_analysis(
+    analysis_id: int,
+    body: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Toggle pinned for an analysis. Owner pins the analysis itself; recipients pin their share."""
+    pinned = body.get("pinned", False)
+
+    # Check ownership first
+    analysis = db.query(Analysis).filter(
+        Analysis.id == analysis_id,
+        Analysis.owner_id == current_user.id
+    ).first()
+
+    if analysis:
+        analysis.pinned = pinned
+        db.commit()
+        return {"pinned": analysis.pinned}
+
+    # Check if shared with current user
+    share = db.query(AnalysisShare).filter(
+        AnalysisShare.analysis_id == analysis_id,
+        AnalysisShare.shared_with_user_id == current_user.id
+    ).first()
+
+    if share:
+        share.pinned = pinned
+        db.commit()
+        return {"pinned": share.pinned}
+
+    raise HTTPException(status_code=403, detail="Not authorized")
+
+
 @router.delete("/analyses/{analysis_id}")
 def delete_analysis(
     analysis_id: int,
@@ -683,6 +951,75 @@ def delete_analysis(
     db.delete(analysis)
     db.commit()
     return {"message": "Analysis deleted successfully"}
+
+
+@router.post("/analyses/{analysis_id}/share")
+def share_analysis(
+    analysis_id: int,
+    request: ShareAnalysisRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Share an analysis with one or more users (owner only)."""
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.owner_id == current_user.id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    shared_users = []
+    for user_id in request.user_ids:
+        # Check if user exists
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            continue  # Skip non-existent users
+        
+        # Check if already shared
+        existing_share = db.query(AnalysisShare).filter(
+            AnalysisShare.analysis_id == analysis_id,
+            AnalysisShare.shared_with_user_id == user_id
+        ).first()
+        
+        if not existing_share:
+            share = AnalysisShare(
+                analysis_id=analysis_id,
+                shared_with_user_id=user_id,
+                shared_by_user_id=current_user.id
+            )
+            db.add(share)
+            shared_users.append(user_id)
+    
+    db.commit()
+    return {"message": f"Analysis shared with {len(shared_users)} user(s)", "shared_user_ids": shared_users}
+
+
+@router.delete("/analyses/{analysis_id}/share/{user_id}")
+def unshare_analysis(
+    analysis_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Revoke share: owner can remove any recipient; recipient can remove themselves."""
+    is_owner = db.query(Analysis).filter(
+        Analysis.id == analysis_id,
+        Analysis.owner_id == current_user.id
+    ).first() is not None
+
+    is_self_removal = current_user.id == user_id
+
+    if not is_owner and not is_self_removal:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    share = db.query(AnalysisShare).filter(
+        AnalysisShare.analysis_id == analysis_id,
+        AnalysisShare.shared_with_user_id == user_id
+    ).first()
+
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+
+    db.delete(share)
+    db.commit()
+    return {"message": "Access revoked successfully"}
 
 
 # === NEWS ===

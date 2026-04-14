@@ -107,7 +107,7 @@ export function AIView() {
                                     </Avatar>
                                 </ListItemAvatar>
                                 <ListItemText
-                                    primary={m.role === 'user' ? 'You' : 'Anakin AI'}
+                                    primary={m.role === 'user' ? 'Tu' : 'Anakin AI'}
                                     secondary={
                                         m.role === 'assistant' ? (
                                             <Box sx={{ mt: 0.5 }}>
@@ -149,15 +149,15 @@ export function AIView() {
 
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems:'center' }}>
-                    <FormControlLabel control={<Checkbox onChange={(e) => handleChangeUploadCheckbox(e)} />} label="Upload" />
+                    <FormControlLabel control={<Checkbox onChange={(e) => handleChangeUploadCheckbox(e)} />} label="Carica" />
                 </Box>
                 <TextField
                     fullWidth
                     name="prompt"
-                    label="Ask a question"
+                    label="Poni una domanda"
                     value={prompt}
                     onChange={handleChangePrompt}
-                    placeholder="Write down your questions..."
+                    placeholder="Scrivi le tue domande…"
                     disabled={isLoading}
                     size="small"
                 />
@@ -171,7 +171,7 @@ export function AIView() {
     return (
         <DashboardContent>
             <Box sx={{ gap: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 5 }}>
-                <Typography variant="h5">AI Chat</Typography>
+                <Typography variant="h5">Chat IA</Typography>
             </Box>
 
             {renderChat}

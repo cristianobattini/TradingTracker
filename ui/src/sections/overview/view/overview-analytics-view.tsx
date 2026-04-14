@@ -1,6 +1,7 @@
 import Grid2 from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
 import { DashboardContent } from 'src/layouts/dashboard';
+import Chip from '@mui/material/Chip';
 
 interface PerformanceMetrics {
   totalTrades: number;
@@ -23,6 +24,7 @@ import { getReportApiReportGet, listTradesApiTradesGet, readUsersMeApiUsersMeGet
 import { TradingCapitalGrowth } from '../trading-capital-growth';
 import { TradingPairsDistribution } from '../trading-pairs-distribution';
 import { TradingSystemPerformance } from '../trading-system-performance';
+import { PositionsByCurrencyView } from '../positions-by-currency-view';
 import { Iconify } from 'src/components/iconify';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Snackbar } from '@mui/material';
@@ -107,21 +109,30 @@ export function OverviewAnalyticsView() {
         }}
       >
         <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-          Trading Dashboard 📈
+          Dashboard di Trading 📈
         </Typography>
 
-        <Button variant="contained" onClick={() => setModalOpen(true)} startIcon={<span>+</span>}>
-          Add New Trade
-        </Button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {user?.account_currency && (
+            <Chip
+              label={`Valuta conto: ${user.account_currency}`}
+              color="primary"
+              variant="outlined"
+            />
+          )}
+          <Button variant="contained" onClick={() => setModalOpen(true)} startIcon={<span>+</span>}>
+            Nuovo Trade
+          </Button>
+        </div>
       </div>
 
       <Grid2 container spacing={3}>
         {/* Performance Summary Cards */}
         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
           <TradingPerformanceSummary
-            title="Net Profit"
+            title="Profitto Netto"
             value={performanceMetrics.netProfit}
-            currency="$"
+            currency={user?.account_currency || '$'}
             color={performanceMetrics.netProfit >= 0 ? 'success' : 'error'}
             icon={<Iconify width={24} icon="eva:trending-up-fill" />}
           />
@@ -129,7 +140,7 @@ export function OverviewAnalyticsView() {
 
         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
           <TradingPerformanceSummary
-            title="Win Rate"
+            title="Win Rate %"
             value={performanceMetrics.winRate}
             suffix="%"
             color="info"
@@ -139,7 +150,7 @@ export function OverviewAnalyticsView() {
 
         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
           <TradingPerformanceSummary
-            title="Total Trades"
+            title="Trade Totali"
             value={performanceMetrics.totalTrades}
             color="warning"
             icon={<Iconify width={24} icon="eva:done-all-fill" />}
@@ -148,9 +159,9 @@ export function OverviewAnalyticsView() {
 
         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
           <TradingPerformanceSummary
-            title="Current Capital"
+            title="Capitale Attuale"
             value={performanceMetrics.currentCapital}
-            currency="$"
+            currency={user?.account_currency || '$'}
             color="primary"
             icon={<Iconify width={24} icon="solar:cart-3-bold" />}
           />
@@ -159,7 +170,7 @@ export function OverviewAnalyticsView() {
         {/* Capital Growth Chart */}
         <Grid2 size={{ xs: 12, md: 8, lg: 9 }}>
           <TradingCapitalGrowth
-            title="Capital Growth"
+            title="Crescita del Capitale"
             data={
               // use initial capital from user if available, otherwise fallback to report.capital or 0
               (() => {
@@ -185,7 +196,7 @@ export function OverviewAnalyticsView() {
         {/* Win/Loss Distribution */}
         <Grid2 size={{ xs: 12, md: 4, lg: 3 }}>
           <TradingWinLossChart
-            title="Trade Distribution"
+            title="Distribuzione Trade"
             data={{
               win: winningTrades.length,
               loss: losingTrades.length,
@@ -196,13 +207,13 @@ export function OverviewAnalyticsView() {
 
         {/* Recent Trades Table */}
         <Grid2 size={{ xs: 12, md: 8 }}>
-          <TradingRecentTrades title="Recent Trades" trades={trades} />
+          <TradingRecentTrades title="Trade Recenti" trades={trades} />
         </Grid2>
 
         {/* Pairs Distribution */}
         <Grid2 size={{ xs: 12, md: 4 }}>
           <TradingPairsDistribution
-            title="Pairs Distribution"
+            title="Distribuzione Coppie"
             data={trades.reduce((acc: Record<string, number>, trade) => {
               if(trade.pair) {
                 acc[trade.pair] = (acc[trade.pair] || 0) + 1;
@@ -215,7 +226,7 @@ export function OverviewAnalyticsView() {
         {/* System Performance */}
         <Grid2 size={{ xs: 12 }}>
           <TradingSystemPerformance
-            title="System Performance"
+            title="Performance per Sistema"
             data={trades.reduce(
               (
                 acc: Record<
@@ -241,6 +252,11 @@ export function OverviewAnalyticsView() {
             )}
           />
         </Grid2>
+
+        {/* Positions by Currency */}
+        <Grid2 size={{ xs: 12 }}>
+          <PositionsByCurrencyView />
+        </Grid2>
       </Grid2>
 
       <AddTradeModal
@@ -255,13 +271,13 @@ export function OverviewAnalyticsView() {
               } else {
                 setTrades([]);
               }
-              setNotification({ open: true, message: 'Trade added successfully!' });
+              setNotification({ open: true, message: 'Trade aggiunto con successo!' });
             })
             .catch(() => {
               setTrades([]);
               setNotification({
                 open: true,
-                message: 'Error fetching trades after adding new trade.',
+                message: 'Errore nel recupero dei trade dopo l\'aggiunta.',
               });
             })
             .finally(() => setLoading(false));
@@ -283,7 +299,7 @@ export function OverviewAnalyticsView() {
         onClose={() => setNotification({ ...notification, open: false })}
       >
         <Alert
-          severity={notification.message.includes('Error') ? 'error' : 'success'}
+          severity={notification.message.includes('Errore') ? 'error' : 'success'}
           onClose={() => setNotification({ ...notification, open: false })}
         >
           {notification.message}

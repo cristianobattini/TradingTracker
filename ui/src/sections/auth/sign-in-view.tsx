@@ -25,7 +25,7 @@ export function SignInView() {
       e.preventDefault();
 
       if (!username.trim() || !password.trim()) {
-        setError('Please enter both username and password');
+        setError('Inserisci sia il nome utente che la password');
         return;
       }
 
@@ -46,7 +46,7 @@ export function SignInView() {
 
         if (response.error) {
           const detail = response.error.detail;
-          let errorMessage = 'Login failed';
+          let errorMessage = 'Accesso non riuscito';
 
           if (Array.isArray(detail) && typeof detail[0] === 'string') {
             errorMessage = detail[0];
@@ -63,12 +63,12 @@ export function SignInView() {
             setLocalStorageItem('role', role || 'user');
             router.push('/');
           } else {
-            setError('No access token received');
+            setError('Nessun token di accesso ricevuto');
           }
         }
       } catch (err: any) {
         console.error('Login exception:', err);
-        setError(err.message || 'An unexpected error occurred');
+        setError(err.message || 'Si è verificato un errore imprevisto');
       } finally {
         setIsLoading(false);
       }
@@ -156,7 +156,7 @@ export function SignInView() {
           opacity: isLoading ? 0.7 : 1,
         }}
       >
-        {isLoading ? 'Signing in...' : 'Sign in'}
+        {isLoading ? 'Accesso in corso…' : 'Accedi'}
       </Button>
     </Box>
   );
@@ -172,7 +172,7 @@ export function SignInView() {
           mb: 5,
         }}
       >
-        <Typography variant="h5">Sign in</Typography>
+        <Typography variant="h5">Accedi</Typography>
       </Box>
       {renderForm}
 

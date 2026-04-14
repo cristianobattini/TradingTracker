@@ -35,14 +35,14 @@ export function TradingSystemPerformance({ title, data }: TradingSystemPerforman
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Trading System</TableCell>
-              <TableCell align="center">Total Trades</TableCell>
-              <TableCell align="center">Wins</TableCell>
-              <TableCell align="center">Losses</TableCell>
+              <TableCell>Sistema</TableCell>
+              <TableCell align="center">Trade Totali</TableCell>
+              <TableCell align="center">Vittorie</TableCell>
+              <TableCell align="center">Perdite</TableCell>
               <TableCell align="center">Win Rate</TableCell>
-              <TableCell align="center">Total Profit</TableCell>
-              <TableCell align="center">Avg Profit/Trade</TableCell>
-              <TableCell align="center">Performance</TableCell>
+              <TableCell align="center">Profitto Totale</TableCell>
+              <TableCell align="center">Media per Trade</TableCell>
+              <TableCell align="center">Rendimento</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

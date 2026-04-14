@@ -18,12 +18,15 @@ class User(Base):
     valid = Column(Boolean, default=True)
     role = Column(Enum(RoleEnum), default=RoleEnum.user)
     initial_capital = Column(Float, default=1000.0)
+    account_currency = Column(String, default="USD")
     avatar = Column(String, default="default_avatar.png")
 
     trades = relationship("Trade", back_populates="owner")
     analyses = relationship("Analysis", back_populates="owner")
     favorite_bookmarks = relationship("FavoriteBookmark", back_populates="owner")
     read_later_bookmarks = relationship("ReadLaterBookmark", back_populates="owner")
+    shared_analyses = relationship("AnalysisShare", foreign_keys="AnalysisShare.shared_with_user_id", back_populates="shared_with_user")
+    analyses_shared_by_me = relationship("AnalysisShare", foreign_keys="AnalysisShare.shared_by_user_id", back_populates="shared_by_user")
 
 class Trade(Base):
     __tablename__ = "trades"
@@ -62,6 +65,10 @@ class Trade(Base):
     commission_bank = Column(Float)
     commission_sgr = Column(Float)
     commission_admin = Column(Float)
+
+    # === Leverage / Margin
+    leverage = Column(Float, nullable=True)           # es. 1:10, 1:50
+    percentage_margin = Column(Float, nullable=True)  # es. 2.0 (2% margin required)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="trades")
@@ -112,9 +119,28 @@ class Analysis(Base):
     pair = Column(String, nullable=True)
     timeframe = Column(String, nullable=True)
     content = Column(Text, default="")
+    pinned = Column(Boolean, default=False)
+    pin_order = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="analyses")
+    shares = relationship("AnalysisShare", back_populates="analysis", cascade="all, delete-orphan")
+
+
+class AnalysisShare(Base):
+    __tablename__ = "analysis_shares"
+
+    id = Column(Integer, primary_key=True, index=True)
+    analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False, index=True)
+    shared_with_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    shared_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    pinned = Column(Boolean, default=False)
+
+    analysis = relationship("Analysis", back_populates="shares")
+    shared_with_user = relationship("User", foreign_keys=[shared_with_user_id], back_populates="shared_analyses")
+    shared_by_user = relationship("User", foreign_keys=[shared_by_user_id], back_populates="analyses_shared_by_me")
+
 

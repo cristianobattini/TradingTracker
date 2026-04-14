@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateAnalysisApiAnalysesPostData, CreateAnalysisApiAnalysesPostErrors, CreateAnalysisApiAnalysesPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteData, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAnalysisApiAnalysesAnalysisIdGetData, GetAnalysisApiAnalysesAnalysisIdGetErrors, GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetCalendarApiCalendarGetData, GetCalendarApiCalendarGetErrors, GetCalendarApiCalendarGetResponses, GetNewsApiNewsGetData, GetNewsApiNewsGetErrors, GetNewsApiNewsGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListAnalysesApiAnalysesGetData, ListAnalysesApiAnalysesGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, NewsAiReportApiNewsAiReportPostData, NewsAiReportApiNewsAiReportPostErrors, NewsAiReportApiNewsAiReportPostResponses, NewsAiSummaryApiNewsAiSummaryPostData, NewsAiSummaryApiNewsAiSummaryPostResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, RootApiGetData, RootApiGetResponses, UpdateAnalysisApiAnalysesAnalysisIdPutData, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAnalysisImageApiAnalysesImagesUploadPostData, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
+import type { AskQuestionApiAiAskPostData, AskQuestionApiAiAskPostErrors, AskQuestionApiAiAskPostResponses, CancelTradeApiTradesTradeIdCancelPostData, CancelTradeApiTradesTradeIdCancelPostErrors, CancelTradeApiTradesTradeIdCancelPostResponses, ChangeOwnPasswordApiUsersMeChangePasswordPostData, ChangeOwnPasswordApiUsersMeChangePasswordPostErrors, ChangeOwnPasswordApiUsersMeChangePasswordPostResponses, ChangeUserPasswordApiUsersUserIdChangePasswordPostData, ChangeUserPasswordApiUsersUserIdChangePasswordPostErrors, ChangeUserPasswordApiUsersUserIdChangePasswordPostResponses, CreateAnalysisApiAnalysesPostData, CreateAnalysisApiAnalysesPostErrors, CreateAnalysisApiAnalysesPostResponses, CreateFavoriteApiBookmarksFavoritesPostData, CreateFavoriteApiBookmarksFavoritesPostErrors, CreateFavoriteApiBookmarksFavoritesPostResponses, CreateReadLaterApiBookmarksReadLaterPostData, CreateReadLaterApiBookmarksReadLaterPostErrors, CreateReadLaterApiBookmarksReadLaterPostResponses, CreateTradeApiTradesPostData, CreateTradeApiTradesPostErrors, CreateTradeApiTradesPostResponses, CreateUserApiUsersPostData, CreateUserApiUsersPostErrors, CreateUserApiUsersPostResponses, DeleteAnalysisApiAnalysesAnalysisIdDeleteData, DeleteAnalysisApiAnalysesAnalysisIdDeleteErrors, DeleteAnalysisApiAnalysesAnalysisIdDeleteResponses, DeleteFavoriteApiBookmarksFavoritesBmIdDeleteData, DeleteFavoriteApiBookmarksFavoritesBmIdDeleteErrors, DeleteFavoriteApiBookmarksFavoritesBmIdDeleteResponses, DeleteReadLaterApiBookmarksReadLaterBmIdDeleteData, DeleteReadLaterApiBookmarksReadLaterBmIdDeleteErrors, DeleteReadLaterApiBookmarksReadLaterBmIdDeleteResponses, DeleteTradeApiTradesTradeIdDeleteData, DeleteTradeApiTradesTradeIdDeleteErrors, DeleteTradeApiTradesTradeIdDeleteResponses, DeleteTradesApiTradesDeleteData, DeleteTradesApiTradesDeleteErrors, DeleteTradesApiTradesDeleteResponses, DeleteUserApiUsersUserIdDeleteData, DeleteUserApiUsersUserIdDeleteErrors, DeleteUserApiUsersUserIdDeleteResponses, GetAllExchangeRatesApiExchangeRatesAllGetData, GetAllExchangeRatesApiExchangeRatesAllGetErrors, GetAllExchangeRatesApiExchangeRatesAllGetResponses, GetAnalysisApiAnalysesAnalysisIdGetData, GetAnalysisApiAnalysesAnalysisIdGetErrors, GetAnalysisApiAnalysesAnalysisIdGetResponses, GetAvatarApiUsersUserIdAvatarGetData, GetAvatarApiUsersUserIdAvatarGetResponses, GetCalendarApiCalendarGetData, GetCalendarApiCalendarGetErrors, GetCalendarApiCalendarGetResponses, GetExchangeRatesApiExchangeRatesGetData, GetExchangeRatesApiExchangeRatesGetErrors, GetExchangeRatesApiExchangeRatesGetResponses, GetNewsApiNewsGetData, GetNewsApiNewsGetErrors, GetNewsApiNewsGetResponses, GetPositionsByCurrencyApiReportPositionsByCurrencyGetData, GetPositionsByCurrencyApiReportPositionsByCurrencyGetResponses, GetReportApiReportGetData, GetReportApiReportGetResponses, GetTradeApiTradesTradeIdGetData, GetTradeApiTradesTradeIdGetErrors, GetTradeApiTradesTradeIdGetResponses, GetUserApiUsersUserIdGetData, GetUserApiUsersUserIdGetErrors, GetUserApiUsersUserIdGetResponses, GetUsersApiUsersGetData, GetUsersApiUsersGetResponses, HealthCheckApiHealthGetData, HealthCheckApiHealthGetResponses, ImportTradesApiTradesImportPostData, ImportTradesApiTradesImportPostErrors, ImportTradesApiTradesImportPostResponses, ListAnalysesApiAnalysesGetData, ListAnalysesApiAnalysesGetResponses, ListFavoritesApiBookmarksFavoritesGetData, ListFavoritesApiBookmarksFavoritesGetResponses, ListReadLaterApiBookmarksReadLaterGetData, ListReadLaterApiBookmarksReadLaterGetResponses, ListTradesApiTradesGetData, ListTradesApiTradesGetResponses, LoginApiLoginPostData, LoginApiLoginPostErrors, LoginApiLoginPostResponses, NewsAiReportApiNewsAiReportPostData, NewsAiReportApiNewsAiReportPostErrors, NewsAiReportApiNewsAiReportPostResponses, NewsAiSummaryApiNewsAiSummaryPostData, NewsAiSummaryApiNewsAiSummaryPostResponses, PinAnalysisApiAnalysesAnalysisIdPinPatchData, PinAnalysisApiAnalysesAnalysisIdPinPatchErrors, PinAnalysisApiAnalysesAnalysisIdPinPatchResponses, ReadUsersMeApiUsersMeGetData, ReadUsersMeApiUsersMeGetResponses, ReorderFavoritesApiBookmarksFavoritesReorderPutData, ReorderFavoritesApiBookmarksFavoritesReorderPutErrors, ReorderFavoritesApiBookmarksFavoritesReorderPutResponses, ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutData, ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutErrors, ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutResponses, RootApiGetData, RootApiGetResponses, ShareAnalysisApiAnalysesAnalysisIdSharePostData, ShareAnalysisApiAnalysesAnalysisIdSharePostErrors, ShareAnalysisApiAnalysesAnalysisIdSharePostResponses, TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchData, TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchErrors, TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponses, UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteData, UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteErrors, UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteResponses, UpdateAnalysisApiAnalysesAnalysisIdPutData, UpdateAnalysisApiAnalysesAnalysisIdPutErrors, UpdateAnalysisApiAnalysesAnalysisIdPutResponses, UpdateCurrentUserApiUsersMePutData, UpdateCurrentUserApiUsersMePutErrors, UpdateCurrentUserApiUsersMePutResponses, UpdateFavoriteApiBookmarksFavoritesBmIdPutData, UpdateFavoriteApiBookmarksFavoritesBmIdPutErrors, UpdateFavoriteApiBookmarksFavoritesBmIdPutResponses, UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchData, UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchErrors, UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponses, UpdateTradeApiTradesTradeIdPutData, UpdateTradeApiTradesTradeIdPutErrors, UpdateTradeApiTradesTradeIdPutResponses, UpdateUserApiUsersUserIdPutData, UpdateUserApiUsersUserIdPutErrors, UpdateUserApiUsersUserIdPutResponses, UploadAnalysisImageApiAnalysesImagesUploadPostData, UploadAnalysisImageApiAnalysesImagesUploadPostErrors, UploadAnalysisImageApiAnalysesImagesUploadPostResponses, UploadAvatarApiUsersUserIdAvatarPostData, UploadAvatarApiUsersUserIdAvatarPostErrors, UploadAvatarApiUsersUserIdAvatarPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -97,6 +97,19 @@ export const readUsersMeApiUsersMeGet = <ThrowOnError extends boolean = false>(o
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/users/me',
     ...options
+});
+
+/**
+ * Update Current User
+ */
+export const updateCurrentUserApiUsersMePut = <ThrowOnError extends boolean = false>(options: Options<UpdateCurrentUserApiUsersMePutData, ThrowOnError>) => (options.client ?? client).put<UpdateCurrentUserApiUsersMePutResponses, UpdateCurrentUserApiUsersMePutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/users/me',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**
@@ -246,12 +259,58 @@ export const cancelTradeApiTradesTradeIdCancelPost = <ThrowOnError extends boole
 
 /**
  * Get Report
+ *
+ * Get trading report with multi-currency support.
+ * All P&L values are converted to the user's account currency.
  */
 export const getReportApiReportGet = <ThrowOnError extends boolean = false>(options?: Options<GetReportApiReportGetData, ThrowOnError>) => (options?.client ?? client).get<GetReportApiReportGetResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/report/',
     ...options
 });
+
+/**
+ * Get Positions By Currency
+ *
+ * Get position summary grouped by currency.
+ * All values converted to account currency.
+ */
+export const getPositionsByCurrencyApiReportPositionsByCurrencyGet = <ThrowOnError extends boolean = false>(options?: Options<GetPositionsByCurrencyApiReportPositionsByCurrencyGetData, ThrowOnError>) => (options?.client ?? client).get<GetPositionsByCurrencyApiReportPositionsByCurrencyGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/report/positions-by-currency',
+    ...options
+});
+
+/**
+ * Get Exchange Rates
+ *
+ * Get live exchange rate between two currencies.
+ *
+ * Query Parameters:
+ * - from_currency: Source currency (default: EUR)
+ * - to_currency: Target currency (default: USD)
+ *
+ * Returns:
+ * {
+ * "from": "EUR",
+ * "to": "USD",
+ * "rate": 1.10,
+ * "timestamp": "2026-04-13T10:30:00Z"
+ * }
+ */
+export const getExchangeRatesApiExchangeRatesGet = <ThrowOnError extends boolean = false>(options?: Options<GetExchangeRatesApiExchangeRatesGetData, ThrowOnError>) => (options?.client ?? client).get<GetExchangeRatesApiExchangeRatesGetResponses, GetExchangeRatesApiExchangeRatesGetErrors, ThrowOnError>({ url: '/api/exchange-rates', ...options });
+
+/**
+ * Get All Exchange Rates
+ *
+ * Get all supported currency rates relative to a base currency.
+ *
+ * Query Parameters:
+ * - base_currency: Base currency (default: USD)
+ *
+ * Returns dictionary of all supported rates relative to base.
+ */
+export const getAllExchangeRatesApiExchangeRatesAllGet = <ThrowOnError extends boolean = false>(options?: Options<GetAllExchangeRatesApiExchangeRatesAllGetData, ThrowOnError>) => (options?.client ?? client).get<GetAllExchangeRatesApiExchangeRatesAllGetResponses, GetAllExchangeRatesApiExchangeRatesAllGetErrors, ThrowOnError>({ url: '/api/exchange-rates/all', ...options });
 
 /**
  * Health Check
@@ -279,6 +338,8 @@ export const uploadAnalysisImageApiAnalysesImagesUploadPost = <ThrowOnError exte
 
 /**
  * List Analyses
+ *
+ * List all analyses owned by the user and analyses shared with the user.
  */
 export const listAnalysesApiAnalysesGet = <ThrowOnError extends boolean = false>(options?: Options<ListAnalysesApiAnalysesGetData, ThrowOnError>) => (options?.client ?? client).get<ListAnalysesApiAnalysesGetResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -331,6 +392,47 @@ export const updateAnalysisApiAnalysesAnalysisIdPut = <ThrowOnError extends bool
 });
 
 /**
+ * Pin Analysis
+ *
+ * Toggle pinned for an analysis. Owner pins the analysis itself; recipients pin their share.
+ */
+export const pinAnalysisApiAnalysesAnalysisIdPinPatch = <ThrowOnError extends boolean = false>(options: Options<PinAnalysisApiAnalysesAnalysisIdPinPatchData, ThrowOnError>) => (options.client ?? client).patch<PinAnalysisApiAnalysesAnalysisIdPinPatchResponses, PinAnalysisApiAnalysesAnalysisIdPinPatchErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}/pin',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Share Analysis
+ *
+ * Share an analysis with one or more users (owner only).
+ */
+export const shareAnalysisApiAnalysesAnalysisIdSharePost = <ThrowOnError extends boolean = false>(options: Options<ShareAnalysisApiAnalysesAnalysisIdSharePostData, ThrowOnError>) => (options.client ?? client).post<ShareAnalysisApiAnalysesAnalysisIdSharePostResponses, ShareAnalysisApiAnalysesAnalysisIdSharePostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}/share',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Unshare Analysis
+ *
+ * Revoke share: owner can remove any recipient; recipient can remove themselves.
+ */
+export const unshareAnalysisApiAnalysesAnalysisIdShareUserIdDelete = <ThrowOnError extends boolean = false>(options: Options<UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteResponses, UnshareAnalysisApiAnalysesAnalysisIdShareUserIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/analyses/{analysis_id}/share/{user_id}',
+    ...options
+});
+
+/**
  * Get News
  *
  * Return forex news articles from all RSS sources, optionally filtered by source_id.
@@ -372,4 +474,127 @@ export const getCalendarApiCalendarGet = <ThrowOnError extends boolean = false>(
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/calendar/',
     ...options
+});
+
+/**
+ * List Favorites
+ */
+export const listFavoritesApiBookmarksFavoritesGet = <ThrowOnError extends boolean = false>(options?: Options<ListFavoritesApiBookmarksFavoritesGetData, ThrowOnError>) => (options?.client ?? client).get<ListFavoritesApiBookmarksFavoritesGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/favorites/',
+    ...options
+});
+
+/**
+ * Create Favorite
+ */
+export const createFavoriteApiBookmarksFavoritesPost = <ThrowOnError extends boolean = false>(options: Options<CreateFavoriteApiBookmarksFavoritesPostData, ThrowOnError>) => (options.client ?? client).post<CreateFavoriteApiBookmarksFavoritesPostResponses, CreateFavoriteApiBookmarksFavoritesPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/favorites/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Favorite
+ */
+export const deleteFavoriteApiBookmarksFavoritesBmIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteFavoriteApiBookmarksFavoritesBmIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteFavoriteApiBookmarksFavoritesBmIdDeleteResponses, DeleteFavoriteApiBookmarksFavoritesBmIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/favorites/{bm_id}',
+    ...options
+});
+
+/**
+ * Update Favorite
+ */
+export const updateFavoriteApiBookmarksFavoritesBmIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateFavoriteApiBookmarksFavoritesBmIdPutData, ThrowOnError>) => (options.client ?? client).put<UpdateFavoriteApiBookmarksFavoritesBmIdPutResponses, UpdateFavoriteApiBookmarksFavoritesBmIdPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/favorites/{bm_id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reorder Favorites
+ */
+export const reorderFavoritesApiBookmarksFavoritesReorderPut = <ThrowOnError extends boolean = false>(options: Options<ReorderFavoritesApiBookmarksFavoritesReorderPutData, ThrowOnError>) => (options.client ?? client).put<ReorderFavoritesApiBookmarksFavoritesReorderPutResponses, ReorderFavoritesApiBookmarksFavoritesReorderPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/favorites/reorder/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Read Later
+ */
+export const listReadLaterApiBookmarksReadLaterGet = <ThrowOnError extends boolean = false>(options?: Options<ListReadLaterApiBookmarksReadLaterGetData, ThrowOnError>) => (options?.client ?? client).get<ListReadLaterApiBookmarksReadLaterGetResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/',
+    ...options
+});
+
+/**
+ * Create Read Later
+ */
+export const createReadLaterApiBookmarksReadLaterPost = <ThrowOnError extends boolean = false>(options: Options<CreateReadLaterApiBookmarksReadLaterPostData, ThrowOnError>) => (options.client ?? client).post<CreateReadLaterApiBookmarksReadLaterPostResponses, CreateReadLaterApiBookmarksReadLaterPostErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Update Read Later Expiry
+ */
+export const updateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatch = <ThrowOnError extends boolean = false>(options: Options<UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchData, ThrowOnError>) => (options.client ?? client).patch<UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchResponses, UpdateReadLaterExpiryApiBookmarksReadLaterBmIdExpiryPatchErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/{bm_id}/expiry',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Read Later
+ */
+export const deleteReadLaterApiBookmarksReadLaterBmIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteReadLaterApiBookmarksReadLaterBmIdDeleteData, ThrowOnError>) => (options.client ?? client).delete<DeleteReadLaterApiBookmarksReadLaterBmIdDeleteResponses, DeleteReadLaterApiBookmarksReadLaterBmIdDeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/{bm_id}',
+    ...options
+});
+
+/**
+ * Toggle Pin Read Later
+ */
+export const togglePinReadLaterApiBookmarksReadLaterBmIdPinPatch = <ThrowOnError extends boolean = false>(options: Options<TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchData, ThrowOnError>) => (options.client ?? client).patch<TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchResponses, TogglePinReadLaterApiBookmarksReadLaterBmIdPinPatchErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/{bm_id}/pin',
+    ...options
+});
+
+/**
+ * Reorder Pinned Read Later
+ */
+export const reorderPinnedReadLaterApiBookmarksReadLaterReorderPut = <ThrowOnError extends boolean = false>(options: Options<ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutData, ThrowOnError>) => (options.client ?? client).put<ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutResponses, ReorderPinnedReadLaterApiBookmarksReadLaterReorderPutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/bookmarks/read-later/reorder/',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
