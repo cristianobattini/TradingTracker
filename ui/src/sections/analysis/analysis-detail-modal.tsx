@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }: Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDetailsOpen, setEditDetailsOpen] = useState(false);
@@ -77,9 +79,9 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
 
     try {
       await navigator.clipboard.writeText(shareText);
-      setShareSnackbar('Analisi copiata negli appunti!');
+      setShareSnackbar(t('analysis.shareClipboard'));
     } catch {
-      setShareSnackbar('Impossibile copiare — prova a esportare in PDF.');
+      setShareSnackbar(t('analysis.shareClipboardFail'));
     }
   };
 
@@ -244,37 +246,37 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
 
             {/* Action buttons */}
             <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0, alignItems: 'center' }}>
-              <Tooltip title="Full screen">
+              <Tooltip title={t('analysis.title')}>
                 <IconButton size="small" onClick={handleFullscreen}>
                   <OpenInFullIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Edit content">
+              <Tooltip title={t('analysis.editContent')}>
                 <IconButton size="small" onClick={handleEdit}>
                   <EditIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Edit details">
+              <Tooltip title={t('analysis.editDetails')}>
                 <IconButton size="small" onClick={() => setEditDetailsOpen(true)}>
                   <TuneIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Export .md (images embedded)">
+              <Tooltip title={t('analysis.exportMarkdown')}>
                 <IconButton size="small" onClick={() => analysisApi.exportMarkdown(analysis)}>
                   <DownloadIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Download PDF">
+              <Tooltip title={t('analysis.downloadPdf')}>
                 <IconButton size="small" onClick={handleDownloadPdf}>
                   <PictureAsPdfIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={analysis.is_shared ? "Condividi negli appunti" : "Condividi con utenti"}>
+              <Tooltip title={analysis.is_shared ? t('analysis.shareClipboard') : t('analysis.shareWithUsers')}>
                 <IconButton size="small" onClick={analysis.is_shared ? handleShareToClipboard : handleShareWithUsers}>
                   <ShareIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title={analysis.is_shared ? "Rimuovi dalla mia dashboard" : "Delete"}>
+              <Tooltip title={analysis.is_shared ? t('analysis.removeShared') : t('analysis.deleteAnalysis')}>
                 <IconButton size="small" color="error" onClick={analysis.is_shared ? handleRemoveShared : () => setDeleteDialogOpen(true)}>
                   {analysis.is_shared ? <RemoveCircleIcon fontSize="small" /> : <DeleteIcon fontSize="small" />}
                 </IconButton>
@@ -331,7 +333,7 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
               </ReactMarkdown>
             ) : (
               <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-                No content yet.
+                {t('analysis.noContent')}
               </Typography>
             )}
           </Box>
@@ -340,16 +342,15 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
 
       {/* Delete confirmation */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete analysis?</DialogTitle>
+        <DialogTitle>{t('analysis.deleteAnalysis')}</DialogTitle>
         <DialogContent>
           {deleteError && <Alert severity="error" sx={{ mb: 1 }}>{deleteError}</Alert>}
           <Typography>
-            Are you sure you want to delete <strong>{analysis.title}</strong>? This action cannot be
-            undone.
+            {t('analysis.deleteConfirm', { title: analysis.title })}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button
             color="error"
             variant="contained"
@@ -357,7 +358,7 @@ export function AnalysisDetailModal({ analysis, onClose, onDeleted, onUpdated }:
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : undefined}
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -403,6 +404,7 @@ interface EditDetailsProps {
 }
 
 function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(analysis.title);
   const [pair, setPair] = useState(analysis.pair ?? '');
   const [timeframe, setTimeframe] = useState(analysis.timeframe ?? '');
@@ -411,7 +413,7 @@ function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      setError('Title is required.');
+      setError(t('analysis.titleRequired'));
       return;
     }
     setSaving(true);
@@ -424,7 +426,7 @@ function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
       });
       onSaved(updated);
     } catch {
-      setError('Failed to save. Please try again.');
+      setError(t('analysis.saveError'));
     } finally {
       setSaving(false);
     }
@@ -432,25 +434,25 @@ function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
 
   return (
     <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Edit details</DialogTitle>
+      <DialogTitle>{t('analysis.editDetails')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>
         {error && <Alert severity="error">{error}</Alert>}
         <TextField
-          label="Title *"
+          label={t('analysis.titleLabel')}
           fullWidth
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           size="small"
         />
         <TextField
-          label="Pair"
+          label={t('analysis.pairLabel')}
           select
           fullWidth
           value={pair}
           onChange={(e) => setPair(e.target.value)}
           size="small"
         >
-          <MenuItem value="">— None —</MenuItem>
+          <MenuItem value="">{t('analysis.none')}</MenuItem>
           {PAIRS.map((p) => (
             <MenuItem key={p} value={p}>
               {p}
@@ -458,14 +460,14 @@ function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
           ))}
         </TextField>
         <TextField
-          label="Timeframe"
+          label={t('analysis.timeframeLabel')}
           select
           fullWidth
           value={timeframe}
           onChange={(e) => setTimeframe(e.target.value)}
           size="small"
         >
-          <MenuItem value="">— None —</MenuItem>
+          <MenuItem value="">{t('analysis.none')}</MenuItem>
           {TIMEFRAMES.map((tf) => (
             <MenuItem key={tf} value={tf}>
               {tf}
@@ -474,14 +476,14 @@ function EditDetailsDialog({ analysis, onClose, onSaved }: EditDetailsProps) {
         </TextField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
           onClick={handleSave}
           disabled={saving}
           startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
-          Save
+          {t('analysis.save')}
         </Button>
       </DialogActions>
     </Dialog>

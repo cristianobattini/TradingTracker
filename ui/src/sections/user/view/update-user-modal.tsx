@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   Box,
@@ -55,6 +56,7 @@ const UpdateUserModal = ({
     role: user.role,
     initial_capital: user.initial_capital,
   });
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -73,7 +75,7 @@ const UpdateUserModal = ({
 
     try {
       if (!formData.username || !formData.email) {
-        throw new Error('Compila tutti i campi obbligatori');
+        throw new Error(t('user.fillRequired'));
       }
 
       const response = await updateUserApiUsersUserIdPut({
@@ -125,7 +127,7 @@ const UpdateUserModal = ({
     >
       <Box sx={{ ...modalStyle, width }}>
         <Typography id="create-user-modal-title" variant="h6" component="h2" gutterBottom>
-          Modifica {user.username}
+          {t('user.editUser', { username: user.username })}
         </Typography>
 
         {error && (
@@ -138,7 +140,7 @@ const UpdateUserModal = ({
           <Stack spacing={3}>
             <TextField
               required
-              label="Nome utente"
+              label={t('user.usernameLabel')}
               name="username"
               value={formData.username}
               onChange={handleChange}
@@ -148,7 +150,7 @@ const UpdateUserModal = ({
 
             <TextField
               required
-              label="Email"
+              label={t('user.emailLabel')}
               name="email"
               type="email"
               value={formData.email}
@@ -158,15 +160,15 @@ const UpdateUserModal = ({
             />
 
             <FormControl fullWidth disabled={loading}>
-              <InputLabel>Ruolo</InputLabel>
-              <Select name="role" value={formData.role} label="Ruolo" onChange={handleChange}>
-                <MenuItem value="user">Utente</MenuItem>
+              <InputLabel>{t('user.roleLabel')}</InputLabel>
+              <Select name="role" value={formData.role} label={t('user.roleLabel')} onChange={handleChange}>
+                <MenuItem value="user">{t('user.roleUser')}</MenuItem>
                 {/* <MenuItem value="admin">Admin</MenuItem> */}
               </Select>
             </FormControl>
 
             <TextField
-              label="Capitale Iniziale"
+              label={t('user.initialCapital')}
               name="initial_capital"
               type="number"
               value={formData.initial_capital}
@@ -178,7 +180,7 @@ const UpdateUserModal = ({
 
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button onClick={handleClose} disabled={loading} variant="outlined">
-                Annulla
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -186,7 +188,7 @@ const UpdateUserModal = ({
                 disabled={loading}
                 startIcon={loading && <CircularProgress size={20} />}
               >
-                {loading ? 'Salvataggio…' : 'Salva Utente'}
+                {loading ? t('user.saving') : t('user.saveUser')}
               </Button>
             </Stack>
           </Stack>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -12,6 +13,7 @@ import { loginApiLoginPost } from 'src/client';
 import { setLocalStorageItem } from 'src/services/local-storage-service';
 
 export function SignInView() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +27,7 @@ export function SignInView() {
       e.preventDefault();
 
       if (!username.trim() || !password.trim()) {
-        setError('Inserisci sia il nome utente che la password');
+        setError(t('auth.enterCredentials'));
         return;
       }
 
@@ -46,7 +48,7 @@ export function SignInView() {
 
         if (response.error) {
           const detail = response.error.detail;
-          let errorMessage = 'Accesso non riuscito';
+          let errorMessage = t('auth.loginFailed');
 
           if (Array.isArray(detail) && typeof detail[0] === 'string') {
             errorMessage = detail[0];
@@ -63,7 +65,7 @@ export function SignInView() {
             setLocalStorageItem('role', role || 'user');
             router.push('/');
           } else {
-            setError('Nessun token di accesso ricevuto');
+            setError(t('auth.noTokenReceived'));
           }
         }
       } catch (err: any) {

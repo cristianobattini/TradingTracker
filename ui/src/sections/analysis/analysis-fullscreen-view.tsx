@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
@@ -42,6 +43,7 @@ const PAIRS = [
 const TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN'];
 
 export function AnalysisFullscreenView() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -63,7 +65,7 @@ export function AnalysisFullscreenView() {
     analysisApi
       .get(Number(id))
       .then(setAnalysis)
-      .catch(() => setError('Analysis not found.'))
+      .catch(() => setError(t('analysis.notFound')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -190,7 +192,7 @@ export function AnalysisFullscreenView() {
       await analysisApi.delete(analysis.id);
       navigate('/analysis');
     } catch {
-      setDeleteError('Failed to delete. Please try again.');
+      setDeleteError(t('analysis.deleteError'));
       setDeleting(false);
     }
   };
@@ -206,8 +208,8 @@ export function AnalysisFullscreenView() {
   if (error || !analysis) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 10, gap: 2 }}>
-        <Alert severity="error">{error || 'Analysis not found.'}</Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/analysis')}>Back</Button>
+        <Alert severity="error">{error || t('analysis.notFound')}</Alert>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/analysis')}>{t('analysis.back')}</Button>
       </Box>
     );
   }
@@ -217,7 +219,7 @@ export function AnalysisFullscreenView() {
       {/* Sticky header */}
       <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: 'background.paper' }}>
         <Toolbar sx={{ gap: 1, flexWrap: 'wrap' }}>
-          <Tooltip title="Back to Analysis Journal">
+          <Tooltip title={t('analysis.title')}>
             <IconButton edge="start" onClick={() => navigate('/analysis')}>
               <ArrowBackIcon />
             </IconButton>
@@ -235,33 +237,33 @@ export function AnalysisFullscreenView() {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
-            <Tooltip title="Edit content">
+            <Tooltip title={t('analysis.editContent')}>
               <IconButton onClick={() => navigate(`/analysis/${analysis.id}/edit`)}>
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit details">
+            <Tooltip title={t('analysis.editDetails')}>
               <IconButton onClick={() => setEditDetailsOpen(true)}>
                 <TuneIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Share with other users">
+            <Tooltip title={t('analysis.shareWithUsers')}>
               <IconButton onClick={() => setShareDialogOpen(true)}>
                 <ShareIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Export .md (images embedded)">
+            <Tooltip title={t('analysis.exportMarkdown')}>
               <IconButton onClick={() => analysisApi.exportMarkdown(analysis)}>
                 <DownloadIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Download PDF">
+            <Tooltip title={t('analysis.downloadPdf')}>
               <IconButton onClick={handleDownloadPdf}>
                 <PictureAsPdfIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-            <Tooltip title={analysis?.is_shared ? "Remove from my dashboard" : "Delete"}>
+            <Tooltip title={analysis?.is_shared ? t('analysis.removeShared') : t('analysis.deleteAnalysis')}>
               <IconButton color="error" onClick={analysis?.is_shared ? handleRemoveShared : () => setDeleteDialogOpen(true)}>
                 {analysis?.is_shared ? <RemoveCircleIcon fontSize="small" /> : <DeleteIcon fontSize="small" />}
               </IconButton>
@@ -329,7 +331,7 @@ export function AnalysisFullscreenView() {
           </ReactMarkdown>
         ) : (
           <Typography variant="body1" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-            No content yet. Click the edit button to start writing.
+            {t('analysis.noContent')}
           </Typography>
         )}
 
@@ -374,15 +376,15 @@ export function AnalysisFullscreenView() {
 
       {/* Delete confirmation */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete analysis?</DialogTitle>
+        <DialogTitle>{t('analysis.deleteAnalysis')}</DialogTitle>
         <DialogContent>
           {deleteError && <Alert severity="error" sx={{ mb: 1 }}>{deleteError}</Alert>}
           <Typography>
-            Are you sure you want to delete <strong>{analysis.title}</strong>? This cannot be undone.
+            {t('analysis.deleteConfirm', { title: analysis.title })}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button
             color="error"
             variant="contained"
@@ -390,7 +392,7 @@ export function AnalysisFullscreenView() {
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : undefined}
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -434,6 +436,7 @@ function EditDetailsDialog({
   onClose: () => void;
   onSaved: (a: Analysis) => void;
 }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(analysis.title);
   const [pair, setPair] = useState(analysis.pair ?? '');
   const [timeframe, setTimeframe] = useState(analysis.timeframe ?? '');
@@ -441,7 +444,7 @@ function EditDetailsDialog({
   const [error, setError] = useState('');
 
   const handleSave = async () => {
-    if (!title.trim()) { setError('Title is required.'); return; }
+    if (!title.trim()) { setError(t('analysis.titleRequired')); return; }
     setSaving(true);
     try {
       const updated = await analysisApi.update(analysis.id, {
@@ -451,7 +454,7 @@ function EditDetailsDialog({
       });
       onSaved(updated);
     } catch {
-      setError('Failed to save.');
+      setError(t('analysis.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -459,24 +462,24 @@ function EditDetailsDialog({
 
   return (
     <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Edit details</DialogTitle>
+      <DialogTitle>{t('analysis.editDetails')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>
         {error && <Alert severity="error">{error}</Alert>}
-        <TextField label="Title *" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} size="small" />
-        <TextField label="Pair" select fullWidth value={pair} onChange={(e) => setPair(e.target.value)} size="small">
-          <MenuItem value="">— None —</MenuItem>
+        <TextField label={t('analysis.titleLabel')} fullWidth value={title} onChange={(e) => setTitle(e.target.value)} size="small" />
+        <TextField label={t('analysis.pairLabel')} select fullWidth value={pair} onChange={(e) => setPair(e.target.value)} size="small">
+          <MenuItem value="">{t('analysis.none')}</MenuItem>
           {PAIRS.map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
         </TextField>
-        <TextField label="Timeframe" select fullWidth value={timeframe} onChange={(e) => setTimeframe(e.target.value)} size="small">
-          <MenuItem value="">— None —</MenuItem>
+        <TextField label={t('analysis.timeframeLabel')} select fullWidth value={timeframe} onChange={(e) => setTimeframe(e.target.value)} size="small">
+          <MenuItem value="">{t('analysis.none')}</MenuItem>
           {TIMEFRAMES.map((tf) => <MenuItem key={tf} value={tf}>{tf}</MenuItem>)}
         </TextField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={handleSave} disabled={saving}
           startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}>
-          Save
+          {t('analysis.save')}
         </Button>
       </DialogActions>
     </Dialog>

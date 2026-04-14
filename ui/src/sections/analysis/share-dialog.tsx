@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -36,6 +37,7 @@ interface ShareDialogProps {
 const getBaseUrl = (): string => (client.getConfig().baseUrl as string) || '';
 
 export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialogProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
@@ -77,7 +79,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
         const response = await fetch(`${getBaseUrl()}/api/users/`, {
           headers: getAuthHeaders(),
         });
-        if (!response.ok) throw new Error('Failed to fetch users');
+        if (!response.ok) throw new Error(t('analysis.shareError'));
         const allUsers: User[] = await response.json();
         const filtered = allUsers
           .filter((user) => user.id !== currentUserId) // Exclude current user
@@ -87,7 +89,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
           );
         setUsers(filtered);
       } catch {
-        setError('Failed to search users');
+        setError(t('analysis.shareError'));
       } finally {
         setLoading(false);
       }
@@ -116,7 +118,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
 
   const handleShare = async () => {
     if (selectedUsers.length === 0) {
-      setError('Please select at least one user');
+      setError(t('analysis.shareSelectUser'));
       return;
     }
 
@@ -126,7 +128,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
 
     try {
       await analysisApi.share(analysisId, selectedUsers);
-      setSuccess(`Analysis shared with ${selectedUsers.length} user(s)`);
+      setSuccess(t('analysis.shareSuccess', { count: selectedUsers.length }));
       setSelectedUsers([]);
       setSearchTerm('');
       setTimeout(() => {
@@ -134,7 +136,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
         onShared?.();
       }, 1000);
     } catch {
-      setError('Failed to share analysis. Please try again.');
+      setError(t('analysis.shareError'));
     } finally {
       setSharing(false);
     }
@@ -142,14 +144,14 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Share Analysis</DialogTitle>
+      <DialogTitle>{t('analysis.shareDialogTitle')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 2 }}>
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">{success}</Alert>}
 
         <TextField
           fullWidth
-          placeholder="Search users by name or email..."
+          placeholder={t('analysis.searchUsers')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           disabled={sharing}
@@ -189,13 +191,13 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
         )}
 
         {!loading && searchTerm && users.length === 0 && (
-          <Alert severity="info">No users found</Alert>
+          <Alert severity="info">{t('analysis.noUsersFound')}</Alert>
         )}
 
         {selectedUsers.length > 0 && (
           <Box>
             <div style={{ fontSize: '0.875rem', marginBottom: 8, fontWeight: 500 }}>
-              Selected users ({selectedUsers.length}):
+              {t('analysis.selectedUsers', { count: selectedUsers.length })}
             </div>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {selectedUsers.map((userId) => {
@@ -214,7 +216,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={sharing}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleShare}
@@ -222,7 +224,7 @@ export function ShareDialog({ open, onClose, analysisId, onShared }: ShareDialog
           startIcon={sharing ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
           disabled={selectedUsers.length === 0 || sharing}
         >
-          Share
+          {t('analysis.share')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -32,6 +33,7 @@ import { getLocalStorageItem } from 'src/services/local-storage-service';
 // ----------------------------------------------------------------------
 
 export function UserView() {
+  const { t } = useTranslation();
   const table = useTable();
 
   const [filterName, setFilterName] = useState('');
@@ -48,7 +50,7 @@ export function UserView() {
   const handleUserCreated = (newUser: UserResponse) => {
     setNotification({
       open: true,
-      message: `Utente "${newUser.username}" creato con successo!`,
+      message: t('user.userCreated', { username: newUser.username }),
     });
     refreshUsers();
   };
@@ -124,7 +126,7 @@ export function UserView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Utenti
+          {t('user.title')}
         </Typography>
         <Button
           variant="contained"
@@ -132,7 +134,7 @@ export function UserView() {
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={() => setModalOpen(true)}
         >
-          Nuovo utente
+          {t('user.newUser')}
         </Button>
       </Box>
 
@@ -178,10 +180,10 @@ export function UserView() {
                   )
                 }
                 headLabel={[
-                  { id: 'username', label: 'Nome utente' },
-                  { id: 'email', label: 'Email' },
-                  { id: 'role', label: 'Ruolo' },
-                  { id: 'inital_capital', label: 'Capitale Iniziale', align: 'center' },
+                  { id: 'username', label: t('user.usernameLabel') },
+                  { id: 'email', label: t('user.emailLabel') },
+                  { id: 'role', label: t('user.roleLabel') },
+                  { id: 'inital_capital', label: t('user.initialCapital'), align: 'center' },
                   { id: '' },
                 ]}
               />
@@ -189,7 +191,7 @@ export function UserView() {
                 {loading ? (
                   <tr>
                     <td colSpan={6}>
-                      <Typography align="center">Caricamento…</Typography>
+                      <Typography align="center">{t('user.loadingUsers')}</Typography>
                     </td>
                   </tr>
                 ) : (

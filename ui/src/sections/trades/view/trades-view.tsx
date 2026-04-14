@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -39,6 +40,7 @@ import Checkbox from '@mui/material/Checkbox';
 import { UpdateTradeModal } from 'src/sections/overview/update-trade-modal';
 
 export function TradesView() {
+  const { t } = useTranslation();
   const [trades, setTrades] = useState<TradeResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -61,14 +63,14 @@ export function TradesView() {
   const fetchTrades = async () => {
     listTradesApiTradesGet().then(response => {
       if (response.error) {
-        setError('Impossibile caricare i trade.');
+        setError(t('trades.loadError'));
         console.error('Error fetching trades:', response.error);
       } else {
         setTrades(response.data || []);
       }
       setLoading(false);
     }).catch(err => {
-      setError('Impossibile caricare i trade.');
+      setError(t('trades.loadError'));
       console.error('Error fetching trades:', err);
       setLoading(false);
     });
@@ -162,10 +164,10 @@ export function TradesView() {
   };
 
   const getStatusText = (trade: TradeResponse) => {
-    if (trade.cancelled) return 'Annullato';
-    if (trade.profit_or_loss && trade.profit_or_loss > 0) return 'Vittoria';
-    if (trade.profit_or_loss && trade.profit_or_loss < 0) return 'Perdita';
-    return 'Pareggio';
+    if (trade.cancelled) return t('trades.cancelled');
+    if (trade.profit_or_loss && trade.profit_or_loss > 0) return t('trades.win');
+    if (trade.profit_or_loss && trade.profit_or_loss < 0) return t('trades.loss');
+    return t('trades.draw');
   };
 
   const formatCurrency = (amount: number) => {
@@ -177,11 +179,11 @@ export function TradesView() {
   };
 
   const handleDeleteTrade = async (tradeId: number) => {
-    if (confirm('Sei sicuro di voler eliminare questo trade?')) {
+    if (confirm(t('trades.deleteTradeConfirm'))) {
       deleteTradeApiTradesTradeIdDelete({ path: { trade_id: tradeId } }).then(() => {
         setTrades(prev => prev.filter(trade => trade.id !== tradeId));
       }).catch(() => {
-        setError('Impossibile eliminare il trade.');
+        setError(t('trades.deleteError'));
       });
     };
   }
@@ -201,14 +203,14 @@ export function TradesView() {
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h4">
-            Diario dei Trade
+            {t('trades.title')}
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setAddModalOpen(true)}
           >
-            Aggiungi Trade
+            {t('trades.newTrade')}
           </Button>
         </Stack>
 
@@ -222,7 +224,7 @@ export function TradesView() {
         <Card sx={{ p: 2, mb: 3 }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <TextField
-              placeholder="Cerca trade..."
+              placeholder={t('trades.title') + '…'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
@@ -235,7 +237,7 @@ export function TradesView() {
               sx={{ minWidth: 300 }}
             />
 
-            <Tooltip title="Filtra trade">
+            <Tooltip title={t('trades.filterTrades')}>
               <IconButton
                 onClick={(e) => setFilterAnchorEl(e.currentTarget)}
                 color={statusFilter !== 'all' || pairFilter !== 'all' ? 'primary' : 'default'}
@@ -249,7 +251,7 @@ export function TradesView() {
                 color="error"
                 variant="outlined"
                 onClick={async () => {
-                  if (!confirm(`Eliminare ${selectedTrades.length} trade?`)) return;
+                  if (!confirm(t('trades.deleteConfirm', { count: selectedTrades.length }))) return;
 
                   deleteTradesApiTradesDelete({ body: selectedTrades }).then(() => {
                     setTrades(prev => prev.filter(t => !selectedTrades.includes(t.id)));
@@ -258,7 +260,7 @@ export function TradesView() {
                 }
               }
               >
-                Elimina selezionati ({selectedTrades.length})
+                {t('trades.deleteSelected', { count: selectedTrades.length })}
               </Button>
             )}
 
@@ -268,13 +270,13 @@ export function TradesView() {
               onClick={fetchTrades}
               disabled={loading}
             >
-              Aggiorna
+              {t('trades.refresh')}
             </Button>
 
             <Box sx={{ flexGrow: 1 }} />
 
             <Typography variant="body2" color="text.secondary">
-              {filteredTrades.length} trade trovati
+              {t('trades.tradesFound', { count: filteredTrades.length })}
             </Typography>
           </Stack>
 
@@ -285,28 +287,28 @@ export function TradesView() {
             onClose={() => setFilterAnchorEl(null)}
           >
             <MenuItem>
-              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Stato:</Typography>
+              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>{t('trades.statusLabel')}</Typography>
               <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 size="small"
                 sx={{ ml: 1, minWidth: 120 }}
               >
-                <MenuItem value="all">Tutti</MenuItem>
-                <MenuItem value="win">Vincenti</MenuItem>
-                <MenuItem value="loss">Perdenti</MenuItem>
-                <MenuItem value="cancelled">Annullati</MenuItem>
+                <MenuItem value="all">{t('trades.filterAll')}</MenuItem>
+                <MenuItem value="win">{t('trades.filterWin')}</MenuItem>
+                <MenuItem value="loss">{t('trades.filterLoss')}</MenuItem>
+                <MenuItem value="cancelled">{t('trades.filterCancelled')}</MenuItem>
               </Select>
             </MenuItem>
             <MenuItem>
-              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>Coppia:</Typography>
+              <Typography variant="subtitle2" sx={{ minWidth: 80 }}>{t('trades.pairLabel')}</Typography>
               <Select
                 value={pairFilter}
                 onChange={(e) => setPairFilter(e.target.value)}
                 size="small"
                 sx={{ ml: 1, minWidth: 120 }}
               >
-                <MenuItem value="all">Tutte le coppie</MenuItem>
+                <MenuItem value="all">{t('trades.allPairs')}</MenuItem>
                 {uniquePairs.map(pair => (
                   <MenuItem key={pair} value={pair}>{pair}</MenuItem>
                 ))}
@@ -334,17 +336,17 @@ export function TradesView() {
                       onChange={(e) => toggleSelectAll(e.target.checked)}
                     />
                   </TableCell>
-                  <TableCell>Data</TableCell>
-                  <TableCell>Coppia</TableCell>
-                  <TableCell>Azione</TableCell>
-                  <TableCell>Sistema</TableCell>
-                  <TableCell>Rischio</TableCell>
-                  <TableCell>Lotti</TableCell>
-                  <TableCell>Entrata</TableCell>
+                  <TableCell>{t('trades.date')}</TableCell>
+                  <TableCell>{t('trades.pair')}</TableCell>
+                  <TableCell>{t('trades.action')}</TableCell>
+                  <TableCell>{t('trades.system')}</TableCell>
+                  <TableCell>{t('trades.risk')}</TableCell>
+                  <TableCell>{t('trades.lots')}</TableCell>
+                  <TableCell>{t('trades.entry')}</TableCell>
                   <TableCell>SL/TP</TableCell>
                   <TableCell>P&L</TableCell>
-                  <TableCell>Stato</TableCell>
-                  <TableCell>Azioni</TableCell>
+                  <TableCell>{t('trades.status')}</TableCell>
+                  <TableCell>{t('common.edit')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -430,12 +432,12 @@ export function TradesView() {
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                        <Tooltip title="Modifica trade">
+                        <Tooltip title={t('trades.editTrade')}>
                           <IconButton size="small" onClick={() => { setSelectedTrade(trade); setEditModalOpen(true); }}>
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Elimina trade">
+                        <Tooltip title={t('trades.deleteTrade')}>
                           <IconButton
                             size="small"
                             color="error"
@@ -455,12 +457,12 @@ export function TradesView() {
           {paginatedTrades.length === 0 && !loading && (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="h6" color="text.secondary">
-                Nessun trade trovato
+                {t('trades.noTradesFound')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {searchTerm || statusFilter !== 'all' || pairFilter !== 'all'
-                  ? 'Prova a modificare la ricerca o i filtri'
-                  : 'Inizia aggiungendo il tuo primo trade'
+                  ? t('trades.adjustFilters')
+                  : t('trades.addFirstTrade')
                 }
               </Typography>
               {(searchTerm || statusFilter !== 'all' || pairFilter !== 'all') && (
@@ -473,7 +475,7 @@ export function TradesView() {
                     setPairFilter('all');
                   }}
                 >
-                  Rimuovi filtri
+                  {t('trades.removeFilters')}
                 </Button>
               )}
             </Box>

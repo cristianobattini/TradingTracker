@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -31,6 +32,7 @@ interface FormState {
 }
 
 export function AnalysisCreateView() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
@@ -58,7 +60,7 @@ export function AnalysisCreateView() {
           content: a.content,
         });
       })
-      .catch(() => setError('Failed to load analysis.'))
+      .catch(() => setError(t('analysis.loadError')))
       .finally(() => setFetchLoading(false));
   }, [id, isEdit]);
 
@@ -72,7 +74,7 @@ export function AnalysisCreateView() {
 
   const handleSave = async () => {
     if (!form.title.trim()) {
-      setError('Title is required.');
+      setError(t('analysis.titleRequired'));
       return;
     }
     setLoading(true);
@@ -91,7 +93,7 @@ export function AnalysisCreateView() {
       }
       navigate('/analysis');
     } catch {
-      setError('Failed to save analysis. Please try again.');
+      setError(t('analysis.saveAnalysisError'));
     } finally {
       setLoading(false);
     }
@@ -117,10 +119,10 @@ export function AnalysisCreateView() {
           variant="text"
           color="inherit"
         >
-          Back
+          {t('analysis.back')}
         </Button>
         <Typography variant="h5" sx={{ flex: 1 }}>
-          {isEdit ? 'Edit Analysis' : 'New Analysis'}
+          {isEdit ? t('analysis.editAnalysis') : t('analysis.newAnalysis')}
         </Typography>
         <Button
           variant="contained"
@@ -128,7 +130,7 @@ export function AnalysisCreateView() {
           onClick={handleSave}
           disabled={loading}
         >
-          {isEdit ? 'Save changes' : 'Save'}
+          {isEdit ? t('analysis.saveChanges') : t('analysis.save')}
         </Button>
       </Box>
 
@@ -142,7 +144,7 @@ export function AnalysisCreateView() {
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} sm={6} md={4}>
           <TextField
-            label="Title *"
+            label={t('analysis.titleLabel')}
             fullWidth
             value={form.title}
             onChange={handleChange('title')}
@@ -151,14 +153,14 @@ export function AnalysisCreateView() {
         </Grid>
         <Grid item xs={12} sm={3} md={2}>
           <TextField
-            label="Pair"
+            label={t('analysis.pairLabel')}
             select
             fullWidth
             value={form.pair}
             onChange={handleChange('pair')}
             size="small"
           >
-            <MenuItem value="">— None —</MenuItem>
+            <MenuItem value="">{t('analysis.none')}</MenuItem>
             {PAIRS.map((p) => (
               <MenuItem key={p} value={p}>
                 {p}
@@ -168,14 +170,14 @@ export function AnalysisCreateView() {
         </Grid>
         <Grid item xs={12} sm={3} md={2}>
           <TextField
-            label="Timeframe"
+            label={t('analysis.timeframeLabel')}
             select
             fullWidth
             value={form.timeframe}
             onChange={handleChange('timeframe')}
             size="small"
           >
-            <MenuItem value="">— None —</MenuItem>
+            <MenuItem value="">{t('analysis.none')}</MenuItem>
             {TIMEFRAMES.map((tf) => (
               <MenuItem key={tf} value={tf}>
                 {tf}

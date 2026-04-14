@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -184,13 +185,13 @@ function formatDayTab(dateStr: string): string {
   } catch { return dateStr; }
 }
 
-function formatDayHeader(dateStr: string): string {
+function formatDayHeader(dateStr: string, todayLabel: string): string {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr + 'T12:00:00');
     const isToday = dateStr === todayStr();
     const label = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: '2-digit', month: 'long' }).format(d);
-    return isToday ? `${label} — Oggi` : label;
+    return isToday ? `${label} — ${todayLabel}` : label;
   } catch { return dateStr; }
 }
 
@@ -213,6 +214,7 @@ function groupByDate(events: CalendarEvent[]): Record<string, CalendarEvent[]> {
 // Impact summary bar
 // ---------------------------------------------------------------------------
 function ImpactSummary({ events }: { events: CalendarEvent[] }) {
+  const { t } = useTranslation();
   const counts = useMemo(() => ({
     High: events.filter((e) => normaliseImpact(e.impact) === 'High').length,
     Medium: events.filter((e) => normaliseImpact(e.impact) === 'Medium').length,
@@ -232,7 +234,7 @@ function ImpactSummary({ events }: { events: CalendarEvent[] }) {
           </Typography>
         </Box>
       ))}
-      <Typography variant="caption" color="text.disabled">· {events.length} total</Typography>
+      <Typography variant="caption" color="text.disabled">· {events.length} {t('calendar.total')}</Typography>
     </Box>
   );
 }
@@ -241,6 +243,7 @@ function ImpactSummary({ events }: { events: CalendarEvent[] }) {
 // Component
 // ---------------------------------------------------------------------------
 export function CalendarEventsView() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -386,10 +389,10 @@ export function CalendarEventsView() {
       {/* ── Header ── */}
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box>
-          <Typography variant="h4" fontWeight={700}>Calendario Economico</Typography>
+          <Typography variant="h4" fontWeight={700}>{t('calendar.title')}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography variant="body2" color="text.secondary">
-              Eventi di questa settimana · fonte: ForexFactory
+              {t('calendar.subtitle')}
             </Typography>
             <Chip
               icon={<AccessTimeIcon sx={{ fontSize: '13px !important' }} />}
@@ -415,7 +418,7 @@ export function CalendarEventsView() {
               color={preferredSource === 'Investing' ? 'primary' : 'default'}
               size="small"
             />
-            <Tooltip title={preferredSource === 'Investing' ? 'Rimuovi preferito' : 'Imposta come preferito'}>
+            <Tooltip title={preferredSource === 'Investing' ? t('calendar.removePreferred') : t('calendar.setPreferred')}>
               <IconButton size="small" onClick={() => togglePreferred('Investing')} sx={{ p: 0.25 }}>
                 {preferredSource === 'Investing'
                   ? <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
@@ -438,7 +441,7 @@ export function CalendarEventsView() {
               color={preferredSource === 'ForexFactory' ? 'primary' : 'default'}
               size="small"
             />
-            <Tooltip title={preferredSource === 'ForexFactory' ? 'Rimuovi preferito' : 'Imposta come preferito'}>
+            <Tooltip title={preferredSource === 'ForexFactory' ? t('calendar.removePreferred') : t('calendar.setPreferred')}>
               <IconButton size="small" onClick={() => togglePreferred('ForexFactory')} sx={{ p: 0.25 }}>
                 {preferredSource === 'ForexFactory'
                   ? <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
@@ -447,7 +450,7 @@ export function CalendarEventsView() {
             </Tooltip>
           </Box>
 
-          <Tooltip title="Aggiorna">
+          <Tooltip title={t('calendar.refresh')}>
             <IconButton onClick={() => loadCalendar(true)} disabled={loading} size="small">
               {loading ? <CircularProgress size={18} /> : <RefreshIcon />}
             </IconButton>
@@ -462,7 +465,7 @@ export function CalendarEventsView() {
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
           <TextField
             size="small"
-            placeholder="Cerca eventi o valuta…"
+            placeholder={`${t('calendar.event')} / ${t('calendar.currency')}…`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{ minWidth: 220, flex: '1 1 220px' }}
@@ -479,25 +482,25 @@ export function CalendarEventsView() {
           <Divider orientation="vertical" flexItem />
 
           {/* Quick filters */}
-          <Tooltip title="Vai a oggi">
+          <Tooltip title={t('calendar.goToToday')}>
             <Button
               size="small" variant="outlined" startIcon={<TodayIcon />}
               onClick={applyToday}
               color={dayTab === todayStr() ? 'primary' : 'inherit'}
             >
-              Oggi
+              {t('calendar.today')}
             </Button>
           </Tooltip>
-          <Tooltip title="Solo eventi ad alto impatto">
+          <Tooltip title={t('calendar.highOnlyTooltip')}>
             <Button
               size="small" variant="outlined" startIcon={<WhatshotIcon />}
               onClick={applyHighOnly}
               color={impactFilter.length === 1 && impactFilter[0] === 'High' ? 'error' : 'inherit'}
             >
-              Solo alti
+              {t('calendar.highOnly')}
             </Button>
           </Tooltip>
-          <Tooltip title="Mostra solo eventi con risultati effettivi">
+          <Tooltip title={t('calendar.hasResultTooltip')}>
             <Button
               size="small"
               variant={onlyActual ? 'contained' : 'outlined'}
@@ -505,15 +508,15 @@ export function CalendarEventsView() {
               onClick={() => setOnlyActual((v) => !v)}
               color={onlyActual ? 'success' : 'inherit'}
             >
-              Ha risultato
+              {t('calendar.hasResult')}
             </Button>
           </Tooltip>
 
           {hasActiveFilters && (
-            <Tooltip title="Azzera tutti i filtri">
+            <Tooltip title={t('calendar.resetAll')}>
               <Button size="small" variant="text" startIcon={<FilterListOffIcon />}
                 onClick={resetAll} color="warning">
-                Azzera
+                {t('calendar.reset')}
               </Button>
             </Tooltip>
           )}
@@ -548,7 +551,7 @@ export function CalendarEventsView() {
 
           {/* Currency chips */}
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>Valuta:</Typography>
+            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>{t('calendar.currencyLabel')}</Typography>
             {presentCurrencies.map((ccy) => {
               const active = currencyFilter.includes(ccy);
               return (
@@ -564,7 +567,7 @@ export function CalendarEventsView() {
               );
             })}
             {currencyFilter.length > 0 && (
-              <Chip label="Azzera" size="small" variant="outlined" color="warning"
+              <Chip label={t('calendar.reset')} size="small" variant="outlined" color="warning"
                 onClick={() => setCurrencyFilter([])} sx={{ fontSize: '0.72rem' }} />
             )}
           </Box>
@@ -584,7 +587,7 @@ export function CalendarEventsView() {
             value="all"
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                Tutti i giorni
+                {t('calendar.allDays')}
                 <Chip label={filtered.length} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
               </Box>
             }
@@ -627,8 +630,8 @@ export function CalendarEventsView() {
         </Paper>
       ) : sortedDates.length === 0 ? (
         <Alert severity="info"
-          action={hasActiveFilters ? <Button color="inherit" size="small" onClick={resetAll}>Azzera filtri</Button> : undefined}>
-          Nessun evento corrisponde ai filtri selezionati.
+          action={hasActiveFilters ? <Button color="inherit" size="small" onClick={resetAll}>{t('calendar.resetFilters')}</Button> : undefined}>
+          {t('calendar.noEvents')}
         </Alert>
       ) : (
         sortedDates.map((dateKey) => (
@@ -636,10 +639,10 @@ export function CalendarEventsView() {
             {/* Day header */}
             <Box sx={{ mb: 1, px: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="subtitle1" fontWeight={700}>
-                📅 {formatDayHeader(dateKey)}
+                📅 {formatDayHeader(dateKey, t('calendar.today'))}
               </Typography>
               <Chip
-                label={`${grouped[dateKey].length} event${grouped[dateKey].length !== 1 ? 'i' : 'o'}`}
+                label={`${grouped[dateKey].length}`}
                 size="small" variant="outlined"
               />
               {/* Mini impact breakdown per day */}
@@ -664,19 +667,19 @@ export function CalendarEventsView() {
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'background.neutral' }}>
                     <TableCell sx={{ fontWeight: 700, width: 70 }}>
-                      <Tooltip title={`Orario locale: ${BROWSER_TZ} (${TZ_OFFSET_LABEL})`} placement="top">
+                      <Tooltip title={`${t('calendar.timezoneLabel')}: ${BROWSER_TZ} (${TZ_OFFSET_LABEL})`} placement="top">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, cursor: 'default' }}>
-                          Ora
+                          {t('calendar.time')}
                           <AccessTimeIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
                         </Box>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 70 }}>Valuta</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 80 }}>Impatto</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Previsione</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Precedente</TableCell>
-                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Effettivo</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 70 }}>{t('calendar.currency')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 80 }}>{t('calendar.impact')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>{t('calendar.event')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">{t('calendar.forecast')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">{t('calendar.previous')}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">{t('calendar.actual')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -714,7 +717,7 @@ export function CalendarEventsView() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Typography variant="body2" fontWeight={500}>{ev.title}</Typography>
                             {ev.detail_url && (
-                              <Tooltip title="Dettagli evento su ForexFactory" placement="top">
+                              <Tooltip title={t('calendar.eventDetails')} placement="top">
                                 <IconButton
                                   size="small"
                                   component="a"

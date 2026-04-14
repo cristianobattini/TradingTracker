@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -49,16 +50,17 @@ const TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN'];
 
 type SortKey = 'date_desc' | 'date_asc' | 'title_asc' | 'title_desc' | 'updated_desc';
 
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'date_desc',    label: 'Data ↓ (più recente)' },
-  { value: 'date_asc',     label: 'Data ↑ (più vecchia)' },
-  { value: 'updated_desc', label: 'Ultima modifica' },
-  { value: 'title_asc',    label: 'Titolo A → Z' },
-  { value: 'title_desc',   label: 'Titolo Z → A' },
-];
-
 export function AnalysisDashboardView() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+    { value: 'date_desc',    label: `${t('trades.date')} ↓` },
+    { value: 'date_asc',     label: `${t('trades.date')} ↑` },
+    { value: 'updated_desc', label: t('analysis.editDetails') },
+    { value: 'title_asc',    label: `${t('analysis.titleLabel')} A → Z` },
+    { value: 'title_desc',   label: `${t('analysis.titleLabel')} Z → A` },
+  ];
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
@@ -106,7 +108,7 @@ export function AnalysisDashboardView() {
       // Load analyses
       setAnalyses(await analysisApi.list());
     } catch {
-      setError('Caricamento fallito.');
+      setError(t('analysis.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -245,7 +247,7 @@ export function AnalysisDashboardView() {
 
   const handleUploadSave = async () => {
     if (!uploadDialog.title.trim()) {
-      setUploadDialog((p) => ({ ...p, error: 'Il titolo è obbligatorio.' }));
+      setUploadDialog((p) => ({ ...p, error: t('analysis.titleRequired') }));
       return;
     }
     setUploadDialog((p) => ({ ...p, saving: true, error: '' }));
@@ -259,7 +261,7 @@ export function AnalysisDashboardView() {
       setAnalyses((prev) => [created, ...prev]);
       setUploadDialog((p) => ({ ...p, open: false }));
     } catch {
-      setUploadDialog((p) => ({ ...p, saving: false, error: 'Salvataggio fallito.' }));
+      setUploadDialog((p) => ({ ...p, saving: false, error: t('analysis.saveFailed') }));
     }
   };
 
@@ -270,20 +272,20 @@ export function AnalysisDashboardView() {
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Typography variant="h5" sx={{ flex: 1 }}>
-          Analysis Journal
+          {t('analysis.title')}
         </Typography>
         <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()}>
-          Upload .md
+          {t('analysis.uploadMarkdown')}
         </Button>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/analysis/create')}>
-          Nuova analisi
+          {t('analysis.newAnalysis')}
         </Button>
       </Box>
 
       {/* Search + sort row */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
-          placeholder="Cerca per titolo, coppia o timeframe…"
+          placeholder={t('analysis.searchPlaceholder')}
           size="small"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -300,14 +302,14 @@ export function AnalysisDashboardView() {
         {/* Filter: pair */}
         <TextField
           select
-          label="Coppia"
+          label={t('analysis.filterPair')}
           size="small"
           value={filterPair}
           onChange={(e) => setFilterPair(e.target.value)}
           sx={{ minWidth: 130 }}
           disabled={availablePairs.length === 0}
         >
-          <MenuItem value="">Tutte le coppie</MenuItem>
+          <MenuItem value="">{t('analysis.allPairs')}</MenuItem>
           {availablePairs.map((p) => (
             <MenuItem key={p} value={p}>{p}</MenuItem>
           ))}
@@ -316,14 +318,14 @@ export function AnalysisDashboardView() {
         {/* Filter: timeframe */}
         <TextField
           select
-          label="Timeframe"
+          label={t('analysis.filterTimeframe')}
           size="small"
           value={filterTimeframe}
           onChange={(e) => setFilterTimeframe(e.target.value)}
           sx={{ minWidth: 130 }}
           disabled={availableTimeframes.length === 0}
         >
-          <MenuItem value="">Tutti i TF</MenuItem>
+          <MenuItem value="">{t('analysis.allTimeframes')}</MenuItem>
           {availableTimeframes.map((tf) => (
             <MenuItem key={tf} value={tf}>{tf}</MenuItem>
           ))}
@@ -332,7 +334,7 @@ export function AnalysisDashboardView() {
         {/* Sort */}
         <TextField
           select
-          label="Ordina per"
+          label={t('analysis.sortBy')}
           size="small"
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
@@ -345,7 +347,7 @@ export function AnalysisDashboardView() {
 
         {/* Reset filters button */}
         {hasActiveFilters && (
-          <Tooltip title="Azzera filtri">
+          <Tooltip title={t('analysis.resetFilters')}>
             <IconButton size="small" onClick={resetFilters} color="default">
               <FilterListOffIcon fontSize="small" />
             </IconButton>
@@ -365,7 +367,7 @@ export function AnalysisDashboardView() {
           {filterTimeframe && (
             <Chip size="small" label={filterTimeframe} variant="outlined" onDelete={() => setFilterTimeframe('')} />
           )}
-          <Chip size="small" label={`${result.length} risultat${result.length === 1 ? 'o' : 'i'}`} variant="filled" />
+          <Chip size="small" label={`${result.length}`} variant="filled" />
         </Box>
       )}
 
@@ -381,15 +383,15 @@ export function AnalysisDashboardView() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 10, gap: 2, color: 'text.secondary' }}>
           <ArticleIcon sx={{ fontSize: 64, opacity: 0.3 }} />
           <Typography variant="body1">
-            {hasActiveFilters ? 'Nessuna analisi corrisponde ai filtri.' : 'Nessuna analisi ancora. Creane una!'}
+            {hasActiveFilters ? t('analysis.noResultsFilter') : t('analysis.noAnalyses')}
           </Typography>
           {hasActiveFilters ? (
             <Button variant="outlined" startIcon={<FilterListOffIcon />} onClick={resetFilters}>
-              Azzera filtri
+              {t('analysis.resetFilters')}
             </Button>
           ) : (
             <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/analysis/create')}>
-              Nuova analisi
+              {t('analysis.newAnalysis')}
             </Button>
           )}
         </Box>
@@ -401,7 +403,7 @@ export function AnalysisDashboardView() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <BookmarkIcon fontSize="small" color="primary" />
                 <Typography variant="subtitle2" color="primary" fontWeight={700}>
-                  Segnalibri ({pinnedResult.length})
+                  {t('analysis.bookmarks', { count: pinnedResult.length })}
                 </Typography>
               </Box>
               <Grid container spacing={2}>
@@ -419,7 +421,7 @@ export function AnalysisDashboardView() {
             <>
               {pinnedResult.length > 0 && (
                 <Typography variant="subtitle2" color="text.secondary" fontWeight={600} sx={{ mb: 1.5 }}>
-                  Tutte le analisi
+                  {t('analysis.allAnalyses')}
                 </Typography>
               )}
               <Grid container spacing={2}>
@@ -450,27 +452,27 @@ export function AnalysisDashboardView() {
 
       {/* Upload dialog */}
       <Dialog open={uploadDialog.open} onClose={() => setUploadDialog((p) => ({ ...p, open: false }))} maxWidth="xs" fullWidth>
-        <DialogTitle>Dettagli analisi</DialogTitle>
+        <DialogTitle>{t('analysis.uploadDetails')}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>
           {uploadDialog.error && <Alert severity="error">{uploadDialog.error}</Alert>}
-          <TextField label="Titolo *" fullWidth size="small" value={uploadDialog.title}
+          <TextField label={t('analysis.titleLabel')} fullWidth size="small" value={uploadDialog.title}
             onChange={(e) => setUploadDialog((p) => ({ ...p, title: e.target.value }))} />
-          <TextField label="Coppia" select fullWidth size="small" value={uploadDialog.pair}
+          <TextField label={t('analysis.pairLabel')} select fullWidth size="small" value={uploadDialog.pair}
             onChange={(e) => setUploadDialog((p) => ({ ...p, pair: e.target.value }))}>
-            <MenuItem value="">— Nessuna —</MenuItem>
+            <MenuItem value="">{t('analysis.none')}</MenuItem>
             {PAIRS.map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
           </TextField>
-          <TextField label="Timeframe" select fullWidth size="small" value={uploadDialog.timeframe}
+          <TextField label={t('analysis.timeframeLabel')} select fullWidth size="small" value={uploadDialog.timeframe}
             onChange={(e) => setUploadDialog((p) => ({ ...p, timeframe: e.target.value }))}>
-            <MenuItem value="">— Nessuno —</MenuItem>
+            <MenuItem value="">{t('analysis.none')}</MenuItem>
             {TIMEFRAMES.map((tf) => <MenuItem key={tf} value={tf}>{tf}</MenuItem>)}
           </TextField>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUploadDialog((p) => ({ ...p, open: false }))}>Annulla</Button>
+          <Button onClick={() => setUploadDialog((p) => ({ ...p, open: false }))}>{t('common.cancel')}</Button>
           <Button variant="contained" onClick={handleUploadSave} disabled={uploadDialog.saving}
             startIcon={uploadDialog.saving ? <CircularProgress size={16} color="inherit" /> : undefined}>
-            Salva
+            {t('analysis.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -490,19 +492,17 @@ export function AnalysisDashboardView() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Rimuovi analisi condivisa</DialogTitle>
+        <DialogTitle>{t('analysis.removeShared')}</DialogTitle>
         <DialogContent>
           <Typography>
-            Vuoi rimuovere{' '}
-            <strong>
-              {analyses.find((a) => a.id === removeSharedDialogId)?.title ?? 'questa analisi'}
-            </strong>{' '}
-            dalla tua dashboard? Potrai recuperarla solo se l&apos;utente te la ricondivide.
+            {t('analysis.removeSharedConfirm', {
+              title: analyses.find((a) => a.id === removeSharedDialogId)?.title ?? '',
+            })}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRemoveSharedDialogId(null)} disabled={removingShared}>
-            Annulla
+            {t('common.cancel')}
           </Button>
           <Button
             color="error"
@@ -511,7 +511,7 @@ export function AnalysisDashboardView() {
             disabled={removingShared}
             startIcon={removingShared ? <CircularProgress size={16} color="inherit" /> : undefined}
           >
-            Rimuovi
+            {t('analysis.remove')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -523,19 +523,17 @@ export function AnalysisDashboardView() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Elimina analisi</DialogTitle>
+        <DialogTitle>{t('analysis.deleteAnalysis')}</DialogTitle>
         <DialogContent>
           <Typography>
-            Sei sicuro di voler eliminare{' '}
-            <strong>
-              {analyses.find((a) => a.id === deleteDialogId)?.title ?? 'questa analisi'}
-            </strong>
-            ? L&apos;operazione non può essere annullata.
+            {t('analysis.deleteConfirm', {
+              title: analyses.find((a) => a.id === deleteDialogId)?.title ?? '',
+            })}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogId(null)} disabled={deleting}>
-            Annulla
+            {t('common.cancel')}
           </Button>
           <Button
             color="error"
@@ -544,7 +542,7 @@ export function AnalysisDashboardView() {
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : undefined}
           >
-            Elimina
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -565,6 +563,7 @@ interface AnalysisCardProps {
 }
 
 function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDelete, currentUserId }: AnalysisCardProps) {
+  const { t } = useTranslation();
   const preview = analysis.content
     .replace(/!\[.*?\]\(.*?\)/g, '')
     .replace(/[#*`>_~\[\]]/g, '')
@@ -587,13 +586,13 @@ function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDel
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
               {!analysis.is_shared && onShare && (
-                <Tooltip title="Condividi analisi">
+                <Tooltip title={t('analysis.share')}>
                   <IconButton size="small" onClick={(e) => { e.stopPropagation(); onShare(analysis.id); }}>
                     <ShareIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               )}
-              <Tooltip title={(analysis as any).pinned ? 'Rimuovi segnalibro' : 'Aggiungi ai segnalibri'}>
+              <Tooltip title={(analysis as any).pinned ? t('analysis.unpin') : t('analysis.pin')}>
                 <span>
                   <IconButton
                     size="small"
@@ -606,9 +605,9 @@ function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDel
                 </span>
               </Tooltip>
               {analysis.is_shared ? (
-                <Tooltip title="Rimuovi dalla mia dashboard">
-                  <IconButton 
-                    size="small" 
+                <Tooltip title={t('analysis.removeShared')}>
+                  <IconButton
+                    size="small"
                     onClick={(e) => { e.stopPropagation(); onRemoveShared?.(analysis.id); }}
                     color="error"
                   >
@@ -616,9 +615,9 @@ function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDel
                   </IconButton>
                 </Tooltip>
               ) : (
-                <Tooltip title="Elimina analisi">
-                  <IconButton 
-                    size="small" 
+                <Tooltip title={t('analysis.deleteAnalysis')}>
+                  <IconButton
+                    size="small"
                     onClick={(e) => { e.stopPropagation(); onDelete?.(analysis.id); }}
                     color="error"
                   >
@@ -632,7 +631,7 @@ function AnalysisCard({ analysis, onClick, onPin, onShare, onRemoveShared, onDel
           {(analysis as any).is_shared && (
             <Box sx={{ mb: 1 }}>
               <Chip
-                label={`Condivisa da ${(analysis as any).shared_by_user?.username || 'Utente'}`}
+                label={t('analysis.shared', { user: (analysis as any).shared_by_user?.username || '' })}
                 size="small"
                 color="primary"
                 variant="outlined"
