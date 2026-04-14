@@ -10,7 +10,7 @@ if not DATABASE_URL:
 
 def get_uvicorn_config():
     environment = os.getenv("PROJECT_ENV", "development")
-    host = os.getenv("BACKEND_HOST", "0.0.0.0")
+    host = os.getenv("BACKEND_HOST", "127.0.0.1")
     port = int(os.getenv("BACKEND_PORT", "8000"))
     
     if environment == "production":

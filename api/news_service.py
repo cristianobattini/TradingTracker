@@ -304,30 +304,40 @@ def fetch_all_news(force: bool = False) -> list[dict]:
 # Economic Calendar
 # ---------------------------------------------------------------------------
 
-def _fetch_ff_event_ids() -> dict[tuple[str, str], str]:
+def _fetch_ff_html_data() -> tuple[dict[tuple[str, str], str], dict[tuple[str, str], str]]:
     """
-    Scrape ForexFactory calendar HTML to build a (title, country) → event_id map.
-    Returns empty dict on failure — detail links will simply be omitted.
+    Scrape ForexFactory calendar HTML to build:
+      - (title, country) → event_id map  (for detail links)
+      - (title, country) → actual value  (for actual column)
+    Returns empty dicts on failure.
     """
     try:
         resp = _scraper.get("https://www.forexfactory.com/calendar", timeout=20)
         soup = BeautifulSoup(resp.text, "html.parser")
         id_map: dict[tuple[str, str], str] = {}
+        actual_map: dict[tuple[str, str], str] = {}
 
         for row in soup.select("tr[data-event-id]"):
             event_id = row.get("data-event-id", "")
-            if not event_id:
-                continue
             title_el = row.select_one(".calendar__event-title")
             currency_el = row.select_one(".calendar__currency")
-            if title_el and currency_el:
-                key = (title_el.get_text(strip=True), currency_el.get_text(strip=True).upper())
+            if not (title_el and currency_el):
+                continue
+            key = (title_el.get_text(strip=True), currency_el.get_text(strip=True).upper())
+
+            if event_id:
                 id_map[key] = event_id
 
-        return id_map
+            actual_el = row.select_one(".calendar__actual span, .calendar__actual")
+            if actual_el:
+                actual_text = actual_el.get_text(strip=True)
+                if actual_text and actual_text.lower() not in ("", "actual"):
+                    actual_map[key] = actual_text
+
+        return id_map, actual_map
     except Exception as exc:
-        logger.warning("Failed to scrape ForexFactory event IDs: %s", exc)
-        return {}
+        logger.warning("Failed to scrape ForexFactory HTML data: %s", exc)
+        return {}, {}
 
 
 def fetch_calendar(force: bool = False) -> list[dict]:
@@ -340,39 +350,52 @@ def fetch_calendar(force: bool = False) -> list[dict]:
         resp = httpx.get(CALENDAR_URL, headers=_HEADERS, timeout=15, follow_redirects=True)
         raw: list[dict] = resp.json()
 
-        # Fetch event IDs from HTML (best-effort)
-        id_map = _fetch_ff_event_ids()
+        # Fetch event IDs and actual values from HTML (best-effort)
+        id_map, actual_map = _fetch_ff_html_data()
 
         events = []
         for ev in raw:
             dt_str = ev.get("date", "")
             date_part = ""
             time_part = ""
+            datetime_utc = ""
             try:
                 dt = datetime.fromisoformat(dt_str)
-                date_part = dt.strftime("%Y-%m-%d")
-                time_part = dt.strftime("%H:%M")
+                # Normalise to UTC so the browser can convert to local time
+                if dt.tzinfo is not None:
+                    dt_utc = dt.astimezone(timezone.utc)
+                else:
+                    # No tz info → treat as UTC
+                    dt_utc = dt.replace(tzinfo=timezone.utc)
+                date_part = dt_utc.strftime("%Y-%m-%d")
+                time_part = dt_utc.strftime("%H:%M")
+                datetime_utc = dt_utc.isoformat()
             except Exception:
                 date_part = dt_str[:10] if dt_str else ""
                 time_part = dt_str[11:16] if len(dt_str) > 10 else ""
+                datetime_utc = dt_str
 
             title = ev.get("title", ev.get("name", ""))
             country = ev.get("country", "")
-            event_id = id_map.get((title, country.upper()), "")
+            html_key = (title, country.upper())
+            event_id = id_map.get(html_key, "")
             detail_url = (
                 f"https://www.forexfactory.com/calendar#detail={event_id}"
                 if event_id else ""
             )
+            # Actual from HTML scrape takes priority over JSON field (JSON rarely has it)
+            actual = actual_map.get(html_key, "") or ev.get("actual", "")
 
             events.append({
                 "title": title,
                 "country": country,
                 "date": date_part,
                 "time": time_part,
+                "datetime_utc": datetime_utc,
                 "impact": ev.get("impact", ""),
                 "forecast": ev.get("forecast", ""),
                 "previous": ev.get("previous", ""),
-                "actual": ev.get("actual", ""),
+                "actual": actual,
                 "source": "ForexFactory",
                 "detail_url": detail_url,
             })

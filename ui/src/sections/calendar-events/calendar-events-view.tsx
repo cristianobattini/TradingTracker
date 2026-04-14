@@ -35,6 +35,7 @@ import FilterListOffIcon from '@mui/icons-material/FilterListOff';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const CALENDAR_PREF_KEY = 'calendar_preferred_source';
 type CalendarSource = 'ForexFactory' | 'Investing';
@@ -52,6 +53,7 @@ interface CalendarEvent {
   country: string;
   date: string;
   time: string;
+  datetime_utc: string;
   impact: string;
   forecast: string;
   previous: string;
@@ -83,6 +85,23 @@ const FLAG_MAP: Record<string, string> = {
   NOK: '🇳🇴', DKK: '🇩🇰', SGD: '🇸🇬', HKD: '🇭🇰', MXN: '🇲🇽',
 };
 
+// Browser timezone (resolved once at module load)
+const BROWSER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// Short UTC offset label, e.g. "UTC+2"
+function getTimezoneOffset(): string {
+  try {
+    return (
+      new Intl.DateTimeFormat('en-GB', { timeZoneName: 'shortOffset', timeZone: BROWSER_TZ })
+        .formatToParts(new Date())
+        .find((p) => p.type === 'timeZoneName')?.value ?? ''
+    );
+  } catch {
+    return '';
+  }
+}
+const TZ_OFFSET_LABEL = getTimezoneOffset(); // e.g. "UTC+2"
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -91,7 +110,70 @@ function flag(country: string): string {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function yesterdayStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Parse a numeric value from strings like "2.3%", "3.98M", "2990B", "-0.4%", "1.6K".
+ * Returns NaN if not parseable.
+ */
+function parseEconomicValue(s: string): number {
+  if (!s) return NaN;
+  const clean = s.trim().replace(/,/g, '');
+  const m = clean.match(/^([+-]?\d+(?:\.\d+)?)\s*([KMBT%]?)$/i);
+  if (!m) return NaN;
+  let val = parseFloat(m[1]);
+  const suffix = m[2].toUpperCase();
+  if (suffix === 'K') val *= 1_000;
+  else if (suffix === 'M') val *= 1_000_000;
+  else if (suffix === 'B') val *= 1_000_000_000;
+  else if (suffix === 'T') val *= 1_000_000_000_000;
+  return val;
+}
+
+/** Compare actual vs forecast: returns 'better' | 'worse' | 'neutral'. */
+function compareActualForecast(actual: string, forecast: string): 'better' | 'worse' | 'neutral' {
+  const a = parseEconomicValue(actual);
+  const f = parseEconomicValue(forecast);
+  if (Number.isNaN(a) || Number.isNaN(f)) return 'neutral';
+  if (a > f) return 'better';
+  if (a < f) return 'worse';
+  return 'neutral';
+}
+
+/** Convert a UTC ISO string to the browser's local time (HH:MM). */
+function formatLocalTime(datetime_utc: string): string {
+  if (!datetime_utc) return '—';
+  try {
+    const d = new Date(datetime_utc);
+    if (Number.isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: BROWSER_TZ,
+    }).format(d);
+  } catch {
+    return '—';
+  }
+}
+
+/** Convert a UTC ISO string to local date (YYYY-MM-DD) for grouping. */
+function localDateStr(datetime_utc: string): string {
+  if (!datetime_utc) return '';
+  try {
+    const d = new Date(datetime_utc);
+    if (Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-CA', { timeZone: BROWSER_TZ }).format(d); // en-CA gives YYYY-MM-DD
+  } catch {
+    return '';
+  }
 }
 
 function formatDayTab(dateStr: string): string {
@@ -108,7 +190,7 @@ function formatDayHeader(dateStr: string): string {
     const d = new Date(dateStr + 'T12:00:00');
     const isToday = dateStr === todayStr();
     const label = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: '2-digit', month: 'long' }).format(d);
-    return isToday ? `${label} — Today` : label;
+    return isToday ? `${label} — Oggi` : label;
   } catch { return dateStr; }
 }
 
@@ -119,7 +201,8 @@ function normaliseImpact(raw: string): string {
 
 function groupByDate(events: CalendarEvent[]): Record<string, CalendarEvent[]> {
   return events.reduce<Record<string, CalendarEvent[]>>((acc, ev) => {
-    const key = ev.date || 'Unknown';
+    // Use local date derived from datetime_utc if available, otherwise ev.date
+    const key = (ev.datetime_utc ? localDateStr(ev.datetime_utc) : '') || ev.date || 'Unknown';
     if (!acc[key]) acc[key] = [];
     acc[key].push(ev);
     return acc;
@@ -171,11 +254,11 @@ export function CalendarEventsView() {
     localStorage.setItem(CALENDAR_PREF_KEY, next);
   };
 
-  // Filters
+  // Filters — default tab to today
   const [impactFilter, setImpactFilter] = useState<string[]>(['High', 'Medium', 'Low']);
-  const [currencyFilter, setCurrencyFilter] = useState<string[]>([]);   // empty = all
+  const [currencyFilter, setCurrencyFilter] = useState<string[]>([]);
   const [search, setSearch] = useState('');
-  const [dayTab, setDayTab] = useState<string>('all');
+  const [dayTab, setDayTab] = useState<string>(todayStr());
   const [onlyActual, setOnlyActual] = useState(false);
 
   // ---------------------------------------------------------------------------
@@ -203,11 +286,19 @@ export function CalendarEventsView() {
   // ---------------------------------------------------------------------------
   // Derived data
   // ---------------------------------------------------------------------------
-  // All unique days (sorted) across the full event list
+  // All unique local days (sorted) — using local date conversion
   const allDays = useMemo(() => {
-    const days = Array.from(new Set(events.map((e) => e.date).filter(Boolean))).sort();
+    const days = Array.from(new Set(
+      events.map((e) => (e.datetime_utc ? localDateStr(e.datetime_utc) : '') || e.date).filter(Boolean)
+    )).sort();
     return days;
   }, [events]);
+
+  // Days visible in tabs: yesterday + today + future (max 1 day back)
+  const visibleDays = useMemo(() => {
+    const yesterday = yesterdayStr();
+    return allDays.filter((d) => d >= yesterday);
+  }, [allDays]);
 
   // Currencies present in the loaded events
   const presentCurrencies = useMemo(() => {
@@ -215,23 +306,28 @@ export function CalendarEventsView() {
     return MAJOR_CURRENCIES.filter((c) => s.has(c));
   }, [events]);
 
-  // Events per day (for badge counts on tabs)
+  // Events per day (for badge counts on tabs) — using local dates
   const countsByDay = useMemo(() => {
     const map: Record<string, number> = {};
     events.forEach((e) => {
-      if (e.date) map[e.date] = (map[e.date] || 0) + 1;
+      const day = (e.datetime_utc ? localDateStr(e.datetime_utc) : '') || e.date;
+      if (day) map[day] = (map[day] || 0) + 1;
     });
     return map;
   }, [events]);
 
-  // Apply all filters
+  // Apply all filters; when "all", restrict to visibleDays (no more than 1 day back)
   const filtered = useMemo(() => {
+    const yesterday = yesterdayStr();
     const q = search.trim().toLowerCase();
     return events.filter((ev) => {
+      const localDay = (ev.datetime_utc ? localDateStr(ev.datetime_utc) : '') || ev.date;
       const impact = normaliseImpact(ev.impact);
       if (!impactFilter.includes(impact)) return false;
       if (currencyFilter.length > 0 && !currencyFilter.includes(ev.country?.toUpperCase())) return false;
-      if (dayTab !== 'all' && ev.date !== dayTab) return false;
+      if (dayTab !== 'all' && localDay !== dayTab) return false;
+      // When showing "all", hide events older than yesterday
+      if (dayTab === 'all' && localDay < yesterday) return false;
       if (onlyActual && !ev.actual) return false;
       if (q && !ev.title.toLowerCase().includes(q) && !ev.country?.toLowerCase().includes(q)) return false;
       return true;
@@ -246,7 +342,7 @@ export function CalendarEventsView() {
   // ---------------------------------------------------------------------------
   const applyToday = () => {
     const t = todayStr();
-    if (allDays.includes(t)) setDayTab(t);
+    setDayTab(allDays.includes(t) ? t : todayStr());
     setImpactFilter(['High', 'Medium', 'Low']);
     setCurrencyFilter([]);
     setOnlyActual(false);
@@ -264,7 +360,7 @@ export function CalendarEventsView() {
   const resetAll = () => {
     setImpactFilter(['High', 'Medium', 'Low']);
     setCurrencyFilter([]);
-    setDayTab('all');
+    setDayTab(todayStr());
     setOnlyActual(false);
     setSearch('');
   };
@@ -272,7 +368,7 @@ export function CalendarEventsView() {
   const hasActiveFilters =
     impactFilter.length < 3 ||
     currencyFilter.length > 0 ||
-    dayTab !== 'all' ||
+    dayTab !== todayStr() ||
     onlyActual ||
     search.trim() !== '';
 
@@ -291,9 +387,18 @@ export function CalendarEventsView() {
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box>
           <Typography variant="h4" fontWeight={700}>Calendario Economico</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Eventi di questa settimana · fonte: ForexFactory
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Typography variant="body2" color="text.secondary">
+              Eventi di questa settimana · fonte: ForexFactory
+            </Typography>
+            <Chip
+              icon={<AccessTimeIcon sx={{ fontSize: '13px !important' }} />}
+              label={`${BROWSER_TZ} · ${TZ_OFFSET_LABEL}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontSize: '0.68rem', height: 20, '& .MuiChip-label': { px: 0.75 } }}
+            />
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           {/* Investing.com chip with star */}
@@ -467,7 +572,7 @@ export function CalendarEventsView() {
       </Paper>
 
       {/* ── Day tabs ── */}
-      {!loading && allDays.length > 0 && (
+      {!loading && visibleDays.length > 0 && (
         <Tabs
           value={dayTab}
           onChange={(_, v) => setDayTab(v)}
@@ -480,11 +585,11 @@ export function CalendarEventsView() {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 Tutti i giorni
-                <Chip label={events.length} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
+                <Chip label={filtered.length} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
               </Box>
             }
           />
-          {allDays.map((day) => {
+          {visibleDays.map((day) => {
             const isToday = day === todayStr();
             const count = countsByDay[day] || 0;
             return (
@@ -558,17 +663,26 @@ export function CalendarEventsView() {
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'background.neutral' }}>
-                    <TableCell sx={{ fontWeight: 700, width: 60 }}>Ora</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 70 }}>
+                      <Tooltip title={`Orario locale: ${BROWSER_TZ} (${TZ_OFFSET_LABEL})`} placement="top">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, cursor: 'default' }}>
+                          Ora
+                          <AccessTimeIcon sx={{ fontSize: 13, color: 'text.disabled' }} />
+                        </Box>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 70 }}>Valuta</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 80 }}>Impatto</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Previsione</TableCell>
                     <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Precedente</TableCell>
+                    <TableCell sx={{ fontWeight: 700, width: 90 }} align="right">Effettivo</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {grouped[dateKey].map((ev, i) => {
                     const impactKey = normaliseImpact(ev.impact);
+                    const localTime = formatLocalTime(ev.datetime_utc);
                     return (
                       <TableRow
                         key={i}
@@ -579,7 +693,7 @@ export function CalendarEventsView() {
                       >
                         <TableCell>
                           <Typography variant="caption" fontFamily="monospace" fontWeight={500}>
-                            {ev.time || '—'}
+                            {localTime}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -620,6 +734,22 @@ export function CalendarEventsView() {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" color="text.secondary">{ev.previous || '—'}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          {ev.actual ? (() => {
+                            const cmp = compareActualForecast(ev.actual, ev.forecast);
+                            const color =
+                              cmp === 'better' ? 'success.main' :
+                              cmp === 'worse'  ? 'error.main' :
+                              'text.primary';
+                            return (
+                              <Typography variant="caption" fontWeight={700} color={color}>
+                                {ev.actual}
+                              </Typography>
+                            );
+                          })() : (
+                            <Typography variant="caption" color="text.disabled">—</Typography>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
