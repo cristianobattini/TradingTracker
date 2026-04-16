@@ -9,17 +9,17 @@ import requests
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 FREE_MODELS = [
-    {"id": "deepseek/deepseek-chat-v3-0324:free",      "name": "DeepSeek Chat V3 (Free)"},
-    {"id": "meta-llama/llama-4-scout:free",            "name": "Meta Llama 4 Scout (Free)"},
+    {"id": "deepseek/deepseek-chat:free",              "name": "DeepSeek Chat (Free)"},
+    {"id": "deepseek/deepseek-r1:free",                "name": "DeepSeek R1 (Free)"},
     {"id": "meta-llama/llama-4-maverick:free",         "name": "Meta Llama 4 Maverick (Free)"},
+    {"id": "meta-llama/llama-4-scout:free",            "name": "Meta Llama 4 Scout (Free)"},
     {"id": "google/gemma-3-27b-it:free",               "name": "Google Gemma 3 27B (Free)"},
-    {"id": "google/gemma-2-9b-it:free",                "name": "Google Gemma 2 9B (Free)"},
     {"id": "mistralai/mistral-7b-instruct:free",       "name": "Mistral 7B Instruct (Free)"},
-    {"id": "qwen/qwen3-8b:free",                       "name": "Qwen 3 8B (Free)"},
+    {"id": "qwen/qwen3-235b-a22b:free",                "name": "Qwen 3 235B (Free)"},
     {"id": "microsoft/phi-4-reasoning-plus:free",      "name": "Microsoft Phi-4 Reasoning+ (Free)"},
 ]
 
-_current_model: str = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-chat-v3-0324:free")
+_current_model: str = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-chat:free")
 
 
 def get_model() -> str:
