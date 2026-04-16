@@ -9,17 +9,17 @@ import requests
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 FREE_MODELS = [
-    {"id": "deepseek/deepseek-chat:free",              "name": "DeepSeek Chat (Free)"},
-    {"id": "deepseek/deepseek-r1:free",                "name": "DeepSeek R1 (Free)"},
-    {"id": "meta-llama/llama-4-maverick:free",         "name": "Meta Llama 4 Maverick (Free)"},
-    {"id": "meta-llama/llama-4-scout:free",            "name": "Meta Llama 4 Scout (Free)"},
+    {"id": "meta-llama/llama-3.3-70b-instruct:free",   "name": "Meta Llama 3.3 70B (Free)"},
+    {"id": "nousresearch/hermes-3-llama-3.1-405b:free","name": "Nous Hermes 3 405B (Free)"},
+    {"id": "google/gemma-4-31b-it:free",               "name": "Google Gemma 4 31B (Free)"},
     {"id": "google/gemma-3-27b-it:free",               "name": "Google Gemma 3 27B (Free)"},
-    {"id": "mistralai/mistral-7b-instruct:free",       "name": "Mistral 7B Instruct (Free)"},
-    {"id": "qwen/qwen3-235b-a22b:free",                "name": "Qwen 3 235B (Free)"},
-    {"id": "microsoft/phi-4-reasoning-plus:free",      "name": "Microsoft Phi-4 Reasoning+ (Free)"},
+    {"id": "nvidia/nemotron-3-super-120b-a12b:free",   "name": "NVIDIA Nemotron 3 Super 120B (Free)"},
+    {"id": "openai/gpt-oss-120b:free",                 "name": "OpenAI OSS 120B (Free)"},
+    {"id": "qwen/qwen3-coder:free",                    "name": "Qwen3 Coder 480B (Free)"},
+    {"id": "minimax/minimax-m2.5:free",                "name": "MiniMax M2.5 (Free)"},
 ]
 
-_current_model: str = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-chat:free")
+_current_model: str = os.environ.get("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
 
 
 def get_model() -> str:
