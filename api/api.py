@@ -212,40 +212,38 @@ def ask_question(
         )
 
         # build a markdown table with recent trades for the AI prompt using actual Trade fields
-        if current_user and recent_trades and user_data_required:
-            lines = [
-                "Recent trades (most recent first):",
-                "| id | date | pair | system | action | risk | risk_pct | lots | entry | sl1_pips | tp1_pips | sl2_pips | tp2_pips | profit_or_loss | comments |",
-                "|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
-            ]
-            for t in recent_trades:
-                # format values (fallback to empty string if None)
-                date = getattr(t, 'date', '')
-                pair = getattr(t, 'pair', '')
-                system = getattr(t, 'system', '')
-                action = getattr(t, 'action', '')
-                risk = getattr(t, 'risk', '')
-                risk_pct = getattr(t, 'risk_percent', '')
-                lots = getattr(t, 'lots', '')
-                entry = getattr(t, 'entry', '')
-                sl1 = getattr(t, 'sl1_pips', '')
-                tp1 = getattr(t, 'tp1_pips', '')
-                sl2 = getattr(t, 'sl2_pips', '')
-                tp2 = getattr(t, 'tp2_pips', '')
-                profit = getattr(t, 'profit_or_loss', '')
-                comments = getattr(t, 'comments', '')
-
-                # escape pipe characters in comments to not break the table
-                if isinstance(comments, str):
-                    comments = comments.replace('|', '\\|')
-
-                lines.append(
-                    f"| {t.id} | {date} | {pair} | {system} | {action} | {risk} | {risk_pct} | {lots} | {entry} | {sl1} | {tp1} | {sl2} | {tp2} | {profit} | {comments} |"
-                )
-
-            trades_md = "\n".join(lines)
+        if user_data_required:
+            if recent_trades:
+                lines = [
+                    "Recent trades (most recent first):",
+                    "| id | date | pair | system | action | risk | risk_pct | lots | entry | sl1_pips | tp1_pips | sl2_pips | tp2_pips | profit_or_loss | comments |",
+                    "|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+                ]
+                for t in recent_trades:
+                    date = getattr(t, 'date', '')
+                    pair = getattr(t, 'pair', '')
+                    system = getattr(t, 'system', '')
+                    action = getattr(t, 'action', '')
+                    risk = getattr(t, 'risk', '')
+                    risk_pct = getattr(t, 'risk_percent', '')
+                    lots = getattr(t, 'lots', '')
+                    entry = getattr(t, 'entry', '')
+                    sl1 = getattr(t, 'sl1_pips', '')
+                    tp1 = getattr(t, 'tp1_pips', '')
+                    sl2 = getattr(t, 'sl2_pips', '')
+                    tp2 = getattr(t, 'tp2_pips', '')
+                    profit = getattr(t, 'profit_or_loss', '')
+                    comments = getattr(t, 'comments', '')
+                    if isinstance(comments, str):
+                        comments = comments.replace('|', '\\|')
+                    lines.append(
+                        f"| {t.id} | {date} | {pair} | {system} | {action} | {risk} | {risk_pct} | {lots} | {entry} | {sl1} | {tp1} | {sl2} | {tp2} | {profit} | {comments} |"
+                    )
+                trades_md = "\n".join(lines)
+            else:
+                trades_md = "The user requested trade data but has no trades recorded yet."
         else:
-            trades_md = "Ask theuser to check the checkbox called \"Upload\", by checking the checkbox you will recive trades data."
+            trades_md = "No trade data provided. Answer based on general trading knowledge."
 
         # compose a prompt that includes user info, trades summary and the question
         # add clear instructions so the AI knows which fields are available and how to use them
