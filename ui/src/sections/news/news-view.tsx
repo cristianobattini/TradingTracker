@@ -37,6 +37,7 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MergeIcon from '@mui/icons-material/MergeType';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
@@ -56,6 +57,9 @@ async function fetchSavedUrls(apiBase: string): Promise<Set<string>> {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 interface NewsArticle {
   id: string;
   title: string;
@@ -77,6 +81,13 @@ interface ChatMessage {
 interface AiModel {
   id: string;
   name: string;
+}
+
+// Payload for the hidden PDF-render div
+interface PdfPayload {
+  content: string;   // markdown to render
+  title: string;     // subtitle under the blue header
+  filename: string;
 }
 
 const SOURCES = [
@@ -101,8 +112,12 @@ function formatTime(ts: number): string {
   return new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' }).format(new Date(ts));
 }
 
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 // ---------------------------------------------------------------------------
-// Markdown styles reused in chat and PDF hidden div
+// Markdown styles (chat bubbles)
 // ---------------------------------------------------------------------------
 const mdStyles = {
   fontSize: '0.85rem',
@@ -126,31 +141,31 @@ const mdStyles = {
 };
 
 // ---------------------------------------------------------------------------
-// PDF export
+// Core PDF capture (html2canvas → jsPDF)
 // ---------------------------------------------------------------------------
-async function exportMarkdownToPdf(pdfRef: HTMLDivElement): Promise<void> {
-  const canvas = await html2canvas(pdfRef, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+async function captureAndSave(el: HTMLDivElement, filename: string): Promise<void> {
+  const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const imgW = pageW;
   const imgH = (canvas.height * imgW) / canvas.width;
 
-  let remainingH = imgH;
+  let remaining = imgH;
   let srcY = 0;
-  while (remainingH > 0) {
-    const sliceH = Math.min(pageH, remainingH);
+  while (remaining > 0) {
+    const sliceH = Math.min(pageH, remaining);
     const slicePx = (sliceH / imgH) * canvas.height;
     const slice = document.createElement('canvas');
     slice.width = canvas.width;
-    slice.height = slicePx;
+    slice.height = Math.ceil(slicePx);
     slice.getContext('2d')!.drawImage(canvas, 0, srcY, canvas.width, slicePx, 0, 0, canvas.width, slicePx);
     doc.addImage(slice.toDataURL('image/png'), 'PNG', 0, 0, imgW, sliceH);
-    remainingH -= pageH;
+    remaining -= pageH;
     srcY += slicePx;
-    if (remainingH > 0) doc.addPage();
+    if (remaining > 0) doc.addPage();
   }
-  doc.save(`forex-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+  doc.save(filename);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +179,6 @@ export function NewsView() {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState('');
   const [snackbar, setSnackbar] = useState('');
   const [search, setSearch] = useState('');
@@ -172,19 +186,92 @@ export function NewsView() {
   const [models, setModels] = useState<AiModel[]>([]);
   const [currentModel, setCurrentModel] = useState('');
   const [chatExpanded, setChatExpanded] = useState(false);
-  const chatRef = useRef<HTMLDivElement>(null);
+
+  // PDF state: which bubble index is currently exporting (-1 = none, -2 = combined)
+  const [pdfExportingIdx, setPdfExportingIdx] = useState<number | null>(null);
+  // The hidden div renders this payload; when set, the effect fires the capture
+  const [pdfPayload, setPdfPayload] = useState<PdfPayload | null>(null);
+  const pdfCallbackRef = useRef<((err?: Error) => void) | null>(null);
   const pdfExportRef = useRef<HTMLDivElement>(null);
+
+  const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // ---- init ----
   useEffect(() => { fetchSavedUrls(API_BASE).then(setSavedUrls); }, []);
-
   useEffect(() => {
     fetch(`${API_BASE}/api/ai/models`, { headers: getAuthHeaders() })
       .then((r) => r.json())
-      .then((data) => { setModels(data.models ?? []); setCurrentModel(data.current ?? ''); })
+      .then((d) => { setModels(d.models ?? []); setCurrentModel(d.current ?? ''); })
       .catch(() => {});
   }, []);
 
+  // ---- PDF capture: fires when hidden div has been re-rendered ----
+  useEffect(() => {
+    if (!pdfPayload || !pdfCallbackRef.current || !pdfExportRef.current) return;
+    const cb = pdfCallbackRef.current;
+    pdfCallbackRef.current = null;
+    // Small delay to ensure React has painted the updated hidden div
+    const t = setTimeout(async () => {
+      try {
+        await captureAndSave(pdfExportRef.current!, pdfPayload.filename);
+        cb();
+      } catch (e: any) {
+        cb(e);
+      } finally {
+        setPdfPayload(null);
+      }
+    }, 120);
+    return () => clearTimeout(t);
+  }, [pdfPayload]);
+
+  /** Queue a PDF render and await its completion. */
+  const triggerPdf = (payload: PdfPayload): Promise<void> =>
+    new Promise((resolve, reject) => {
+      pdfCallbackRef.current = (err) => (err ? reject(err) : resolve());
+      setPdfPayload(payload);
+    });
+
+  // ---- export single bubble ----
+  const handleExportBubble = async (msg: ChatMessage, idx: number) => {
+    setPdfExportingIdx(idx);
+    try {
+      await triggerPdf({
+        content: msg.content,
+        title: `Report — ${new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(msg.ts))}`,
+        filename: `forex-report-${todayStr()}.pdf`,
+      });
+      setSnackbar('PDF esportato!');
+    } catch (e: any) {
+      setError('Errore PDF: ' + e.message);
+    } finally {
+      setPdfExportingIdx(null);
+    }
+  };
+
+  // ---- export all combined ----
+  const handleExportAll = async () => {
+    const msgs = aiMessages.filter((m) => m.role === 'assistant');
+    if (!msgs.length) { setSnackbar('Nessun report da esportare.'); return; }
+    setPdfExportingIdx(-2);
+    const combined = msgs
+      .map((m, i) => `## Analisi ${i + 1} — ${formatTime(m.ts)}\n\n${m.content}`)
+      .join('\n\n---\n\n');
+    try {
+      await triggerPdf({
+        content: combined,
+        title: `Report combinato — ${msgs.length} analisi`,
+        filename: `forex-report-combinato-${todayStr()}.pdf`,
+      });
+      setSnackbar('PDF combinato esportato!');
+    } catch (e: any) {
+      setError('Errore PDF: ' + e.message);
+    } finally {
+      setPdfExportingIdx(null);
+    }
+  };
+
+  // ---- model ----
   const handleModelChange = async (modelId: string) => {
     setCurrentModel(modelId);
     try {
@@ -194,6 +281,7 @@ export function NewsView() {
     } catch { setError('Errore aggiornamento modello'); }
   };
 
+  // ---- bookmarks ----
   const handleToggleSave = useCallback(async (article: NewsArticle) => {
     if (savedUrls.has(article.url)) {
       try {
@@ -217,6 +305,7 @@ export function NewsView() {
     }
   }, [savedUrls]);
 
+  // ---- news ----
   const loadNews = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     try {
@@ -230,23 +319,24 @@ export function NewsView() {
   }, [activeSource]);
 
   useEffect(() => { loadNews(); }, [loadNews]);
-
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [aiMessages, aiLoading]);
 
+  // ---- AI summary ----
   const handleSummary = async () => {
     setSummaryLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/news/ai-summary`, { method: 'POST', headers: getAuthHeaders() });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setAiMessages([{ role: 'assistant', content: data.summary, ts: Date.now() }]);
+      setAiMessages((m) => [...m, { role: 'assistant', content: data.summary, ts: Date.now() }]);
     } catch (e: any) {
       setError(e.message || 'Errore riassunto AI');
     } finally { setSummaryLoading(false); }
   };
 
+  // ---- AI chat ----
   const handleAiSend = useCallback(async () => {
     if (!aiInput.trim()) return;
     const userMsg: ChatMessage = { role: 'user', content: aiInput.trim(), ts: Date.now() };
@@ -267,31 +357,17 @@ export function NewsView() {
   }, [aiInput]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleAiSend();
-    }
-  };
-
-  const handleExportPdf = async () => {
-    const lastReport = [...aiMessages].reverse().find((m) => m.role === 'assistant');
-    if (!lastReport) { setSnackbar('Genera prima un report AI.'); return; }
-    if (!pdfExportRef.current) return;
-    setPdfLoading(true);
-    try {
-      await exportMarkdownToPdf(pdfExportRef.current);
-      setSnackbar('PDF esportato!');
-    } catch (e: any) {
-      setError('Errore PDF: ' + e.message);
-    } finally { setPdfLoading(false); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAiSend(); }
   };
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => setSnackbar('Copiato negli appunti'));
   };
 
-  const lastAssistantContent = [...aiMessages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
-
+  // ---------------------------------------------------------------------------
+  // Derived
+  // ---------------------------------------------------------------------------
+  const assistantCount = aiMessages.filter((m) => m.role === 'assistant').length;
   const q = search.trim().toLowerCase();
   const filteredArticles = articles
     .filter((a) => activeSource === 'all' || a.source_id === activeSource)
@@ -312,28 +388,32 @@ export function NewsView() {
     );
   }
 
+  // PDF hidden div styles (print-friendly)
+  const pdfMdStyles = {
+    px: '32px', pb: '32px',
+    '& h1': { fontSize: '22px', fontWeight: 700, color: '#1877F2', borderBottom: '2px solid #1877F2', pb: '6px', mt: '20px', mb: '12px' },
+    '& h2': { fontSize: '18px', fontWeight: 700, color: '#1877F2', mt: '18px', mb: '8px' },
+    '& h3': { fontSize: '15px', fontWeight: 700, color: '#333', mt: '14px', mb: '6px' },
+    '& p': { margin: '0 0 8px 0' },
+    '& ul,& ol': { pl: '20px', mb: '8px' },
+    '& li': { mb: '3px' },
+    '& strong': { fontWeight: 700 },
+    '& em': { fontStyle: 'italic' },
+    '& hr': { border: 'none', borderTop: '2px solid #eee', my: '16px' },
+    '& table': { borderCollapse: 'collapse', width: '100%', mb: '12px' },
+    '& th': { border: '1px solid #ccc', p: '6px 10px', background: '#f5f5f5', fontWeight: 700 },
+    '& td': { border: '1px solid #ccc', p: '6px 10px' },
+    '& blockquote': { borderLeft: '3px solid #1877F2', pl: '12px', color: '#555', fontStyle: 'italic' },
+  };
+
   // ---------------------------------------------------------------------------
-  // Chat panel (extracted to keep JSX readable)
+  // Chat panel
   // ---------------------------------------------------------------------------
   const chatPanel = (
-    <Paper
-      elevation={2}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: chatExpanded ? 'calc(100vh - 180px)' : '100%',
-        minHeight: chatExpanded ? 600 : 500,
-        borderRadius: 2,
-        overflow: 'hidden',
-      }}
-    >
-      {/* ── Header ── */}
-      <Box sx={{
-        px: 2, py: 1.25,
-        borderBottom: 1, borderColor: 'divider',
-        display: 'flex', alignItems: 'center', gap: 1,
-        background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
-      }}>
+    <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: chatExpanded ? 'calc(100vh - 180px)' : '100%', minHeight: chatExpanded ? 600 : 500, borderRadius: 2, overflow: 'hidden' }}>
+
+      {/* Header */}
+      <Box sx={{ px: 2, py: 1.25, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' }}>
         <Avatar sx={{ width: 28, height: 28, bgcolor: 'transparent' }}>
           <img height="90%" src="/assets/ai-logo.png" alt="ai" />
         </Avatar>
@@ -346,32 +426,34 @@ export function NewsView() {
           )}
         </Box>
 
-        {/* Model selector */}
         {models.length > 0 && (
           <FormControl size="small" sx={{ ml: 'auto', minWidth: 190 }}>
             <InputLabel sx={{ fontSize: '0.72rem' }}>Modello</InputLabel>
-            <Select
-              value={currentModel}
-              label="Modello"
-              onChange={(e) => handleModelChange(e.target.value)}
-              sx={{ fontSize: '0.72rem' }}
-            >
-              {models.map((m) => (
-                <MenuItem key={m.id} value={m.id} sx={{ fontSize: '0.75rem' }}>{m.name}</MenuItem>
-              ))}
+            <Select value={currentModel} label="Modello" onChange={(e) => handleModelChange(e.target.value)} sx={{ fontSize: '0.72rem' }}>
+              {models.map((m) => <MenuItem key={m.id} value={m.id} sx={{ fontSize: '0.75rem' }}>{m.name}</MenuItem>)}
             </Select>
           </FormControl>
         )}
 
-        {/* Action buttons */}
-        <Tooltip title="Cancella chat">
+        {/* Export all */}
+        <Tooltip title={`Esporta tutto in un PDF (${assistantCount} analisi)`}>
           <span>
             <IconButton
               size="small"
-              onClick={() => setAiMessages([])}
-              disabled={aiMessages.length === 0}
+              onClick={handleExportAll}
+              disabled={assistantCount === 0 || pdfExportingIdx !== null}
               sx={{ ml: models.length > 0 ? 0.5 : 'auto' }}
             >
+              {pdfExportingIdx === -2
+                ? <CircularProgress size={16} />
+                : <MergeIcon fontSize="small" />}
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Cancella chat">
+          <span>
+            <IconButton size="small" onClick={() => setAiMessages([])} disabled={aiMessages.length === 0}>
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </span>
@@ -384,35 +466,17 @@ export function NewsView() {
         </Tooltip>
       </Box>
 
-      {/* ── Messages ── */}
-      <Box
-        ref={chatRef}
-        sx={{
-          flex: 1,
-          overflow: 'auto',
-          p: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-        }}
-      >
+      {/* Messages */}
+      <Box ref={chatRef} sx={{ flex: 1, overflow: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+
         {/* Greeting */}
         {aiMessages.length === 0 && !aiLoading && (
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
             <Avatar sx={{ width: 32, height: 32, bgcolor: 'transparent', flexShrink: 0 }}>
               <img height="90%" src="/assets/ai-logo.png" alt="ai" />
             </Avatar>
-            <Box
-              sx={{
-                background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                borderRadius: '4px 16px 16px 16px',
-                px: 2, py: 1.25,
-                maxWidth: '88%',
-              }}
-            >
-              <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={0.5}>
-                Anakin AI
-              </Typography>
+            <Box sx={{ background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', borderRadius: '4px 16px 16px 16px', px: 2, py: 1.25, maxWidth: '88%' }}>
+              <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={0.5}>Anakin AI</Typography>
               <Typography variant="body2" color="text.secondary">
                 Ciao! Clicca <strong>Riassunto IA</strong> per una panoramica del mercato, oppure scrivimi qualsiasi domanda sul forex.
               </Typography>
@@ -422,58 +486,55 @@ export function NewsView() {
 
         {aiMessages.map((msg, i) => {
           const isUser = msg.role === 'user';
+          const isExporting = pdfExportingIdx === i;
           return (
-            <Box
-              key={i}
-              sx={{
-                display: 'flex',
-                flexDirection: isUser ? 'row-reverse' : 'row',
-                gap: 1.5,
-                alignItems: 'flex-start',
-              }}
-            >
-              {/* Avatar */}
+            <Box key={i} sx={{ display: 'flex', flexDirection: isUser ? 'row-reverse' : 'row', gap: 1.5, alignItems: 'flex-start' }}>
               {!isUser && (
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'transparent', flexShrink: 0, mt: 0.25 }}>
                   <img height="90%" src="/assets/ai-logo.png" alt="ai" />
                 </Avatar>
               )}
 
-              {/* Bubble */}
               <Box sx={{ maxWidth: isUser ? '75%' : '88%', display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-end' : 'flex-start', gap: 0.25 }}>
-                <Box
-                  sx={{
-                    px: 2,
-                    py: 1.25,
-                    borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                    background: isUser
-                      ? 'primary.main'
-                      : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                    bgcolor: isUser ? 'primary.main' : undefined,
-                    color: isUser ? 'primary.contrastText' : 'text.primary',
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {isUser ? (
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{msg.content}</Typography>
-                  ) : (
-                    <Box sx={mdStyles}>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                    </Box>
-                  )}
+                <Box sx={{
+                  px: 2, py: 1.25,
+                  borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+                  bgcolor: isUser ? 'primary.main' : undefined,
+                  background: isUser ? undefined : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  color: isUser ? 'primary.contrastText' : 'text.primary',
+                  wordBreak: 'break-word',
+                }}>
+                  {isUser
+                    ? <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{msg.content}</Typography>
+                    : <Box sx={mdStyles}><ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown></Box>
+                  }
                 </Box>
 
-                {/* Timestamp + copy */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 0.5 }}>
-                  <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
-                    {formatTime(msg.ts)}
-                  </Typography>
+                {/* Bubble actions row */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, px: 0.5 }}>
+                  <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>{formatTime(msg.ts)}</Typography>
                   {!isUser && (
-                    <Tooltip title="Copia">
-                      <IconButton size="small" onClick={() => handleCopy(msg.content)} sx={{ p: 0.25 }}>
-                        <ContentCopyIcon sx={{ fontSize: '0.75rem' }} />
-                      </IconButton>
-                    </Tooltip>
+                    <>
+                      <Tooltip title="Copia testo">
+                        <IconButton size="small" onClick={() => handleCopy(msg.content)} sx={{ p: 0.25 }}>
+                          <ContentCopyIcon sx={{ fontSize: '0.75rem' }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Esporta questo report in PDF">
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleExportBubble(msg, i)}
+                            disabled={pdfExportingIdx !== null}
+                            sx={{ p: 0.25 }}
+                          >
+                            {isExporting
+                              ? <CircularProgress size={12} />
+                              : <PictureAsPdfIcon sx={{ fontSize: '0.75rem' }} />}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </>
                   )}
                 </Box>
               </Box>
@@ -481,34 +542,16 @@ export function NewsView() {
           );
         })}
 
-        {/* Loading indicator */}
+        {/* Loading dots */}
         {aiLoading && (
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
             <Avatar sx={{ width: 32, height: 32, bgcolor: 'transparent', flexShrink: 0, mt: 0.25 }}>
               <CircularProgress size={20} />
             </Avatar>
-            <Box
-              sx={{
-                background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                borderRadius: '4px 16px 16px 16px',
-                px: 2, py: 1.25,
-              }}
-            >
+            <Box sx={{ background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', borderRadius: '4px 16px 16px 16px', px: 2, py: 1.25 }}>
               <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', height: 24 }}>
                 {[0, 1, 2].map((j) => (
-                  <Box
-                    key={j}
-                    sx={{
-                      width: 7, height: 7, borderRadius: '50%',
-                      bgcolor: 'text.disabled',
-                      animation: 'bounce 1.2s infinite',
-                      animationDelay: `${j * 0.2}s`,
-                      '@keyframes bounce': {
-                        '0%,80%,100%': { transform: 'scale(0.7)', opacity: 0.5 },
-                        '40%': { transform: 'scale(1)', opacity: 1 },
-                      },
-                    }}
-                  />
+                  <Box key={j} sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'text.disabled', animation: 'bounce 1.2s infinite', animationDelay: `${j * 0.2}s`, '@keyframes bounce': { '0%,80%,100%': { transform: 'scale(0.7)', opacity: 0.5 }, '40%': { transform: 'scale(1)', opacity: 1 } } }} />
                 ))}
               </Box>
             </Box>
@@ -518,36 +561,20 @@ export function NewsView() {
 
       <Divider />
 
-      {/* ── Input ── */}
+      {/* Input */}
       <Box sx={{ p: 1.5, display: 'flex', gap: 1, alignItems: 'flex-end' }}>
         <TextField
-          fullWidth
-          multiline
-          maxRows={5}
-          size="small"
+          fullWidth multiline maxRows={5} size="small"
           placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per andare a capo)"
           value={aiInput}
           onChange={(e) => setAiInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={aiLoading}
           inputRef={inputRef}
-          sx={{
-            '& .MuiOutlinedInput-root': { borderRadius: 3 },
-          }}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
         />
-        <IconButton
-          color="primary"
-          onClick={handleAiSend}
-          disabled={aiLoading || !aiInput.trim()}
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            '&:hover': { bgcolor: 'primary.dark' },
-            '&:disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' },
-            width: 40, height: 40, flexShrink: 0,
-            mb: 0.25,
-          }}
-        >
+        <IconButton color="primary" onClick={handleAiSend} disabled={aiLoading || !aiInput.trim()}
+          sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', '&:hover': { bgcolor: 'primary.dark' }, '&:disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' }, width: 40, height: 40, flexShrink: 0, mb: 0.25 }}>
           <SendIcon fontSize="small" />
         </IconButton>
       </Box>
@@ -556,36 +583,19 @@ export function NewsView() {
 
   return (
     <DashboardContent>
-      {/* Hidden PDF export area */}
+      {/* ── Hidden PDF render div (off-screen, updated via pdfPayload state) ── */}
       <Box
         ref={pdfExportRef}
-        sx={{
-          position: 'fixed', top: '-99999px', left: '-99999px',
-          width: '794px', background: '#fff', color: '#000',
-          fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '13px', lineHeight: 1.6,
-        }}
+        sx={{ position: 'fixed', top: '-99999px', left: '-99999px', width: '794px', background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '13px', lineHeight: 1.6 }}
       >
         <Box sx={{ background: '#1877F2', color: '#fff', p: '16px 24px', mb: '24px' }}>
           <Box sx={{ fontWeight: 700, fontSize: '18px', color: '#fff' }}>Forex Market Report — Anakin TT</Box>
           <Box sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', mt: '4px' }}>
-            Generato: {new Date().toLocaleString('it-IT')}
+            {pdfPayload?.title ?? ''} &nbsp;·&nbsp; {new Date().toLocaleString('it-IT')}
           </Box>
         </Box>
-        <Box sx={{
-          px: '32px', pb: '32px',
-          '& h1': { fontSize: '22px', fontWeight: 700, color: '#1877F2', borderBottom: '2px solid #1877F2', pb: '6px', mt: '20px', mb: '12px' },
-          '& h2': { fontSize: '18px', fontWeight: 700, color: '#1877F2', mt: '18px', mb: '8px' },
-          '& h3': { fontSize: '15px', fontWeight: 700, color: '#333', mt: '14px', mb: '6px' },
-          '& p': { margin: '0 0 8px 0' },
-          '& ul,& ol': { pl: '20px', mb: '8px' },
-          '& li': { mb: '3px' },
-          '& strong': { fontWeight: 700 },
-          '& table': { borderCollapse: 'collapse', width: '100%', mb: '12px' },
-          '& th': { border: '1px solid #ccc', p: '6px 10px', background: '#f5f5f5', fontWeight: 700 },
-          '& td': { border: '1px solid #ccc', p: '6px 10px' },
-          '& blockquote': { borderLeft: '3px solid #1877F2', pl: '12px', color: '#555', fontStyle: 'italic' },
-        }}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastAssistantContent}</ReactMarkdown>
+        <Box sx={pdfMdStyles}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{pdfPayload?.content ?? ''}</ReactMarkdown>
         </Box>
       </Box>
 
@@ -606,15 +616,6 @@ export function NewsView() {
           >
             Riassunto IA
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={pdfLoading ? <CircularProgress size={16} /> : <PictureAsPdfIcon />}
-            onClick={handleExportPdf}
-            disabled={pdfLoading}
-            color="error"
-          >
-            Esporta PDF
-          </Button>
           <Tooltip title="Aggiorna notizie">
             <IconButton onClick={() => loadNews(true)} disabled={loading}>
               {loading ? <CircularProgress size={20} /> : <RefreshIcon />}
@@ -625,33 +626,20 @@ export function NewsView() {
 
       {/* ── Main grid ── */}
       <Grid container spacing={2}>
-        {/* News feed — hidden when chat is expanded */}
         {!chatExpanded && (
           <Grid item xs={12} md={7}>
             <Paper elevation={1} sx={{ overflow: 'hidden', borderRadius: 2 }}>
-              <Tabs
-                value={activeSource}
-                onChange={(_, v) => setActiveSource(v)}
-                variant="scrollable"
-                scrollButtons="auto"
-                sx={{ borderBottom: 1, borderColor: 'divider', px: 1 }}
-              >
+              <Tabs value={activeSource} onChange={(_, v) => setActiveSource(v)} variant="scrollable" scrollButtons="auto" sx={{ borderBottom: 1, borderColor: 'divider', px: 1 }}>
                 {SOURCES.map((s) => <Tab key={s.id} value={s.id} label={s.label} />)}
               </Tabs>
 
               <Box sx={{ px: 1.5, py: 1, borderBottom: 1, borderColor: 'divider' }}>
                 <TextField
-                  fullWidth size="small"
-                  placeholder="Cerca articoli per titolo o contenuto…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  fullWidth size="small" placeholder="Cerca articoli per titolo o contenuto…"
+                  value={search} onChange={(e) => setSearch(e.target.value)}
                   InputProps={{
                     startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} /></InputAdornment>,
-                    endAdornment: search ? (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setSearch('')} edge="end"><ClearIcon fontSize="small" /></IconButton>
-                      </InputAdornment>
-                    ) : null,
+                    endAdornment: search ? <InputAdornment position="end"><IconButton size="small" onClick={() => setSearch('')} edge="end"><ClearIcon fontSize="small" /></IconButton></InputAdornment> : null,
                   }}
                 />
               </Box>
@@ -677,18 +665,11 @@ export function NewsView() {
                     <Card key={article.id || idx} variant="outlined" sx={{ mb: 1.5, '&:hover': { boxShadow: 2 }, transition: 'box-shadow .2s' }}>
                       <CardContent sx={{ pb: 0 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Chip
-                            label={article.source} size="small"
-                            sx={{ bgcolor: article.source_color + '22', color: article.source_color, fontWeight: 700, fontSize: '0.65rem' }}
-                          />
-                          {article.published_at && (
-                            <Typography variant="caption" color="text.disabled">{formatDate(article.published_at)}</Typography>
-                          )}
+                          <Chip label={article.source} size="small" sx={{ bgcolor: article.source_color + '22', color: article.source_color, fontWeight: 700, fontSize: '0.65rem' }} />
+                          {article.published_at && <Typography variant="caption" color="text.disabled">{formatDate(article.published_at)}</Typography>}
                         </Box>
                         <Typography variant="subtitle2" fontWeight={700} gutterBottom>{highlightText(article.title)}</Typography>
-                        {article.summary && (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{highlightText(article.summary)}</Typography>
-                        )}
+                        {article.summary && <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{highlightText(article.summary)}</Typography>}
                       </CardContent>
                       <CardActions sx={{ pt: 0, justifyContent: 'space-between' }}>
                         <Button size="small" endIcon={<OpenInNewIcon fontSize="small" />} href={article.url} target="_blank" rel="noopener noreferrer">
@@ -708,7 +689,6 @@ export function NewsView() {
           </Grid>
         )}
 
-        {/* AI Chat */}
         <Grid item xs={12} md={chatExpanded ? 12 : 5}>
           {chatPanel}
         </Grid>
