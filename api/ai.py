@@ -42,21 +42,8 @@ def get_free_models() -> list[dict]:
 # Core call
 # ---------------------------------------------------------------------------
 
-def ask_ai(question: str, system: str = "You are a professional trader evaluating other traders work and giving alerts.") -> str:
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY environment variable is not set.")
-
-    payload = {
-        "model": _current_model,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user",   "content": question},
-        ],
-        "max_tokens": 2000,
-    }
-
-    resp = requests.post(
+def _call_model(model: str, messages: list, api_key: str) -> requests.Response:
+    return requests.post(
         OPENROUTER_BASE_URL,
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -64,25 +51,45 @@ def ask_ai(question: str, system: str = "You are a professional trader evaluatin
             "HTTP-Referer": "https://tradingtracker.app",
             "X-Title": "TradingTracker",
         },
-        json=payload,
+        json={"model": model, "messages": messages, "max_tokens": 2000},
         timeout=90,
     )
 
-    if resp.status_code == 429:
-        retry_after = resp.headers.get("Retry-After", "qualche secondo")
-        raise RuntimeError(
-            f"OpenRouter rate limit raggiunto per il modello '{_current_model}' (free tier). "
-            f"Riprova tra {retry_after}. Puoi anche cambiare modello dal selettore."
-        )
-    if resp.status_code == 402:
-        raise RuntimeError("Credito OpenRouter esaurito. Verifica il tuo account su openrouter.ai.")
-    if resp.status_code == 401:
-        raise RuntimeError("OPENROUTER_API_KEY non valida o mancante.")
-    if resp.status_code == 404:
-        raise RuntimeError(f"Modello '{_current_model}' non trovato su OpenRouter. Cambia modello dal selettore.")
 
-    resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"]
+def ask_ai(question: str, system: str = "You are a professional trader evaluating other traders work and giving alerts.") -> str:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY environment variable is not set.")
+
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user",   "content": question},
+    ]
+
+    # Build rotation: selected model first, then the rest as fallbacks
+    model_ids = [m["id"] for m in FREE_MODELS]
+    if _current_model in model_ids:
+        model_ids = [_current_model] + [m for m in model_ids if m != _current_model]
+
+    last_error = ""
+    for model in model_ids:
+        resp = _call_model(model, messages, api_key)
+
+        if resp.status_code == 401:
+            raise RuntimeError("OPENROUTER_API_KEY non valida o mancante.")
+        if resp.status_code == 402:
+            raise RuntimeError("Credito OpenRouter esaurito. Verifica il tuo account su openrouter.ai.")
+        if resp.status_code in (429, 404):
+            last_error = f"{resp.status_code} su {model}"
+            continue  # try next model
+
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+
+    raise RuntimeError(
+        f"Tutti i modelli free di OpenRouter sono al momento non disponibili ({last_error}). "
+        "Riprova tra qualche minuto o aggiungi credito su openrouter.ai."
+    )
 
 
 # ---------------------------------------------------------------------------
