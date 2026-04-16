@@ -162,23 +162,10 @@ export function AIView() {
             </FormControl>
           )}
 
-          {/* Include trade data toggle */}
-          <Tooltip title={includeTradeData ? 'Dati trade inclusi nella risposta' : 'Includi i tuoi trade nella risposta'}>
-            <Chip
-              icon={<StorageIcon fontSize="small" />}
-              label="Dati trade"
-              size="small"
-              onClick={() => setIncludeTradeData((v) => !v)}
-              color={includeTradeData ? 'primary' : 'default'}
-              variant={includeTradeData ? 'filled' : 'outlined'}
-              sx={{ fontSize: '0.72rem', cursor: 'pointer', ml: models.length > 0 ? 0.5 : 'auto' }}
-            />
-          </Tooltip>
-
           {/* Clear chat */}
           <Tooltip title="Cancella chat">
             <span>
-              <IconButton size="small" onClick={() => setMessages([])} disabled={messages.length === 0}>
+              <IconButton size="small" onClick={() => setMessages([])} disabled={messages.length === 0} sx={{ ml: models.length > 0 ? 0.5 : 'auto' }}>
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>
             </span>
@@ -280,7 +267,25 @@ export function AIView() {
         <Divider />
 
         {/* ── Input ── */}
-        <Box sx={{ p: 1.5, display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+        <Box sx={{ px: 1.5, pt: 1, pb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title={includeTradeData ? 'Dati trade inclusi — clicca per escluderli' : 'Clicca per includere i tuoi trade nel contesto'}>
+            <Chip
+              icon={<StorageIcon sx={{ fontSize: '0.85rem !important' }} />}
+              label="Dati trade"
+              size="small"
+              onClick={() => setIncludeTradeData((v) => !v)}
+              color={includeTradeData ? 'primary' : 'default'}
+              variant={includeTradeData ? 'filled' : 'outlined'}
+              sx={{ fontSize: '0.72rem', cursor: 'pointer' }}
+            />
+          </Tooltip>
+          {includeTradeData && (
+            <Typography variant="caption" color="primary.main" sx={{ fontSize: '0.68rem' }}>
+              I tuoi trade saranno inviati all'AI
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ px: 1.5, pb: 1.5, display: 'flex', gap: 1, alignItems: 'flex-end' }}>
           <TextField
             fullWidth multiline maxRows={6} size="small"
             placeholder="Scrivi un messaggio… (Invio per inviare, Shift+Invio per andare a capo)"
