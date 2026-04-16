@@ -67,6 +67,20 @@ def ask_ai(question: str, system: str = "You are a professional trader evaluatin
         json=payload,
         timeout=90,
     )
+
+    if resp.status_code == 429:
+        retry_after = resp.headers.get("Retry-After", "qualche secondo")
+        raise RuntimeError(
+            f"OpenRouter rate limit raggiunto per il modello '{_current_model}' (free tier). "
+            f"Riprova tra {retry_after}. Puoi anche cambiare modello dal selettore."
+        )
+    if resp.status_code == 402:
+        raise RuntimeError("Credito OpenRouter esaurito. Verifica il tuo account su openrouter.ai.")
+    if resp.status_code == 401:
+        raise RuntimeError("OPENROUTER_API_KEY non valida o mancante.")
+    if resp.status_code == 404:
+        raise RuntimeError(f"Modello '{_current_model}' non trovato su OpenRouter. Cambia modello dal selettore.")
+
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"]
 
