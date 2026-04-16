@@ -24,6 +24,10 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Skeleton from '@mui/material/Skeleton';
 import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SendIcon from '@mui/icons-material/Send';
@@ -36,6 +40,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getAuthHeaders } from 'src/lib/client-config';
@@ -72,6 +77,11 @@ interface ChatMessage {
   content: string;
 }
 
+interface AiModel {
+  id: string;
+  name: string;
+}
+
 const SOURCES = [
   { id: 'all', label: 'All Sources' },
   { id: 'investing', label: 'Investing.com' },
@@ -95,6 +105,50 @@ function formatDate(iso: string | null): string {
   }
 }
 
+// ---------------------------------------------------------------------------
+// PDF export: markdown rendered to a hidden div, captured with html2canvas
+// ---------------------------------------------------------------------------
+async function exportMarkdownToPdf(content: string, pdfRef: HTMLDivElement): Promise<void> {
+  const canvas = await html2canvas(pdfRef, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+  });
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  const imgW = pageW;
+  const imgH = (canvas.height * imgW) / canvas.width;
+
+  let remainingH = imgH;
+  let srcY = 0;
+
+  while (remainingH > 0) {
+    const sliceH = Math.min(pageH, remainingH);
+    // pixel height of this slice on the canvas
+    const slicePx = (sliceH / imgH) * canvas.height;
+
+    // draw a slice of the canvas onto a temporary canvas
+    const slice = document.createElement('canvas');
+    slice.width = canvas.width;
+    slice.height = slicePx;
+    const ctx = slice.getContext('2d')!;
+    ctx.drawImage(canvas, 0, srcY, canvas.width, slicePx, 0, 0, canvas.width, slicePx);
+
+    const imgData = slice.toDataURL('image/png');
+    doc.addImage(imgData, 'PNG', 0, 0, imgW, sliceH);
+
+    remainingH -= pageH;
+    srcY += slicePx;
+
+    if (remainingH > 0) doc.addPage();
+  }
+
+  doc.save(`forex-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -112,16 +166,41 @@ export function NewsView() {
   const [snackbar, setSnackbar] = useState('');
   const [search, setSearch] = useState('');
   const [savedUrls, setSavedUrls] = useState<Set<string>>(new Set());
+  const [models, setModels] = useState<AiModel[]>([]);
+  const [currentModel, setCurrentModel] = useState('');
   const chatRef = useRef<HTMLDivElement>(null);
+  const pdfExportRef = useRef<HTMLDivElement>(null);
 
   // Load already-saved URLs on mount
   useEffect(() => {
     fetchSavedUrls(API_BASE).then(setSavedUrls);
   }, []);
 
+  // Load available AI models on mount
+  useEffect(() => {
+    fetch(`${API_BASE}/api/ai/models`, { headers: getAuthHeaders() })
+      .then((r) => r.json())
+      .then((data) => {
+        setModels(data.models ?? []);
+        setCurrentModel(data.current ?? '');
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleModelChange = async (modelId: string) => {
+    setCurrentModel(modelId);
+    try {
+      await fetch(`${API_BASE}/api/ai/model?model_id=${encodeURIComponent(modelId)}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+      });
+    } catch {
+      setError('Failed to update AI model');
+    }
+  };
+
   const handleToggleSave = useCallback(async (article: NewsArticle) => {
     if (savedUrls.has(article.url)) {
-      // Delete: fetch list to find id, then delete
       try {
         const res = await fetch(`${API_BASE}/api/bookmarks/read-later/`, { headers: getAuthHeaders() });
         const list: { id: number; url: string }[] = await res.json();
@@ -224,91 +303,17 @@ export function NewsView() {
     }
   }, [aiInput]);
 
-  // ---- PDF export ----
+  // ---- PDF export — captures the hidden rendered-markdown div ----
   const handleExportPdf = async () => {
-    if (aiMessages.length === 0) {
+    const lastReport = [...aiMessages].reverse().find((m) => m.role === 'assistant');
+    if (!lastReport) {
       setSnackbar('Generate an AI report first, then export to PDF.');
       return;
     }
+    if (!pdfExportRef.current) return;
     setPdfLoading(true);
     try {
-      const lastReport = [...aiMessages].reverse().find((m) => m.role === 'assistant');
-      if (!lastReport) { setSnackbar('No AI report to export.'); return; }
-
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = doc.internal.pageSize.getWidth();
-      const margin = 15;
-      const maxWidth = pageW - margin * 2;
-
-      // Header
-      doc.setFillColor(24, 119, 242);
-      doc.rect(0, 0, pageW, 20, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Forex Market Report — Anakin TT', margin, 13);
-
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Generated: ${new Date().toLocaleString('it-IT')}`, margin, 27);
-
-      // Content
-      const lines = lastReport.content.split('\n');
-      let y = 35;
-      const lineH = 5;
-
-      for (const raw of lines) {
-        const line = raw.trim();
-        if (!line) { y += 2; continue; }
-
-        // Heading detection
-        if (line.startsWith('## ')) {
-          if (y > 265) { doc.addPage(); y = 20; }
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(24, 119, 242);
-          const wrapped = doc.splitTextToSize(line.replace(/^##\s+/, ''), maxWidth);
-          doc.text(wrapped, margin, y);
-          y += wrapped.length * lineH + 3;
-          doc.setTextColor(0, 0, 0);
-          continue;
-        }
-        if (line.startsWith('# ')) {
-          if (y > 265) { doc.addPage(); y = 20; }
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(24, 119, 242);
-          const wrapped = doc.splitTextToSize(line.replace(/^#\s+/, ''), maxWidth);
-          doc.text(wrapped, margin, y);
-          y += wrapped.length * lineH + 4;
-          doc.setTextColor(0, 0, 0);
-          continue;
-        }
-        if (line.startsWith('### ')) {
-          if (y > 265) { doc.addPage(); y = 20; }
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(50, 50, 50);
-          const wrapped = doc.splitTextToSize(line.replace(/^###\s+/, ''), maxWidth);
-          doc.text(wrapped, margin, y);
-          y += wrapped.length * lineH + 2;
-          doc.setTextColor(0, 0, 0);
-          continue;
-        }
-
-        // Bullet
-        const isBullet = line.startsWith('- ') || line.startsWith('* ');
-        const text = isBullet ? '• ' + line.slice(2) : line.replace(/\*\*/g, '');
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        const wrapped = doc.splitTextToSize(text, isBullet ? maxWidth - 5 : maxWidth);
-        if (y + wrapped.length * lineH > 280) { doc.addPage(); y = 20; }
-        doc.text(wrapped, isBullet ? margin + 3 : margin, y);
-        y += wrapped.length * lineH + 1;
-      }
-
-      doc.save(`forex-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+      await exportMarkdownToPdf(lastReport.content, pdfExportRef.current);
       setSnackbar('PDF exported successfully!');
     } catch (e: any) {
       setError('PDF export failed: ' + e.message);
@@ -318,8 +323,10 @@ export function NewsView() {
   };
 
   // ---------------------------------------------------------------------------
-  // Render
+  // Derived state
   // ---------------------------------------------------------------------------
+  const lastAssistantContent = [...aiMessages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
+
   const q = search.trim().toLowerCase();
   const filteredArticles = articles
     .filter((a) => activeSource === 'all' || a.source_id === activeSource)
@@ -342,6 +349,50 @@ export function NewsView() {
 
   return (
     <DashboardContent>
+      {/* Hidden PDF export area — rendered off-screen, captured by html2canvas */}
+      <Box
+        ref={pdfExportRef}
+        sx={{
+          position: 'fixed',
+          top: '-99999px',
+          left: '-99999px',
+          width: '794px',
+          background: '#fff',
+          color: '#000',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '13px',
+          lineHeight: 1.6,
+        }}
+      >
+        {/* PDF header */}
+        <Box sx={{ background: '#1877F2', color: '#fff', p: '16px 24px', mb: '24px' }}>
+          <Box sx={{ fontWeight: 700, fontSize: '18px', color: '#fff' }}>Forex Market Report — Anakin TT</Box>
+          <Box sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', mt: '4px' }}>
+            Generato: {new Date().toLocaleString('it-IT')}
+          </Box>
+        </Box>
+        {/* Rendered markdown */}
+        <Box sx={{
+          px: '32px',
+          pb: '32px',
+          '& h1': { fontSize: '22px', fontWeight: 700, color: '#1877F2', borderBottom: '2px solid #1877F2', pb: '6px', mt: '20px', mb: '12px' },
+          '& h2': { fontSize: '18px', fontWeight: 700, color: '#1877F2', mt: '18px', mb: '8px' },
+          '& h3': { fontSize: '15px', fontWeight: 700, color: '#333', mt: '14px', mb: '6px' },
+          '& p': { margin: '0 0 8px 0' },
+          '& ul,& ol': { pl: '20px', mb: '8px' },
+          '& li': { mb: '3px' },
+          '& strong': { fontWeight: 700 },
+          '& em': { fontStyle: 'italic' },
+          '& table': { borderCollapse: 'collapse', width: '100%', mb: '12px' },
+          '& th': { border: '1px solid #ccc', p: '6px 10px', background: '#f5f5f5', fontWeight: 700, textAlign: 'left' },
+          '& td': { border: '1px solid #ccc', p: '6px 10px' },
+          '& code': { background: '#f4f4f4', px: '4px', borderRadius: '3px', fontSize: '12px', fontFamily: 'monospace' },
+          '& blockquote': { borderLeft: '3px solid #1877F2', pl: '12px', color: '#555', fontStyle: 'italic' },
+        }}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastAssistantContent}</ReactMarkdown>
+        </Box>
+      </Box>
+
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box>
@@ -498,12 +549,28 @@ export function NewsView() {
         {/* Right — AI Chat */}
         <Grid item xs={12} md={5}>
           <Paper elevation={1} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* AI panel header with model selector */}
+            <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               <AutoAwesomeIcon color="primary" fontSize="small" />
               <Typography variant="subtitle1" fontWeight={700}>Analista IA</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                Chiedi qualsiasi cosa sul mercato
-              </Typography>
+              {models.length > 0 && (
+                <FormControl size="small" sx={{ ml: 'auto', minWidth: 200 }}>
+                  <InputLabel id="model-select-label" sx={{ fontSize: '0.75rem' }}>Modello AI</InputLabel>
+                  <Select
+                    labelId="model-select-label"
+                    value={currentModel}
+                    label="Modello AI"
+                    onChange={(e) => handleModelChange(e.target.value)}
+                    sx={{ fontSize: '0.75rem' }}
+                  >
+                    {models.map((m) => (
+                      <MenuItem key={m.id} value={m.id} sx={{ fontSize: '0.75rem' }}>
+                        {m.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
             </Box>
 
             {/* Chat history */}
@@ -551,7 +618,23 @@ export function NewsView() {
                         }
                         secondary={
                           msg.role === 'assistant' ? (
-                            <Box sx={{ '& p': { m: 0 }, '& h1,h2,h3': { my: 0.5 }, fontSize: '0.82rem' }}>
+                            <Box sx={{
+                              fontSize: '0.82rem',
+                              '& p': { m: 0, mb: '6px' },
+                              '& h1,& h2,& h3,& h4': { my: '6px', fontWeight: 700 },
+                              '& h1': { fontSize: '1.1em', color: 'primary.main' },
+                              '& h2': { fontSize: '1em', color: 'primary.main' },
+                              '& h3': { fontSize: '0.95em' },
+                              '& ul,& ol': { pl: '18px', mb: '6px' },
+                              '& li': { mb: '2px' },
+                              '& strong': { fontWeight: 700 },
+                              '& em': { fontStyle: 'italic' },
+                              '& table': { borderCollapse: 'collapse', width: '100%', fontSize: '0.8em' },
+                              '& th': { border: '1px solid', borderColor: 'divider', p: '4px 8px', background: 'action.hover', fontWeight: 700 },
+                              '& td': { border: '1px solid', borderColor: 'divider', p: '4px 8px' },
+                              '& code': { background: 'action.hover', px: '4px', borderRadius: '3px', fontFamily: 'monospace', fontSize: '0.85em' },
+                              '& blockquote': { borderLeft: '3px solid', borderColor: 'primary.main', pl: '10px', color: 'text.secondary', fontStyle: 'italic' },
+                            }}>
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                             </Box>
                           ) : (

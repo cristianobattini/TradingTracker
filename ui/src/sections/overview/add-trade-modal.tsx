@@ -129,7 +129,7 @@ export function AddTradeModal({ open, onClose, onTradeAdded, loading = false }: 
   const priceToP = (price: string, entry: number): number => {
     const p = parseFloat(price);
     if (isNaN(p) || entry === 0) return 0;
-    return Math.abs(p - entry) / pipSize;
+    return Math.round((Math.abs(p - entry) / pipSize) * 100) / 100;
   };
 
   const pipsToPrice = (pips: number, entry: number, isSL: boolean): string => {
@@ -523,18 +523,18 @@ export function AddTradeModal({ open, onClose, onTradeAdded, loading = false }: 
                 {slTpMode === 'pips' ? (
                   <>
                     <TextField label="SL1 (Pips)" name="sl1_pips" type="number" value={formData.sl1_pips}
-                      onChange={handleChange} fullWidth inputProps={{ min: 0 }} disabled={loading}
+                      onChange={handleChange} fullWidth inputProps={{ min: 0, step: 0.01 }} disabled={loading}
                       error={!!errors.sl1_pips}
                       helperText={errors.sl1_pips || (entry && sl1 > 0 ? `Prezzo: ${pipsToPrice(sl1, entry, true)}` : '')} />
                     <TextField label="TP1 (Pips)" name="tp1_pips" type="number" value={formData.tp1_pips}
-                      onChange={handleChange} fullWidth inputProps={{ min: 0 }} disabled={loading}
+                      onChange={handleChange} fullWidth inputProps={{ min: 0, step: 0.01 }} disabled={loading}
                       error={!!errors.tp1_pips}
                       helperText={errors.tp1_pips || (entry && tp1 > 0 ? `Prezzo: ${pipsToPrice(tp1, entry, false)}` : '')} />
                     <TextField label="SL2 (Pips)" name="sl2_pips" type="number" value={formData.sl2_pips}
-                      onChange={handleChange} fullWidth inputProps={{ min: 0 }} disabled={loading}
+                      onChange={handleChange} fullWidth inputProps={{ min: 0, step: 0.01 }} disabled={loading}
                       helperText={entry && (formData.sl2_pips ?? 0) > 0 ? `Prezzo: ${pipsToPrice(formData.sl2_pips ?? 0, entry, true)}` : ''} />
                     <TextField label="TP2 (Pips)" name="tp2_pips" type="number" value={formData.tp2_pips}
-                      onChange={handleChange} fullWidth inputProps={{ min: 0 }} disabled={loading}
+                      onChange={handleChange} fullWidth inputProps={{ min: 0, step: 0.01 }} disabled={loading}
                       helperText={entry && (formData.tp2_pips ?? 0) > 0 ? `Prezzo: ${pipsToPrice(formData.tp2_pips ?? 0, entry, false)}` : ''} />
                   </>
                 ) : (
@@ -542,20 +542,20 @@ export function AddTradeModal({ open, onClose, onTradeAdded, loading = false }: 
                     <TextField label="SL1 (Prezzo)" type="number" value={sl1Price}
                       onChange={e => handlePriceChange('sl1', e.target.value)} fullWidth
                       error={!!errors.sl1_pips}
-                      helperText={errors.sl1_pips || (sl1 > 0 ? `${sl1.toFixed(1)} pips` : '')}
+                      helperText={errors.sl1_pips || (sl1 > 0 ? `${sl1.toFixed(2)} pips` : '')}
                       inputProps={{ step: pipSize }} disabled={loading} />
                     <TextField label="TP1 (Prezzo)" type="number" value={tp1Price}
                       onChange={e => handlePriceChange('tp1', e.target.value)} fullWidth
                       error={!!errors.tp1_pips}
-                      helperText={errors.tp1_pips || (tp1 > 0 ? `${tp1.toFixed(1)} pips` : '')}
+                      helperText={errors.tp1_pips || (tp1 > 0 ? `${tp1.toFixed(2)} pips` : '')}
                       inputProps={{ step: pipSize }} disabled={loading} />
                     <TextField label="SL2 (Prezzo)" type="number" value={sl2Price}
                       onChange={e => handlePriceChange('sl2', e.target.value)} fullWidth
-                      helperText={(formData.sl2_pips ?? 0) > 0 ? `${(formData.sl2_pips ?? 0).toFixed(1)} pips` : ''}
+                      helperText={(formData.sl2_pips ?? 0) > 0 ? `${(formData.sl2_pips ?? 0).toFixed(2)} pips` : ''}
                       inputProps={{ step: pipSize }} disabled={loading} />
                     <TextField label="TP2 (Prezzo)" type="number" value={tp2Price}
                       onChange={e => handlePriceChange('tp2', e.target.value)} fullWidth
-                      helperText={(formData.tp2_pips ?? 0) > 0 ? `${(formData.tp2_pips ?? 0).toFixed(1)} pips` : ''}
+                      helperText={(formData.tp2_pips ?? 0) > 0 ? `${(formData.tp2_pips ?? 0).toFixed(2)} pips` : ''}
                       inputProps={{ step: pipSize }} disabled={loading} />
                   </>
                 )}

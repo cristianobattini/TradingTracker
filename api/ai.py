@@ -1,61 +1,85 @@
 import os
-
-try:
-    from azure.ai.inference import ChatCompletionsClient
-    from azure.ai.inference.models import SystemMessage, UserMessage
-    from azure.core.credentials import AzureKeyCredential
-    _azure_available = True
-except ImportError:
-    _azure_available = False
-
-_client = None
-
-def _get_client():
-    global _client
-    if _client is not None:
-        return _client
-
-    if not _azure_available:
-        raise RuntimeError(
-            "azure-ai-inference is not installed. "
-            "Run: pip install azure-ai-inference"
-        )
-
-    token = os.environ.get("GITHUB_TOKEN")
-    if not token:
-        raise RuntimeError("GITHUB_TOKEN environment variable is not set.")
-
-    _client = ChatCompletionsClient(
-        endpoint="https://models.github.ai/inference",
-        credential=AzureKeyCredential(token),
-    )
-    return _client
-
-_MODEL = "deepseek/DeepSeek-V3-0324"
-
-def ask_ai(question: str) -> str:
-    client = _get_client()
-    response = client.complete(
-        messages=[
-            SystemMessage(content="You are a professional trader evaluating other traders work and giving alerts."),
-            UserMessage(content=question),
-        ],
-        temperature=1.0,
-        top_p=1.0,
-        max_tokens=1000,
-        model=_MODEL,
-    )
-    return response.choices[0].message.content
-
-# === EXCEL ===
 import json
+import requests
+
+# ---------------------------------------------------------------------------
+# OpenRouter configuration
+# ---------------------------------------------------------------------------
+
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+FREE_MODELS = [
+    {"id": "deepseek/deepseek-chat-v3-0324:free",      "name": "DeepSeek Chat V3 (Free)"},
+    {"id": "meta-llama/llama-4-scout:free",            "name": "Meta Llama 4 Scout (Free)"},
+    {"id": "meta-llama/llama-4-maverick:free",         "name": "Meta Llama 4 Maverick (Free)"},
+    {"id": "google/gemma-3-27b-it:free",               "name": "Google Gemma 3 27B (Free)"},
+    {"id": "google/gemma-2-9b-it:free",                "name": "Google Gemma 2 9B (Free)"},
+    {"id": "mistralai/mistral-7b-instruct:free",       "name": "Mistral 7B Instruct (Free)"},
+    {"id": "qwen/qwen3-8b:free",                       "name": "Qwen 3 8B (Free)"},
+    {"id": "microsoft/phi-4-reasoning-plus:free",      "name": "Microsoft Phi-4 Reasoning+ (Free)"},
+]
+
+_current_model: str = os.environ.get("OPENROUTER_MODEL", "deepseek/deepseek-chat-v3-0324:free")
+
+
+def get_model() -> str:
+    return _current_model
+
+
+def set_model(model_id: str) -> None:
+    global _current_model
+    valid_ids = {m["id"] for m in FREE_MODELS}
+    if model_id not in valid_ids:
+        raise ValueError(f"Unknown model: {model_id}")
+    _current_model = model_id
+
+
+def get_free_models() -> list[dict]:
+    return FREE_MODELS
+
+
+# ---------------------------------------------------------------------------
+# Core call
+# ---------------------------------------------------------------------------
+
+def ask_ai(question: str, system: str = "You are a professional trader evaluating other traders work and giving alerts.") -> str:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY environment variable is not set.")
+
+    payload = {
+        "model": _current_model,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user",   "content": question},
+        ],
+        "max_tokens": 2000,
+    }
+
+    resp = requests.post(
+        OPENROUTER_BASE_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://tradingtracker.app",
+            "X-Title": "TradingTracker",
+        },
+        json=payload,
+        timeout=90,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
+
+# ---------------------------------------------------------------------------
+# Excel import helpers
+# ---------------------------------------------------------------------------
 
 def ai_map_columns(excel_columns: list[str], sample_rows: dict) -> dict:
     """
     Ask AI to map Excel columns to Trade model fields.
     Returns a dict: {excel_column: trade_field}
     """
-
     prompt = f"""
 You are a professional trader and data analyst.
 
@@ -91,14 +115,12 @@ Rules:
 - Values = Trade fields OR null if irrelevant
 - Do NOT invent fields
 """
-
     raw = ask_ai(prompt)
-
-    # Extract JSON safely
     start = raw.find("{")
     end = raw.rfind("}") + 1
     return json.loads(raw[start:end])
- 
+
+
 import pandas as pd
 from datetime import datetime
 from models import Trade
@@ -122,11 +144,11 @@ TRADE_FIELDS = {
 def import_excel_ai(file_path: str, owner_id: int):
     df = pd.read_excel(file_path)
     df.columns = df.columns.astype(str)
-    
+
     df = df.apply(
-    lambda col: pd.to_datetime(col, errors="coerce")
-    if "date" in col.name.lower()
-    else col
+        lambda col: pd.to_datetime(col, errors="coerce")
+        if "date" in col.name.lower()
+        else col
     )
 
     df = df.apply(
@@ -149,7 +171,6 @@ def import_excel_ai(file_path: str, owner_id: int):
         conversion_errors = []
 
         for field in TRADE_FIELDS:
-            # find excel column mapped to this field
             excel_cols = [
                 col for col, mapped in column_mapping.items()
                 if mapped == field
@@ -193,4 +214,3 @@ def import_excel_ai(file_path: str, owner_id: int):
             })
 
     return trades, issues
-

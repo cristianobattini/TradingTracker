@@ -27,9 +27,8 @@ SQLAlchemy==2.0.43
 starlette==0.47.3
 typing_extensions==4.15.0
 uvicorn==0.35.0
-openai==2.11.0
 pandas==2.3.3
-azure-ai-inference==1.0.0b3
+requests>=2.31.0
 
 # News & Calendar
 feedparser==6.0.12

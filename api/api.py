@@ -267,6 +267,25 @@ def ask_question(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/ai/models")
+def get_ai_models(current_user: User = Depends(get_current_user)):
+    """Return the list of available free OpenRouter models and the currently selected one."""
+    from ai import get_free_models, get_model
+    return {"models": get_free_models(), "current": get_model()}
+
+
+@router.put("/ai/model")
+def set_ai_model(model_id: str, current_user: User = Depends(get_current_user)):
+    """Change the active OpenRouter model (any authenticated user)."""
+    from ai import set_model
+    try:
+        set_model(model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"model": model_id}
+
+
 # === USER MANAGEMENT ===
 
 # --- User registration by admin ---
