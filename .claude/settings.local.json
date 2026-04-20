@@ -7,7 +7,19 @@
       "Bash(python -m alembic heads)",
       "Bash(python -m alembic current)",
       "Bash(grep -h \"^down_revision\\\\|^revision\" \"C:/Users/crist/desktop/TradingTracker/alembic/versions/\"*.py)",
-      "Bash(python -m alembic upgrade add_share_pinned)"
+      "Bash(python -m alembic upgrade add_share_pinned)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(yarn add:*)",
+      "Bash(python -c \"import ai; print\\('ai.py OK'\\); print\\('models:', [m['id'] for m in ai.get_free_models\\(\\)]\\)\")",
+      "Bash(python3 -c \"import ai; print\\('ai.py OK'\\); print\\('models:', [m['id'] for m in ai.get_free_models\\(\\)]\\)\")",
+      "Bash(pip3 show:*)",
+      "Bash(yarn tsc:*)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(curl -s \"https://openrouter.ai/api/v1/models\")",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
